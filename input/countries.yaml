@@ -1,0 +1,111 @@
+AL:
+  name: Albania
+  zones: [AL00] 
+AT:
+  name: Austria
+  zones: [AT00]
+BA:
+  name: Bosnia and Herzegovina
+  zones: [BA00]
+BE:
+  name: Belgium
+  zones: [BE00]
+BG:
+  name: Bulgaria
+  zones: [BG00]
+CH:
+  name: Switzerland
+  zones: [CH00]
+CY:
+  name: Cyprus
+  zones: [CY00]
+CZ:
+  name: Czech Republic
+  zones: [CZ00]
+DE:
+  name: Germany
+  zones: [DE00]
+DK:
+  name: Denmark
+  zones: [DKE1, DKW1]
+EE:
+  name: Estonia
+  zones: [EE00]
+ES:
+  name: Spain
+  zones: [ES00]
+FI:
+  name: Finland
+  zones: [FI00]
+FR:
+  name: France
+  zones: [FR00, FR15]
+GR:
+  name: Greece
+  zones: [GR00, GR03]
+HR:
+  name: Croatia
+  zones: [HR00]
+HU:
+  name: Hungary
+  zones: [HU00]
+IE:
+  name: Ireland
+  zones: [IE00]
+IT:
+  name: Italy
+  zones: [ITCA, ITCN, ITCS, ITN1, ITS1, ITSA, ITSI]
+LT:
+  name: Lithuania
+  zones: [LT00]
+LU:
+  name: Luxembourg
+  zones: [LUB1, LUF1, LUG1]
+LV:
+  name: Latvia
+  zones: [LV00]
+ME:
+  name: Montenegro
+  zones: [ME00]
+MK:
+  name: FYR of Macedonia
+  zones: [MK00]
+MT:
+  name: Malta
+  zones: [MT00]
+NL:
+  name: Netherlands
+  zones: [NL00
+NO:
+  name: Norway
+  zones: [NOM1, NON1, NOS0]
+PL:
+  name: Poland
+  zones: [PL00]
+PT:
+  name: Portugal
+  zones: [PT00]
+RO:
+  name: Romania
+  zones: [RO00]
+RS:
+  name: Serbia
+  zones: [RS00]
+SE:
+  name: Sweden
+  zones: [SE01, SE02, SE03, SE04]
+SI:
+  name: Slovenia
+  zones: [SI00]
+SK:
+  name: Slovak Republic
+  zones: [SK00]
+TR:
+  name: Republic of Turkey
+  zones: [TR00]
+UA:
+  name: Ukraine
+  zones: [UA01]
+UK:
+  name: United Kingdom
+  zones: [UK00, UKNI]
