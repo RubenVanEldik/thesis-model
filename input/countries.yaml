@@ -1,6 +1,6 @@
 AL:
   name: Albania
-  zones: [AL00] 
+  zones: [AL00]
 AT:
   name: Austria
   zones: [AT00]
@@ -75,7 +75,7 @@ MT:
   zones: [MT00]
 NL:
   name: Netherlands
-  zones: [NL00
+  zones: [NL00]
 NO:
   name: Norway
   zones: [NOM1, NON1, NOS0]
