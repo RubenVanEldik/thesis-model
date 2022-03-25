@@ -6,9 +6,7 @@ def get_bidding_zones():
     """
     Returns all bidding zones using the demand Excel file for 2030
     """
-    xl = pd.ExcelFile(
-        f"../input/eraa/Demand Data/Demand_TimeSeries_2030_NationalEstimates.xlsx"
-    )
+    xl = pd.ExcelFile(f"../input/eraa/Demand Data/Demand_TimeSeries_2030_NationalEstimates.xlsx")
     return xl.sheet_names
 
 
