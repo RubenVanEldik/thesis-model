@@ -87,12 +87,11 @@ def run(year, countries, data_range):
             Step 3: Add constraints
             """
             hourly_data = get_hourly_data(year, bidding_zone, range=data_range)
-
-            # Add demand constraints
-            model.addConstrs(
-                create_demand_constraint(hourly_data.loc[timestamp], capacity)
-                for timestamp in hourly_data.index
-            )
+            with st.spinner("Adding demand constraints"):
+                model.addConstrs(
+                    create_demand_constraint(hourly_data.loc[timestamp], capacity)
+                    for timestamp in hourly_data.index
+                )
 
             """
             Step 4: Set objective function
