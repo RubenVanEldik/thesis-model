@@ -11,7 +11,7 @@ def get_bidding_zones():
     return xl.sheet_names
 
 
-def get_relevant_sheet_names(filename, zone):
+def get_relevant_sheet_names(filepath, zone):
     """
     Returns the relevant Excel sheets for a specific bidding zone
     """
@@ -68,22 +68,22 @@ def get_relevant_sheet_names(filename, zone):
     # Return a sorted list of all relevant sheet names
     relevant_sheet_names = [
         sheet_name
-        for sheet_name in pd.ExcelFile(filename).sheet_names
+        for sheet_name in pd.ExcelFile(filepath).sheet_names
         if sheet_belongs_to_zone(sheet_name, zone)
     ]
     relevant_sheet_names.sort()
     return relevant_sheet_names
 
 
-def import_data(data, filename, *, bidding_zone, column_name=None):
+def import_data(data, filepath, *, bidding_zone, column_name=None):
     """
     Find and add all the relevant columns from a specific Excel file to the data DataFrame
     """
-    relevant_zones = get_relevant_sheet_names(filename, bidding_zone)
+    relevant_zones = get_relevant_sheet_names(filepath, bidding_zone)
     for zone in relevant_zones:
         # Import the Excel sheet for a zone
         sheet = pd.read_excel(
-            filename,
+            filepath,
             sheet_name=zone,
             index_col=[0, 1],
             skiprows=10,
