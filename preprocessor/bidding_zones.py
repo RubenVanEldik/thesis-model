@@ -19,7 +19,6 @@ def get_relevant_sheet_names(filename, zone):
         """
         Check if a specific sheet belongs to a bidding zone
         """
-
         # Return True if its an exact match
         if sheet == zone:
             return True
@@ -110,12 +109,12 @@ def import_data(data, filename, *, bidding_zone, column_name=None):
             new_column = new_column.append(data_year)
 
         # Add the new column to the DataFrame or create a new data DataFrame if it doesn't exist yet
-        column_name = column_name.replace("{zone}", zone[2:])
+        formatted_column_name = column_name.replace("{zone}", zone[2:])
         if data is None:
-            new_column.name = column_name
+            new_column.name = formatted_column_name
             data = new_column.to_frame()
         else:
-            data[column_name] = new_column
+            data[formatted_column_name] = new_column
 
     # Return the DataFrame with the newly created column
     return data
