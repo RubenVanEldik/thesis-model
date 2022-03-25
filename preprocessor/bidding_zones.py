@@ -1,5 +1,6 @@
 import pandas as pd
 from datetime import datetime
+import utils
 
 
 def get_bidding_zones():
@@ -74,18 +75,6 @@ def get_relevant_sheet_names(filename, zone):
     return relevant_sheet_names
 
 
-def create_datetime_index(index, year):
-    """
-    Change a multiIndex (01.01, 23) into an ISO datetime string
-    """
-    new_index = []
-    for [date, hour] in index:
-        day, month, *rest = date.split(".")
-        hour = str(hour - 1).rjust(2, "0")
-        new_index.append(f"{year}-{month}-{day}T{hour}:00:00Z")
-    return new_index
-
-
 def import_data(data, filename, *, bidding_zone, column_name=None):
     """
     Find and add all the relevant columns from a specific Excel file to the data DataFrame
@@ -105,7 +94,7 @@ def import_data(data, filename, *, bidding_zone, column_name=None):
         new_column = pd.Series([], dtype="float64")
         for year_column in sheet.columns:
             data_year = sheet[year_column]
-            data_year.index = create_datetime_index(sheet.index, year_column)
+            data_year.index = utils.create_datetime_index(sheet.index, year_column)
             new_column = new_column.append(data_year)
 
         # Add the new column to the DataFrame or create a new data DataFrame if it doesn't exist yet
