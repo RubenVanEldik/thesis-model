@@ -34,28 +34,31 @@ def get_climate_zones(year, bidding_zone):
     }
 
 
+def sum_all_climate_zones(climate_zones, *, func=None):
+    """
+    Return the sum of all climate zones, if a function is defined it will be used to calculate the value
+    """
+    if func is None:
+        return gp.quicksum(climate_zones[column] for column in climate_zones)
+    return gp.quicksum(func(climate_zones[column], column) for column in climate_zones)
+
+
+def retrieve_variables(model, variables):
+    """
+    Retrieve the value of the variables after the model has been run
+    """
+    return model.getAttr("x", variables).values()
+
+
 def create_demand_constraint(data, capacity):
     """
     Return an object with the climate zone names for wind and PV
     """
-    pv_production = gp.quicksum(
-        [
-            data[climate_zone_column] * capacity["pv"][climate_zone_column]
-            for climate_zone_column in capacity["pv"]
-        ]
-    )
-    onshore_production = gp.quicksum(
-        [
-            data[climate_zone_column] * capacity["onshore"][climate_zone_column]
-            for climate_zone_column in capacity["onshore"]
-        ]
-    )
-    offshore_production = gp.quicksum(
-        [
-            data[climate_zone_column] * capacity["offshore"][climate_zone_column]
-            for climate_zone_column in capacity["offshore"]
-        ]
-    )
+    calculate_output = lambda capacity, climate_zone: capacity * data[climate_zone]
+
+    pv_production = sum_all_climate_zones(capacity["pv"], func=calculate_output)
+    onshore_production = sum_all_climate_zones(capacity["onshore"], func=calculate_output)
+    offshore_production = sum_all_climate_zones(capacity["offshore"], func=calculate_output)
 
     return pv_production + onshore_production + offshore_production >= data.demand_MWh
 
@@ -77,7 +80,7 @@ def run(year, countries, data_range):
             climate_zones = get_climate_zones(year, bidding_zone)
 
             # Add production capacity variables
-            capacity = {
+            capacity_per_technology = {
                 "pv": model.addVars(climate_zones["pv"]),
                 "onshore": model.addVars(climate_zones["onshore"]),
                 "offshore": model.addVars(climate_zones["offshore"]),
@@ -89,25 +92,20 @@ def run(year, countries, data_range):
             hourly_data = get_hourly_data(year, bidding_zone, range=data_range)
             with st.spinner("Adding demand constraints"):
                 model.addConstrs(
-                    create_demand_constraint(hourly_data.loc[timestamp], capacity)
+                    create_demand_constraint(hourly_data.loc[timestamp], capacity_per_technology)
                     for timestamp in hourly_data.index
                 )
 
             """
             Step 4: Set objective function
             """
-            pv_capacity = gp.quicksum(
-                capacity["pv"][climate_zone_column] for climate_zone_column in capacity["pv"]
-            )
-            onshore_capacity = gp.quicksum(
-                capacity["onshore"][climate_zone_column]
-                for climate_zone_column in capacity["onshore"]
-            )
-            offshore_capacity = gp.quicksum(
-                capacity["offshore"][climate_zone_column]
-                for climate_zone_column in capacity["offshore"]
-            )
-            total_capacity = pv_capacity + onshore_capacity + offshore_capacity
+            total_capacity_per_technology = {
+                "pv": sum_all_climate_zones(capacity_per_technology["pv"]),
+                "onshore": sum_all_climate_zones(capacity_per_technology["onshore"]),
+                "offshore": sum_all_climate_zones(capacity_per_technology["offshore"]),
+            }
+
+            total_capacity = sum(total_capacity_per_technology.values())
             model.setObjective(total_capacity, gp.GRB.MINIMIZE)
 
             """
@@ -131,9 +129,9 @@ def run(year, countries, data_range):
             """
             Step 6: Get the final values of the variables
             """
-            installed_pv = sum(model.getAttr("x", capacity["pv"]).values())
-            installed_onshore = sum(model.getAttr("x", capacity["onshore"]).values())
-            installed_offshore = sum(model.getAttr("x", capacity["offshore"]).values())
+            installed_pv = sum(retrieve_variables(model, capacity_per_technology["pv"]))
+            installed_onshore = sum(retrieve_variables(model, capacity_per_technology["onshore"]))
+            installed_offshore = sum(retrieve_variables(model, capacity_per_technology["offshore"]))
 
             """
             Step 7: Show results
