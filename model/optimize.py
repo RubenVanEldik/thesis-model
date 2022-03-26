@@ -107,8 +107,8 @@ def run(year, countries, data_range):
                 capacity["offshore"][climate_zone_column]
                 for climate_zone_column in capacity["offshore"]
             )
-            total_production = pv_capacity + onshore_capacity + offshore_capacity
-            model.setObjective(total_production, gp.GRB.MINIMIZE)
+            total_capacity = pv_capacity + onshore_capacity + offshore_capacity
+            model.setObjective(total_capacity, gp.GRB.MINIMIZE)
 
             """
             Step 5: Solve model
