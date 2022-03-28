@@ -16,7 +16,7 @@ def import_technologies():
     """
     Import the technology data from NREL's Annual Technology Baseline
     """
-    return pd.read_csv("../input/technologies/atb.csv", index_col=0)
+    return pd.read_csv("../input/technologies/annual_technology_baseline.csv", index_col=0)
 
 
 def get_technologies():
