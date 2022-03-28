@@ -21,10 +21,9 @@ def _pv(capacity_MW, *, year, parameter):
 
     # Calculate the average
     average_value = 0
-    for pv_scale in assumptions["scales"]:
-        share = float(assumptions["scales"][pv_scale])
+    for pv_scale, share in assumptions["scales"].items():
         value = technologies.get_pv_param(pv_scale, parameter=parameter, year=year)
-        average_value += share * value
+        average_value += float(share) * value
 
     # Return the average value
     return average_value
@@ -46,12 +45,11 @@ def _wind(type, capacity_MW, *, year, parameter):
 
     # Calculate the average
     average_value = 0
-    for resource_class in assumptions["classes"]:
-        share = float(assumptions["classes"][resource_class])
+    for resource_class, share in assumptions["classes"].items():
         value = technologies.get_wind_param(
             technology, parameter=parameter, year=year, resource_class=resource_class
         )
-        average_value += share * value
+        average_value += float(share) * value
 
     # Return the average value
     return average_value

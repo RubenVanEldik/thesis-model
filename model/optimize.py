@@ -40,8 +40,8 @@ def sum_all_climate_zones(climate_zones, *, func=None):
     Return the sum of all climate zones, if a function is defined it will be used to calculate the value
     """
     if func is None:
-        return gp.quicksum(climate_zones[column] for column in climate_zones)
-    return gp.quicksum(func(climate_zones[column], column) for column in climate_zones)
+        return gp.quicksum(climate_zone for climate_zone in climate_zones.values())
+    return gp.quicksum(func(climate_zone, column) for column, climate_zone in climate_zones.items())
 
 
 def retrieve_variables(model, variables):
