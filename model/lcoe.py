@@ -13,7 +13,7 @@ def _calculate_lifetime_costs(annual_costs, wacc, lifetime):
     return lifetime_costs
 
 
-def _pv(capacity_MW, *, year, parameter):
+def _pv(parameter, *, year):
     """
     Calculate the average value of a specific parameter for PV
     """
@@ -29,7 +29,7 @@ def _pv(capacity_MW, *, year, parameter):
     return average_value
 
 
-def _wind(type, capacity_MW, *, year, parameter):
+def _wind(type, parameter, *, year):
     """
     Calculate the average value for a specific parameter for onshore or offshore wind
     """
@@ -55,38 +55,38 @@ def _wind(type, capacity_MW, *, year, parameter):
     return average_value
 
 
-def calculate(generation_capacity, demand, year):
+def calculate(generation_capacity_MW, demand_MWh, year):
     """
     Calculate the levelized cost of energy using a given capacity and demand
     """
     # Unpack capacity variables
-    capacity_pv = generation_capacity["pv"]
-    capacity_onshore = generation_capacity["onshore"]
-    capacity_offshore = generation_capacity["offshore"]
+    capacity_pv_kWh = generation_capacity_MW["pv"] * 1000
+    capacity_onshore_kWh = generation_capacity_MW["onshore"] * 1000
+    capacity_offshore_kWh = generation_capacity_MW["offshore"] * 1000
 
     # Calculate CAPEX
     parameter = "CAPEX"
-    capex_pv = _pv(capacity_pv, year=year, parameter=parameter)
-    capex_onshore = _wind("onshore", capacity_onshore, year=year, parameter=parameter)
-    capex_offshore = _wind("offshore", capacity_offshore, year=year, parameter=parameter)
+    capex_pv = capacity_pv_kWh * _pv(parameter, year=year)
+    capex_onshore = capacity_onshore_kWh * _wind("onshore", parameter, year=year)
+    capex_offshore = capacity_offshore_kWh * _wind("offshore", parameter, year=year)
 
     # Calculate annual fixed O&M
     parameter = "Fixed O&M"
-    fixed_om_pv = _pv(capacity_pv, year=year, parameter=parameter)
-    fixed_om_onshore = _wind("onshore", capacity_onshore, year=year, parameter=parameter)
-    fixed_om_offshore = _wind("offshore", capacity_offshore, year=year, parameter=parameter)
+    fixed_om_pv = capacity_pv_kWh * _pv(parameter, year=year)
+    fixed_om_onshore = capacity_onshore_kWh * _wind("onshore", parameter, year=year)
+    fixed_om_offshore = capacity_offshore_kWh * _wind("offshore", parameter, year=year)
 
-    # # Calculate annual variable O&M
+    # Calculate annual variable O&M
     parameter = "Variable O&M"
-    variable_om_pv = _pv(capacity_pv, year=year, parameter=parameter)
-    variable_om_onshore = _wind("onshore", capacity_onshore, year=year, parameter=parameter)
-    variable_om_offshore = _wind("offshore", capacity_offshore, year=year, parameter=parameter)
+    variable_om_pv = capacity_pv_kWh * _pv(parameter, year=year)
+    variable_om_onshore = capacity_onshore_kWh * _wind("onshore", parameter, year=year)
+    variable_om_offshore = capacity_offshore_kWh * _wind("offshore", parameter, year=year)
 
     # Calculate WACC
     parameter = "WACC Nominal"
-    wacc_pv = _pv(1, year=year, parameter=parameter)
-    wacc_onshore = _wind("onshore", 1, year=year, parameter=parameter)
-    wacc_offshore = _wind("offshore", 1, year=year, parameter=parameter)
+    wacc_pv = _pv(parameter, year=year)
+    wacc_onshore = _wind("onshore", parameter, year=year)
+    wacc_offshore = _wind("offshore", parameter, year=year)
 
     # Get the lifetime of the technologies
     assumptions = utils.open_yaml("../input/technologies/assumptions.yaml")
@@ -106,7 +106,7 @@ def calculate(generation_capacity, demand, year):
     # Calculate the total of all parts
     total_capex = capex_pv + capex_onshore + capex_offshore
     total_om = lifetime_om_pv + lifetime_om_onshore + lifetime_om_offshore
-    total_electricity_consumption = demand.sum()
+    total_electricity_consumption = demand_MWh.sum()
 
     # Calculate and return the CAPEX
     capex = (total_capex + total_om) / total_electricity_consumption
