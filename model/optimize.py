@@ -19,7 +19,7 @@ def get_hourly_data(year, bidding_zone, *, range=None, only_headers=False):
 
     if not range:
         return data
-    return data[range[0] : range[1]]
+    return data[range[0].strftime("%Y-%m-%d 00:00:00") : range[1].strftime("%Y-%m-%d 23:59:59")]
 
 
 def get_climate_zones(year, bidding_zone):
