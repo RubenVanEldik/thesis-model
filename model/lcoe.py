@@ -78,6 +78,7 @@ def calculate(generation_capacity_MW, demand_MWh, year):
     fixed_om_offshore = capacity_offshore_kWh * _wind("offshore", parameter, year=year)
 
     # Calculate annual variable O&M
+    # TODO: The current variable calculation is wrong, but because its 0 it does not matter yet
     parameter = "Variable O&M"
     variable_om_pv = capacity_pv_kWh * _pv(parameter, year=year)
     variable_om_onshore = capacity_onshore_kWh * _wind("onshore", parameter, year=year)
@@ -95,7 +96,7 @@ def calculate(generation_capacity_MW, demand_MWh, year):
     lifetime_onshore = int(assumptions["onshore"]["lifetime"])
     lifetime_offshore = int(assumptions["offshore"]["lifetime"])
 
-    # Calculate total fixed O&M
+    # Calculate total O&M
     lifetime_om_pv = _calculate_lifetime_costs(fixed_om_pv + variable_om_pv, wacc_pv, lifetime_pv)
     lifetime_om_onshore = _calculate_lifetime_costs(
         fixed_om_onshore + variable_om_onshore, wacc_onshore, lifetime_onshore
