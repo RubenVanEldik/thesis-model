@@ -131,6 +131,7 @@ def run(year, countries, data_range):
             """
             Step 6: Get the final values of the variables
             """
+            final_lcoe = model.getObjective().getValue()
             installed_pv = sum(retrieve_variables(model, capacity_per_technology["pv"]))
             installed_onshore = sum(retrieve_variables(model, capacity_per_technology["onshore"]))
             installed_offshore = sum(retrieve_variables(model, capacity_per_technology["offshore"]))
@@ -138,7 +139,8 @@ def run(year, countries, data_range):
             """
             Step 7: Show results
             """
-            col1, col2, col3 = st.columns(3)
-            col1.metric("Solar PV", f"{int(installed_pv / 1000):,}GW")
-            col2.metric("Onshore wind", f"{int(installed_onshore / 1000):,}GW")
-            col3.metric("Offshore wind", f"{int(installed_offshore / 1000):,}GW")
+            col1, col2, col3, col4 = st.columns(4)
+            col1.metric("LCOE", f"{round(final_lcoe, 2)}€/MWh")
+            col2.metric("Solar PV", f"{int(installed_pv / 1000):,}GW")
+            col3.metric("Onshore wind", f"{int(installed_onshore / 1000):,}GW")
+            col4.metric("Offshore wind", f"{int(installed_offshore / 1000):,}GW")

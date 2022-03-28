@@ -1,3 +1,4 @@
+import pandas as pd
 import streamlit as st
 import utils
 import technologies
@@ -103,10 +104,17 @@ def calculate(generation_capacity_MW, demand_MWh, year):
         fixed_om_offshore + variable_om_offshore, wacc_offshore, lifetime_offshore
     )
 
-    # Calculate the total of all parts
+    # Calculate the total CAPEX and O&M
     total_capex = capex_pv + capex_onshore + capex_offshore
     total_om = lifetime_om_pv + lifetime_om_onshore + lifetime_om_offshore
-    total_electricity_consumption = demand_MWh.sum()
+
+    # Calculate the total electricity demand over the lifetime
+    demand_start_date = demand_MWh.index.min()
+    demand_end_date = demand_MWh.index.max()
+    # TODO: The current average_lifetime is more wrong than trickle-down economics
+    average_lifetime = pd.Timedelta(20 * 365, "days")
+    share_of_lifetime_modeled = (demand_end_date - demand_start_date) / average_lifetime
+    total_electricity_consumption = demand_MWh.sum() / share_of_lifetime_modeled
 
     # Calculate and return the CAPEX
     capex = (total_capex + total_om) / total_electricity_consumption
