@@ -127,6 +127,7 @@ def run(year, countries, data_range):
                     st.success(message)
                 else:
                     st.error("The model could not be resolved")
+                    return
 
             """
             Step 6: Get the final values of the variables
