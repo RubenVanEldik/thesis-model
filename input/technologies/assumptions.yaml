@@ -1,0 +1,31 @@
+pv:
+  lifetime: 20
+  scales:
+    ResPV: 0.333
+    CommPV: 0.333
+    UtilityPV: 0.334
+
+onshore:
+  lifetime: 20
+  classes:
+    Class1: 0.1
+    Class2: 0.1
+    Class3: 0.1
+    Class4: 0.1
+    Class5: 0.1
+    Class6: 0.1
+    Class7: 0.1
+    Class8: 0.1
+    Class9: 0.1
+    Class10: 0.1
+
+offshore:
+  lifetime: 20
+  classes:
+    Class1: 0.142858
+    Class2: 0.142857
+    Class3: 0.142857
+    Class4: 0.142857
+    Class5: 0.142857
+    Class6: 0.142857
+    Class7: 0.142857
