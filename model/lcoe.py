@@ -118,5 +118,6 @@ def calculate(generation_capacity_MW, demand_MWh, year):
     total_electricity_consumption = demand_MWh.sum() / share_of_lifetime_modeled
 
     # Calculate and return the CAPEX
-    capex = (total_capex + total_om) / total_electricity_consumption
-    return capex
+    capex_dollar = (total_capex + total_om) / total_electricity_consumption
+    eur_usd = 1.1290  # Source: https://www.federalreserve.gov/releases/h10/20220110/
+    return capex_dollar / eur_usd
