@@ -12,4 +12,4 @@ def open_yaml(filepath):
 
     # Read and parse the file
     with open(filepath) as f:
-        return yaml.load(f, Loader=yaml.BaseLoader)
+        return yaml.load(f, Loader=yaml.SafeLoader)

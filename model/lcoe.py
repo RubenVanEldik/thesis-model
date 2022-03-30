@@ -14,48 +14,6 @@ def _calculate_lifetime_costs(annual_costs, wacc, lifetime):
     return lifetime_costs
 
 
-def _pv(parameter, *, year):
-    """
-    Calculate the average value of a specific parameter for PV
-    """
-    assumptions = technologies.assumptions("generation", "pv")
-
-    # Calculate the average
-    average_value = 0
-    for pv_scale, share in assumptions["scales"].items():
-        value = technologies.get_pv_param(pv_scale, parameter=parameter, year=year)
-        average_value += float(share) * value
-
-    # Return the average value
-    return average_value
-
-
-def _wind(type, parameter, *, year):
-    """
-    Calculate the average value for a specific parameter for onshore or offshore wind
-    """
-    assumptions = technologies.assumptions("generation", type)
-
-    # Set the correct NREL technology name
-    if type == "onshore":
-        technology = "LandbasedWind"
-    elif type == "offshore":
-        technology = "OffShoreWind"
-    else:
-        raise ValueError("Invalid wind resource type")
-
-    # Calculate the average
-    average_value = 0
-    for resource_class, share in assumptions["classes"].items():
-        value = technologies.get_wind_param(
-            technology, parameter=parameter, year=year, resource_class=resource_class
-        )
-        average_value += float(share) * value
-
-    # Return the average value
-    return average_value
-
-
 def calculate(generation_capacity_MW, demand_MWh, year):
     """
     Calculate the levelized cost of energy using a given capacity and demand
@@ -65,36 +23,36 @@ def calculate(generation_capacity_MW, demand_MWh, year):
     capacity_onshore_kWh = generation_capacity_MW["onshore"] * 1000
     capacity_offshore_kWh = generation_capacity_MW["offshore"] * 1000
 
+    # Get all assumptions
+    assumptions_pv = technologies.assumptions("production", "pv")
+    assumptions_onshore = technologies.assumptions("production", "onshore")
+    assumptions_offshore = technologies.assumptions("production", "offshore")
+
     # Calculate CAPEX
-    parameter = "CAPEX"
-    capex_pv = capacity_pv_kWh * _pv(parameter, year=year)
-    capex_onshore = capacity_onshore_kWh * _wind("onshore", parameter, year=year)
-    capex_offshore = capacity_offshore_kWh * _wind("offshore", parameter, year=year)
+    capex_pv = capacity_pv_kWh * assumptions_pv["capex"]
+    capex_onshore = capacity_onshore_kWh * assumptions_onshore["capex"]
+    capex_offshore = capacity_offshore_kWh * assumptions_offshore["capex"]
 
     # Calculate annual fixed O&M
-    parameter = "Fixed O&M"
-    fixed_om_pv = capacity_pv_kWh * _pv(parameter, year=year)
-    fixed_om_onshore = capacity_onshore_kWh * _wind("onshore", parameter, year=year)
-    fixed_om_offshore = capacity_offshore_kWh * _wind("offshore", parameter, year=year)
+    fixed_om_pv = capacity_pv_kWh * assumptions_pv["fixed_om"]
+    fixed_om_onshore = capacity_onshore_kWh * assumptions_onshore["fixed_om"]
+    fixed_om_offshore = capacity_offshore_kWh * assumptions_offshore["fixed_om"]
 
     # Calculate annual variable O&M
     # TODO: The current variable calculation is wrong, but because its 0 it does not matter yet
-    parameter = "Variable O&M"
-    variable_om_pv = capacity_pv_kWh * _pv(parameter, year=year)
-    variable_om_onshore = capacity_onshore_kWh * _wind("onshore", parameter, year=year)
-    variable_om_offshore = capacity_offshore_kWh * _wind("offshore", parameter, year=year)
+    variable_om_pv = capacity_pv_kWh * assumptions_pv["variable_om"]
+    variable_om_onshore = capacity_onshore_kWh * assumptions_onshore["variable_om"]
+    variable_om_offshore = capacity_offshore_kWh * assumptions_offshore["variable_om"]
 
     # Calculate WACC
-    parameter = "WACC Nominal"
-    wacc_pv = _pv(parameter, year=year)
-    wacc_onshore = _wind("onshore", parameter, year=year)
-    wacc_offshore = _wind("offshore", parameter, year=year)
+    wacc_pv = assumptions_pv["wacc"]
+    wacc_onshore = assumptions_onshore["wacc"]
+    wacc_offshore = assumptions_offshore["wacc"]
 
     # Get the lifetime of the technologies
-    assumptions = utils.open_yaml("../input/technologies/assumptions.yaml")
-    lifetime_pv = int(assumptions["pv"]["lifetime"])
-    lifetime_onshore = int(assumptions["onshore"]["lifetime"])
-    lifetime_offshore = int(assumptions["offshore"]["lifetime"])
+    lifetime_pv = assumptions_pv["economic_lifetime"]
+    lifetime_onshore = assumptions_onshore["economic_lifetime"]
+    lifetime_offshore = assumptions_offshore["economic_lifetime"]
 
     # Calculate total O&M
     lifetime_om_pv = _calculate_lifetime_costs(fixed_om_pv + variable_om_pv, wacc_pv, lifetime_pv)

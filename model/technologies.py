@@ -3,99 +3,32 @@ import streamlit as st
 import utils
 
 
-def assumptions(type, technology=None):
+def assumptions(type, technology, *, scenario="moderate"):
     """
     Return the assumptions dictionary for a specific technology
     """
-    assumptions = utils.open_yaml("../input/technologies/assumptions.yaml")
+    # Validate the input
+    scenarios = ["conservative", "moderate", "advanced"]
+    assert type == "production" or type == "storage"
+    assert scenario in scenarios
 
-    if technology is None:
-        return assumptions[type]
-    return assumptions[type][technology]
+    # Import the assumptions
+    assumptions = utils.open_yaml(f"../input/technologies/assumptions/{type}.yaml")
+    assumptions = assumptions[technology]
 
+    # Merge the general and scenario specific assumptions
+    assumptions_scenario = {}
+    for key, value in assumptions.items():
+        if key in scenarios:
+            assumptions_scenario = {**assumptions_scenario, **assumptions[key]}
+        else:
+            assumptions_scenario[key] = value
 
-@st.experimental_memo
-def import_technologies():
-    """
-    Import the technology data from NREL's Annual Technology Baseline
-    """
-    return pd.read_csv("../input/technologies/annual_technology_baseline.csv", index_col=0)
+    # Calculate and add the economic capital recovery factor (crf)
+    if all(key in assumptions_scenario.values() for key in ["wacc", "economic_lifetime"]):
+        wacc = assumptions_scenario["wacc"]
+        economic_lifetime = assumptions_scenario["economic_lifetime"]
+        assumptions_scenario["crf"] = wacc / (1 - (1 + wacc) ^ (-economic_lifetime))
 
-
-def get_technologies():
-    """
-    Return a list of all technologies in the ATB
-    """
-    df = import_technologies()
-    return df.technology.unique()
-
-
-def get_parameters(technology):
-    """
-    Return a list of all parameters for a specific technology
-    """
-    df = import_technologies()
-    df = df[df.technology == technology]
-    return df.core_metric_parameter.unique()
-
-
-def get_pv_param(technology, *, year, parameter):
-    """
-    Return the value of a specific solar PV parameter
-    """
-    # Import the technology data
-    df = import_technologies()
-
-    # Filter the DataFrame
-    df = df[df.technology == technology]
-    df = df[df.core_metric_variable == year]
-    df = df[df.core_metric_parameter == parameter]
-    df = df[df.core_metric_case == "Market"]
-    df = df[df.crpyears == 30]
-    df = df[df.scenario == "Moderate"]
-
-    # Don't filter on class for the WACC
-    if parameter not in ["WACC Nominal", "WACC Real"]:
-        df = df[df.techdetail == "Class4"]  # Class does not affect the costs for PV
-
-    # Some values have a double value, use the key that starts with an 'R'
-    if df.shape[0] == 2:
-        df = df[df.core_metric_key.str.startswith("R")]
-
-    # Throw an error if the final DataFrame does not have 1 row
-    if df.shape[0] != 1:
-        raise ValueError("Ended with more than 1 value")
-
-    # Return the value of the last row
-    return df.iloc[0].value
-
-
-def get_wind_param(technology, *, year, parameter, resource_class):
-    """
-    Return the value of a specific wind parameter
-    """
-    # Import the technology data
-    df = import_technologies()
-
-    # Filter the technology DataFrame
-    df = df[df.technology == technology]
-    df = df[df.core_metric_variable == year]
-    df = df[df.core_metric_parameter == parameter]
-    df = df[df.core_metric_case == "Market"]
-    df = df[df.crpyears == 30]
-    df = df[df.scenario == "Moderate"]
-
-    # Don't filter on class for the WACC
-    if parameter not in ["WACC Nominal", "WACC Real"]:
-        df = df[df.techdetail == resource_class]
-
-    # Some values have a double value, use the key that starts with an 'R'
-    if df.shape[0] == 2:
-        df = df[df.core_metric_key.str.startswith("R")]
-
-    # Throw an error if the final DataFrame does not have 1 row
-    if df.shape[0] != 1:
-        raise ValueError("Ended with more than 1 value")
-
-    # Return the value of the last row
-    return df.iloc[0].value
+    # Return the assumptions for a specific scenario
+    return assumptions_scenario
