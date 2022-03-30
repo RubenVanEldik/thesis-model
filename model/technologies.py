@@ -25,10 +25,10 @@ def assumptions(type, technology, *, scenario="moderate"):
             assumptions_scenario[key] = value
 
     # Calculate and add the economic capital recovery factor (crf)
-    if all(key in assumptions_scenario.values() for key in ["wacc", "economic_lifetime"]):
+    if all(key in assumptions_scenario.keys() for key in ["wacc", "economic_lifetime"]):
         wacc = assumptions_scenario["wacc"]
         economic_lifetime = assumptions_scenario["economic_lifetime"]
-        assumptions_scenario["crf"] = wacc / (1 - (1 + wacc) ^ (-economic_lifetime))
+        assumptions_scenario["crf"] = wacc / (1 - (1 + wacc) ** (-economic_lifetime))
 
     # Return the assumptions for a specific scenario
     return assumptions_scenario

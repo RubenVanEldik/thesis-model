@@ -106,9 +106,8 @@ def run(year, countries, data_range):
                 "offshore": sum_all_climate_zones(capacity_per_technology["offshore"]),
             }
 
-            with st.spinner("Preparing LCOE objective"):
-                obj = lcoe.calculate(total_capacity_per_technology, hourly_data.demand_MWh, year)
-                model.setObjective(obj, gp.GRB.MINIMIZE)
+            obj = lcoe.calculate(total_capacity_per_technology, hourly_data.demand_MWh, year)
+            model.setObjective(obj, gp.GRB.MINIMIZE)
 
             """
             Step 5: Solve model
