@@ -13,7 +13,7 @@ def assumptions(type, technology, *, scenario="moderate"):
     assert scenario in scenarios
 
     # Import the assumptions
-    assumptions = utils.open_yaml(f"../input/technologies/assumptions/{type}.yaml")
+    assumptions = utils.open_yaml(f"../input/technologies/{type}.yaml")
     assumptions = assumptions[technology]
 
     # Merge the general and scenario specific assumptions
