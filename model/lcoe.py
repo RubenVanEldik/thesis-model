@@ -18,7 +18,7 @@ def _pv(parameter, *, year):
     """
     Calculate the average value of a specific parameter for PV
     """
-    assumptions = technologies.assumptions("pv")
+    assumptions = technologies.assumptions("generation", "pv")
 
     # Calculate the average
     average_value = 0
@@ -34,7 +34,7 @@ def _wind(type, parameter, *, year):
     """
     Calculate the average value for a specific parameter for onshore or offshore wind
     """
-    assumptions = technologies.assumptions(type)
+    assumptions = technologies.assumptions("generation", type)
 
     # Set the correct NREL technology name
     if type == "onshore":

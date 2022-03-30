@@ -3,12 +3,15 @@ import streamlit as st
 import utils
 
 
-def assumptions(technology):
+def assumptions(type, technology=None):
     """
     Return the assumptions dictionary for a specific technology
     """
     assumptions = utils.open_yaml("../input/technologies/assumptions.yaml")
-    return assumptions[technology]
+
+    if technology is None:
+        return assumptions[type]
+    return assumptions[type][technology]
 
 
 @st.experimental_memo
