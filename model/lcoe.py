@@ -28,11 +28,7 @@ def calculate(generation_capacity_MW, demand_MWh, year):
     fixed_om_onshore = capacity_onshore_kWh * assumptions_onshore["fixed_om"]
     fixed_om_offshore = capacity_offshore_kWh * assumptions_offshore["fixed_om"]
 
-    # Calculate annual variable O&M
-    # TODO: The current variable calculation is wrong, but because its 0 it does not matter yet
-    variable_om_pv = capacity_pv_kWh * assumptions_pv["variable_om"]
-    variable_om_onshore = capacity_onshore_kWh * assumptions_onshore["variable_om"]
-    variable_om_offshore = capacity_offshore_kWh * assumptions_offshore["variable_om"]
+    # None of the generation and storage technologies have variable O&M costs
 
     # Unpack capital recovery factors
     crf_pv = assumptions_pv["crf"]
@@ -46,9 +42,9 @@ def calculate(generation_capacity_MW, demand_MWh, year):
     annual_electricity_consumption = demand_MWh.sum() / share_of_lifetime_modeled
 
     # Calculate the total annualized costs
-    annual_costs_pv = crf_pv * capex_pv + fixed_om_pv + variable_om_pv
-    annual_costs_onshore = crf_onshore + capex_onshore + fixed_om_onshore + variable_om_onshore
-    annual_costs_offshore = crf_offshore + capex_offshore + fixed_om_offshore + variable_om_offshore
+    annual_costs_pv = crf_pv * capex_pv + fixed_om_pv
+    annual_costs_onshore = crf_onshore + capex_onshore + fixed_om_onshore
+    annual_costs_offshore = crf_offshore + capex_offshore + fixed_om_offshore
     total_annual_costs = annual_costs_pv + annual_costs_onshore + annual_costs_offshore
 
     # Calculate and return the LCOE
