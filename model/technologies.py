@@ -19,9 +19,9 @@ def assumptions(type, technology, *, scenario="moderate"):
     # Merge the general and scenario specific assumptions
     assumptions_scenario = {}
     for key, value in assumptions.items():
-        if key in scenarios:
+        if key == scenario:
             assumptions_scenario = {**assumptions_scenario, **assumptions[key]}
-        else:
+        elif key not in scenarios:
             assumptions_scenario[key] = value
 
     # Calculate and add the economic capital recovery factor (crf)
