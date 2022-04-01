@@ -4,7 +4,7 @@ import utils
 import technologies
 
 
-def calculate(generation_capacity_MW, storage_capacity_MWh, demand_MWh, year):
+def calculate(generation_capacity_MW, storage_capacity_MWh, demand_MWh):
     """
     Calculate the levelized cost of energy using a given capacity and demand
     """
