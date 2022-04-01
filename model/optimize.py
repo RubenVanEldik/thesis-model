@@ -2,6 +2,7 @@ import pandas as pd
 import gurobipy as gp
 import streamlit as st
 from datetime import datetime
+import validate
 import technologies
 import lcoe
 
@@ -11,6 +12,11 @@ def get_hourly_data(year, bidding_zone, *, range=None, only_headers=False):
     """
     Return the hourly data for a specific model year and bidding zone
     """
+    assert validate.is_model_year(year)
+    assert validate.is_bidding_zone(bidding_zone)
+    assert validate.is_date_range(range, required=False)
+    assert validate.is_bool(only_headers)
+
     filepath = f"../input/bidding_zones/{year}/{bidding_zone}.csv"
     nrows = 0 if only_headers else None
     data = pd.read_csv(filepath, parse_dates=True, index_col=0, nrows=nrows)
@@ -24,6 +30,9 @@ def get_climate_zones(year, bidding_zone):
     """
     Return an object with the climate zone names for wind and PV
     """
+    assert validate.is_model_year(year)
+    assert validate.is_bidding_zone(bidding_zone)
+
     columns = get_hourly_data(year, bidding_zone, only_headers=True).columns
 
     return {
@@ -37,6 +46,9 @@ def sum_all_climate_zones(climate_zones, *, func=None):
     """
     Return the sum of all climate zones, if a function is defined it will be used to calculate the value
     """
+    assert validate.is_climate_zone_dict(climate_zones)
+    assert validate.is_func(func, required=False)
+
     if func is None:
         return gp.quicksum(climate_zone for climate_zone in climate_zones.values())
     return gp.quicksum(func(climate_zone, column) for column, climate_zone in climate_zones.items())
@@ -46,6 +58,9 @@ def retrieve_variables(model, variables):
     """
     Retrieve the value of the variables after the model has been run
     """
+    assert validate.is_model(model)
+    assert validate.is_variable_tupledict(variables)
+
     return model.getAttr("x", variables).values()
 
 
@@ -53,6 +68,9 @@ def create_demand_constraint(data, capacity):
     """
     Return an object with the climate zone names for wind and PV
     """
+    assert validate.is_data_row(data)
+    assert all(validate.is_climate_zone_dict(x) for x in capacity.values())
+
     calculate_output = lambda capacity, climate_zone: capacity * data[climate_zone]
 
     pv_production = sum_all_climate_zones(capacity["pv"], func=calculate_output)
@@ -67,6 +85,10 @@ def run(year, countries, date_range):
     """
     Run the model!
     """
+    assert validate.is_model_year(year)
+    assert validate.is_country_obj_list(countries)
+    assert validate.is_date_range(date_range)
+
     for country in countries:
         for bidding_zone in country["zones"]:
             """

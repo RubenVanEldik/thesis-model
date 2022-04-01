@@ -1,14 +1,14 @@
 import pandas as pd
 import streamlit as st
 import utils
+import validate
 
 
 def technology_types(type):
     """
     Return a list of all technology types
     """
-    # Validate the input
-    assert type == "production" or type == "storage"
+    assert validate.is_technology_type(type)
 
     # Import the assumptions
     assumptions = utils.open_yaml(f"../input/technologies/{type}.yaml")
@@ -21,10 +21,9 @@ def assumptions(type, technology, *, scenario="moderate"):
     """
     Return the assumptions dictionary for a specific technology
     """
-    # Validate the input
-    scenarios = ["conservative", "moderate", "advanced"]
-    assert type == "production" or type == "storage"
-    assert scenario in scenarios
+    assert validate.is_technology_type(type)
+    assert validate.is_technology(technology)
+    assert validate.is_technology_scenario(scenario)
 
     # Import the assumptions
     assumptions = utils.open_yaml(f"../input/technologies/{type}.yaml")
@@ -35,7 +34,7 @@ def assumptions(type, technology, *, scenario="moderate"):
     for key, value in assumptions.items():
         if key == scenario:
             assumptions_scenario = {**assumptions_scenario, **assumptions[key]}
-        elif key not in scenarios:
+        elif not validate.is_technology_scenario(key):
             assumptions_scenario[key] = value
 
     # Calculate and add the economic capital recovery factor (crf)
