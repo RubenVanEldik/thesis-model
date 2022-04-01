@@ -1,0 +1,17 @@
+lion:
+  soc0: 0.2
+  soc_min: 0.2
+  soc_max: 1
+  roundtrip_efficiency: 0.85
+  economic_lifetime: 15
+  wacc: 0.05
+  fixed_om: 0.025
+  conservative:
+    energy_capex: 143
+    power_capex: 260
+  moderate:
+    energy_capex: 81
+    power_capex: 243
+  advanced:
+    energy_capex: 57
+    power_capex: 104

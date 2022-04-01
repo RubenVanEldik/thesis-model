@@ -2,6 +2,7 @@ import pandas as pd
 import gurobipy as gp
 import streamlit as st
 from datetime import datetime
+import technologies
 import lcoe
 
 
@@ -60,8 +61,9 @@ def create_demand_constraint(data, capacity):
     pv_production = sum_all_climate_zones(capacity["pv"], func=calculate_output)
     onshore_production = sum_all_climate_zones(capacity["onshore"], func=calculate_output)
     offshore_production = sum_all_climate_zones(capacity["offshore"], func=calculate_output)
+    total_production = pv_production + onshore_production + offshore_production
 
-    return pv_production + onshore_production + offshore_production >= data.demand_MWh
+    return total_production - data.net_storage_flow >= data.demand_MWh
 
 
 def run(year, countries, data_range):
@@ -76,8 +78,9 @@ def run(year, countries, data_range):
             model = gp.Model("Name")
 
             """
-            Step 2: Define variables
+            Step 2: Define production variables
             """
+            hourly_data = get_hourly_data(year, bidding_zone, range=data_range)
             climate_zones = get_climate_zones(year, bidding_zone)
 
             # Add production capacity variables
@@ -88,9 +91,64 @@ def run(year, countries, data_range):
             }
 
             """
-            Step 3: Add constraints
+            Step 3: Define storage variables and constraints
             """
-            hourly_data = get_hourly_data(year, bidding_zone, range=data_range)
+            # Create an object to save the storage capacity (energy & power)
+            # and add a column to the DataFrame to store the hourly net storage flow
+            storage_capacity = {}
+            hourly_data["net_storage_flow"] = 0
+            # Add the variables and constraints for all storage technologies
+            for storage_technology in technologies.technology_types("storage"):
+                # Get the specific storage assumptions
+                assumptions = technologies.assumptions("storage", storage_technology)
+
+                # Create a variable for the energy and power storage capacity
+                storage_capacity[storage_technology] = {
+                    "energy": model.addVar(),
+                    "power": model.addVar(),
+                }
+
+                # Create the hourly state of charge variables
+                soc_min = assumptions["soc_min"]
+                soc_max = assumptions["soc_max"]
+                soc = model.addVars(hourly_data.index, lb=soc_min, ub=soc_max)
+
+                # Create the hourly inflow and outflow variables
+                inflow = model.addVars(hourly_data.index)
+                outflow = model.addVars(hourly_data.index)
+
+                # Loop over all hours
+                previous_timestamp = None
+                for timestamp in hourly_data.index:
+                    # Unpack the energy and power capacities
+                    energy_capacity = storage_capacity[storage_technology]["energy"]
+                    power_capacity = storage_capacity[storage_technology]["power"]
+
+                    # Get the previous state of charge and one-way efficiency
+                    soc_previous = soc.get(previous_timestamp, assumptions["soc0"])
+                    efficiency = assumptions["roundtrip_efficiency"] ** 0.5
+
+                    # Add the state of charge constraints
+                    model.addConstr(
+                        soc[timestamp] * energy_capacity
+                        == soc_previous * energy_capacity
+                        + (inflow[timestamp] * efficiency - outflow[timestamp] / efficiency)
+                    )
+
+                    # Add the power capacity constraints
+                    model.addConstr(inflow[timestamp] <= power_capacity)
+                    model.addConstr(outflow[timestamp] <= power_capacity)
+
+                    # Add the net flow to the total net storage
+                    net_flow = inflow[timestamp] - outflow[timestamp]
+                    hourly_data.loc[timestamp, "net_storage_flow"] += net_flow
+
+                    # Update the previous_timestamp
+                    previous_timestamp = timestamp
+
+            """
+            Step 4: Define demand constraints
+            """
             with st.spinner("Adding demand constraints"):
                 model.addConstrs(
                     create_demand_constraint(hourly_data.loc[timestamp], capacity_per_technology)
@@ -98,25 +156,28 @@ def run(year, countries, data_range):
                 )
 
             """
-            Step 4: Set objective function
+            Step 5: Set objective function
             """
-            total_capacity_per_technology = {
+            production_capacity = {
                 "pv": sum_all_climate_zones(capacity_per_technology["pv"]),
                 "onshore": sum_all_climate_zones(capacity_per_technology["onshore"]),
                 "offshore": sum_all_climate_zones(capacity_per_technology["offshore"]),
             }
 
-            obj = lcoe.calculate(total_capacity_per_technology, hourly_data.demand_MWh, year)
+            obj = lcoe.calculate(
+                production_capacity, storage_capacity, hourly_data.demand_MWh, year
+            )
             model.setObjective(obj, gp.GRB.MINIMIZE)
 
             """
-            Step 5: Solve model
+            Step 6: Solve model
             """
             with st.spinner(f"Optimizing for {bidding_zone}"):
                 start_optimizing = datetime.now()
 
                 # Run model
                 model.setParam("OutputFlag", 0)
+                model.setParam("NonConvex", 2)
                 model.optimize()
 
                 # Show success or error message
@@ -129,18 +190,31 @@ def run(year, countries, data_range):
                     return
 
             """
-            Step 6: Get the final values of the variables
+            Step 7: Get the final values of the variables
             """
             final_lcoe = model.getObjective().getValue()
             installed_pv = sum(retrieve_variables(model, capacity_per_technology["pv"]))
             installed_onshore = sum(retrieve_variables(model, capacity_per_technology["onshore"]))
             installed_offshore = sum(retrieve_variables(model, capacity_per_technology["offshore"]))
+            installed_lion = storage_capacity["lion"]["energy"].X
 
             """
-            Step 7: Show results
+            Step 8: Show results
             """
-            col1, col2, col3, col4 = st.columns(4)
-            col1.metric("LCOE", f"{round(final_lcoe, 2)}€/MWh")
-            col2.metric("Solar PV", f"{int(installed_pv / 1000):,}GW")
-            col3.metric("Onshore wind", f"{int(installed_onshore / 1000):,}GW")
-            col4.metric("Offshore wind", f"{int(installed_offshore / 1000):,}GW")
+            st.subheader("Key performance indicators")
+            col1, col2, col3 = st.columns(3)
+            col1.metric("LCOE", f"{int(final_lcoe)}€/MWh")
+            col2.metric("Firm kWh premium", "-")
+            col3.metric("Curtailment", "-")
+
+            st.subheader("Generation capacity")
+            col1, col2, col3 = st.columns(3)
+            col1.metric("Solar PV", f"{int(installed_pv / 1000):,}GW")
+            col2.metric("Onshore wind", f"{int(installed_onshore / 1000):,}GW")
+            col3.metric("Offshore wind", f"{int(installed_offshore / 1000):,}GW")
+
+            st.subheader("Storage capacity")
+            col1, col2, col3 = st.columns(3)
+            col1.metric("Li-ion", f"{int(installed_lion / 1000):,}GWh")
+            col2.metric("Pumped hydro", "-")
+            col3.metric("Hydrogen", "-")

@@ -3,6 +3,20 @@ import streamlit as st
 import utils
 
 
+def technology_types(type):
+    """
+    Return a list of all technology types
+    """
+    # Validate the input
+    assert type == "production" or type == "storage"
+
+    # Import the assumptions
+    assumptions = utils.open_yaml(f"../input/technologies/{type}.yaml")
+
+    # Return the keys of all technologies
+    return assumptions.keys()
+
+
 def assumptions(type, technology, *, scenario="moderate"):
     """
     Return the assumptions dictionary for a specific technology
