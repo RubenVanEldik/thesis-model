@@ -11,12 +11,9 @@ def select_countries():
     countries = utils.open_yaml("../input/countries.yaml")
 
     # Let the user select the country
-    country_codes = st.sidebar.multiselect(
-        "Countries",
-        countries.keys(),
-        default=["NL", "BE", "DE"],
-        format_func=lambda code: countries[code]["name"],
-    )
+    format_func = lambda code: countries[code]["name"]
+    default_countries = ["NL", "BE", "DE"]
+    country_codes = st.sidebar.multiselect("Countries", countries.keys(), default=default_countries, format_func=format_func)
 
     # Return the country object for all selected countries
     return [countries[country_code] for country_code in country_codes]

@@ -11,12 +11,9 @@ def get_hourly_data(year, bidding_zone, *, range=None, only_headers=False):
     """
     Return the hourly data for a specific model year and bidding zone
     """
-    data = pd.read_csv(
-        f"../input/bidding_zones/{year}/{bidding_zone}.csv",
-        parse_dates=True,
-        index_col=0,
-        nrows=0 if only_headers else None,
-    )
+    filepath = f"../input/bidding_zones/{year}/{bidding_zone}.csv"
+    nrows = 0 if only_headers else None
+    data = pd.read_csv(filepath, parse_dates=True, index_col=0, nrows=nrows)
 
     if not range:
         return data
@@ -129,11 +126,7 @@ def run(year, countries, date_range):
                     efficiency = assumptions["roundtrip_efficiency"] ** 0.5
 
                     # Add the state of charge constraints
-                    model.addConstr(
-                        soc[timestamp] * energy_capacity
-                        == soc_previous * energy_capacity
-                        + (inflow[timestamp] * efficiency - outflow[timestamp] / efficiency)
-                    )
+                    model.addConstr(soc[timestamp] * energy_capacity == soc_previous * energy_capacity + (inflow[timestamp] * efficiency - outflow[timestamp] / efficiency))
 
                     # Add the power capacity constraints
                     model.addConstr(inflow[timestamp] <= power_capacity)
@@ -150,10 +143,7 @@ def run(year, countries, date_range):
             Step 4: Define demand constraints
             """
             with st.spinner("Adding demand constraints"):
-                model.addConstrs(
-                    create_demand_constraint(hourly_data.loc[timestamp], capacity_per_technology)
-                    for timestamp in hourly_data.index
-                )
+                model.addConstrs(create_demand_constraint(hourly_data.loc[timestamp], capacity_per_technology) for timestamp in hourly_data.index)
 
             """
             Step 5: Set objective function
@@ -164,9 +154,7 @@ def run(year, countries, date_range):
                 "offshore": sum_all_climate_zones(capacity_per_technology["offshore"]),
             }
 
-            obj = lcoe.calculate(
-                production_capacity, storage_capacity, hourly_data.demand_MWh, year
-            )
+            obj = lcoe.calculate(production_capacity, storage_capacity, hourly_data.demand_MWh, year)
             model.setObjective(obj, gp.GRB.MINIMIZE)
 
             """

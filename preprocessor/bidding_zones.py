@@ -66,11 +66,7 @@ def get_relevant_sheet_names(filepath, zone):
         return False
 
     # Return a sorted list of all relevant sheet names
-    relevant_sheet_names = [
-        sheet_name
-        for sheet_name in pd.ExcelFile(filepath).sheet_names
-        if sheet_belongs_to_zone(sheet_name, zone)
-    ]
+    relevant_sheet_names = [sheet_name for sheet_name in pd.ExcelFile(filepath).sheet_names if sheet_belongs_to_zone(sheet_name, zone)]
     relevant_sheet_names.sort()
     return relevant_sheet_names
 
@@ -82,13 +78,8 @@ def import_data(data, filepath, *, bidding_zone, column_name=None):
     relevant_zones = get_relevant_sheet_names(filepath, bidding_zone)
     for zone in relevant_zones:
         # Import the Excel sheet for a zone
-        sheet = pd.read_excel(
-            filepath,
-            sheet_name=zone,
-            index_col=[0, 1],
-            skiprows=10,
-            usecols=lambda col: col in ["Date", "Hour"] or isinstance(col, int),
-        )
+        usecols_func = lambda col: col in ["Date", "Hour"] or isinstance(col, int)
+        sheet = pd.read_excel(filepath, sheet_name=zone, index_col=[0, 1], skiprows=10, usecols=usecols_func)
 
         # Transform the sheet DataFrame to a Series with appropriate index
         new_column = pd.Series([], dtype="float64")
@@ -117,36 +108,20 @@ if __name__ == "__main__":
         for zone in bidding_zones:
             print(f"Importing all data for {zone} for {year} ({datetime.now()})")
             # Import demand data
-            data = import_data(
-                None,
-                f"../input/eraa/Demand Data/Demand_TimeSeries_{year}_NationalEstimates.xlsx",
-                bidding_zone=zone,
-                column_name="demand_MWh",
-            )
+            filepath_demand = f"../input/eraa/Demand Data/Demand_TimeSeries_{year}_NationalEstimates.xlsx"
+            data = import_data(None, filepath_demand, bidding_zone=zone, column_name="demand_MWh",)
 
             # Import PV data
-            data = import_data(
-                data,
-                f"../input/eraa/Climate Data/PECD_LFSolarPV_{year}_edition 2021.3.xlsx",
-                bidding_zone=zone,
-                column_name="pv_{zone}_cf",
-            )
+            filepath_pv = f"../input/eraa/Climate Data/PECD_LFSolarPV_{year}_edition 2021.3.xlsx"
+            data = import_data(data, filepath_pv, bidding_zone=zone, column_name="pv_{zone}_cf",)
 
             # Import onshore wind data
-            data = import_data(
-                data,
-                f"../input/eraa/Climate Data/PECD_Onshore_{year}_edition 2021.3.xlsx",
-                bidding_zone=zone,
-                column_name="onshore_{zone}_cf",
-            )
+            filepath_onshore = f"../input/eraa/Climate Data/PECD_Onshore_{year}_edition 2021.3.xlsx"
+            data = import_data(data, filepath_onshore, bidding_zone=zone, column_name="onshore_{zone}_cf",)
 
             # Import offshore wind data
-            data = import_data(
-                data,
-                f"../input/eraa/Climate Data/PECD_Offshore_{year}_edition 2021.3.xlsx",
-                bidding_zone=zone,
-                column_name="offshore_{zone}_cf",
-            )
+            filepath_offshore = f"../input/eraa/Climate Data/PECD_Offshore_{year}_edition 2021.3.xlsx"
+            data = import_data(data, filepath_offshore, bidding_zone=zone, column_name="offshore_{zone}_cf",)
 
             # Store the data in a CSV file
             data.to_csv(f"../input/bidding_zones/{year}/{zone}.csv")

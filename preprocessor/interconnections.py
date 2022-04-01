@@ -13,17 +13,13 @@ if __name__ == "__main__":
         filepath = f"{folder}/Transfer Capacities_ERAA2021_TY{year}.xlsx"
 
         # Preprocess HVAC data
-        hvac = pd.read_excel(
-            filepath, sheet_name="HVAC", index_col=[0, 1], skiprows=10, header=[0, 1]
-        )
+        hvac = pd.read_excel(filepath, sheet_name="HVAC", index_col=[0, 1], skiprows=10, header=[0, 1])
         hvac = hvac[sorted(hvac.columns)]
         hvac.index = utils.create_datetime_index(hvac.index, year)
         hvac.to_csv(f"../input/interconnections/{year}/hvac.csv")
 
         # Preprocess HVDC data
-        hvdc = pd.read_excel(
-            filepath, sheet_name="HVDC", index_col=[0, 1], skiprows=10, header=[0, 1]
-        )
+        hvdc = pd.read_excel(filepath, sheet_name="HVDC", index_col=[0, 1], skiprows=10, header=[0, 1])
         hvdc = hvdc[sorted(hvdc.columns)]
         hvdc.index = utils.create_datetime_index(hvdc.index, year)
         hvdc.to_csv(f"../input/interconnections/{year}/hvdc.csv")
