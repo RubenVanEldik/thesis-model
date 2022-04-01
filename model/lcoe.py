@@ -43,8 +43,8 @@ def calculate(generation_capacity_MW, demand_MWh, year):
 
     # Calculate the total annualized costs
     annual_costs_pv = crf_pv * capex_pv + fixed_om_pv
-    annual_costs_onshore = crf_onshore + capex_onshore + fixed_om_onshore
-    annual_costs_offshore = crf_offshore + capex_offshore + fixed_om_offshore
+    annual_costs_onshore = crf_onshore * capex_onshore + fixed_om_onshore
+    annual_costs_offshore = crf_offshore * capex_offshore + fixed_om_offshore
     total_annual_costs = annual_costs_pv + annual_costs_onshore + annual_costs_offshore
 
     # Calculate and return the LCOE
