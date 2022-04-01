@@ -26,20 +26,16 @@ def get_hourly_data(year, bidding_zone, *, range=None, only_headers=False):
     return data[range[0].strftime("%Y-%m-%d 00:00:00") : range[1].strftime("%Y-%m-%d 23:59:59")]
 
 
-def get_climate_zones(year, bidding_zone):
+def get_climate_zones(technology, year, bidding_zone):
     """
-    Return an object with the climate zone names for wind and PV
+    A list with the climate zone names for a specific production technology
     """
     assert validate.is_model_year(year)
     assert validate.is_bidding_zone(bidding_zone)
 
     columns = get_hourly_data(year, bidding_zone, only_headers=True).columns
 
-    return {
-        "pv": [column for column in columns if column.startswith("pv")],
-        "onshore": [column for column in columns if column.startswith("onshore")],
-        "offshore": [column for column in columns if column.startswith("offshore")],
-    }
+    return [column for column in columns if column.startswith(technology)]
 
 
 def create_demand_constraint(row, model):
@@ -89,9 +85,9 @@ def run(year, countries, date_range):
             Step 3: Define production capacity variables
             """
             production_capacity = {}
-            climate_zones = get_climate_zones(year, bidding_zone)
             for production_technology in technologies.technology_types("production"):
-                capacity = model.addVars(climate_zones[production_technology])
+                climate_zones = get_climate_zones(production_technology, year, bidding_zone)
+                capacity = model.addVars(climate_zones)
                 capacity_sum = gp.quicksum(capacity.values())
                 production_capacity[production_technology] = capacity_sum
                 hourly_results[f"production_{production_technology}_MWh"] = hourly_data.apply(calculate_hourly_production, args=(capacity,), axis=1)
