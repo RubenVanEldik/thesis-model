@@ -66,7 +66,7 @@ def create_demand_constraint(data, capacity):
     return total_production - data.net_storage_flow >= data.demand_MWh
 
 
-def run(year, countries, data_range):
+def run(year, countries, date_range):
     """
     Run the model!
     """
@@ -80,7 +80,7 @@ def run(year, countries, data_range):
             """
             Step 2: Define production variables
             """
-            hourly_data = get_hourly_data(year, bidding_zone, range=data_range)
+            hourly_data = get_hourly_data(year, bidding_zone, range=date_range)
             climate_zones = get_climate_zones(year, bidding_zone)
 
             # Add production capacity variables
