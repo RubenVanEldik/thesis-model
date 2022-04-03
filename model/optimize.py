@@ -130,8 +130,8 @@ def run(year, countries, date_range):
             """
             Step 6: Set objective function
             """
-            obj = lcoe.calculate(production_capacity, storage_capacity, hourly_data.demand_MWh)
-            model.setObjective(obj, gp.GRB.MINIMIZE)
+            firm_lcoe = lcoe.calculate(production_capacity, storage_capacity, hourly_data.demand_MWh)
+            model.setObjective(firm_lcoe, gp.GRB.MINIMIZE)
 
             """
             Step 7: Solve model
@@ -165,6 +165,8 @@ def run(year, countries, date_range):
             Step 9: Get the final values of the variables
             """
             final_lcoe = model.getObjective().getValue()
+            unconstrained_lcoe = lcoe.calculate(production_capacity, storage_capacity, hourly_results.total_production_MWh)
+            firm_kwh_premium = firm_lcoe.getValue() / unconstrained_lcoe.getValue()
             relative_curtailment = hourly_results.curtailed_MWh.sum() / hourly_results.total_production_MWh.sum()
             installed_pv = production_capacity["pv"].getValue()
             installed_onshore = production_capacity["onshore"].getValue()
@@ -177,7 +179,7 @@ def run(year, countries, date_range):
             st.subheader("Key performance indicators")
             col1, col2, col3 = st.columns(3)
             col1.metric("LCOE", f"{int(final_lcoe)}€/MWh")
-            col2.metric("Firm kWh premium", "-")
+            col2.metric("Firm kWh premium", f"{firm_kwh_premium:.3}")
             col3.metric("Curtailment", f"{relative_curtailment:.1%}")
 
             st.subheader("Production capacity")
