@@ -176,20 +176,17 @@ def run(year, countries, date_range):
             """
             Step 10: Show results
             """
-            st.subheader("Key performance indicators")
+            st.subheader("KPI's")
             col1, col2, col3 = st.columns(3)
             col1.metric("LCOE", f"{int(final_lcoe)}€/MWh")
             col2.metric("Firm kWh premium", f"{firm_kwh_premium:.3}")
             col3.metric("Curtailment", f"{relative_curtailment:.1%}")
 
-            st.subheader("Production capacity")
+            st.subheader("Capacities")
             col1, col2, col3 = st.columns(3)
             col1.metric("Solar PV", f"{int(installed_pv / 1000):,}GW")
             col2.metric("Onshore wind", f"{int(installed_onshore / 1000):,}GW")
             col3.metric("Offshore wind", f"{int(installed_offshore / 1000):,}GW")
-
-            st.subheader("Storage capacity")
-            col1, col2, col3 = st.columns(3)
             col1.metric("Li-ion", f"{int(installed_lion / 1000):,}GWh")
             col2.metric("Pumped hydro", "-")
             col3.metric("Hydrogen", "-")
