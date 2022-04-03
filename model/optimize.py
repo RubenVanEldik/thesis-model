@@ -39,21 +39,6 @@ def _get_climate_zones(technology, year, bidding_zone):
     return [column for column in columns if column.startswith(f"{technology}_")]
 
 
-def _create_demand_constraint(row, model):
-    """
-    Add a production/demand constraint for a specific hour
-    """
-    assert validate.is_hourly_results_row(row)
-    assert validate.is_model(model)
-
-    total_production_MWh = 0
-    for column_name in row.index:
-        if column_name.startswith("production_"):
-            total_production_MWh += row[column_name]
-
-    model.addConstr(total_production_MWh - row.net_storage_flow_MWh >= row.demand_MWh)
-
-
 def _calculate_hourly_production(row, capacities):
     """
     Return the production in a specific hour for a specific technology
@@ -65,34 +50,6 @@ def _calculate_hourly_production(row, capacities):
     for climate_zone, capacity in capacities.items():
         total_production_MWh += row[climate_zone] * capacity
     return total_production_MWh
-
-
-def _calculate_hourly_curtailment(row):
-    """
-    Return the curtailed energy for a specific row
-    """
-    assert validate.is_hourly_results_row(row)
-
-    total_production_MWh = 0
-    for column_name in row.index:
-        if column_name.startswith("production_"):
-            total_production_MWh += row[column_name]
-
-    return total_production_MWh - row.demand_MWh - row.net_storage_flow_MWh
-
-
-def _calculate_relative_curtailment(summed_rows):
-    """
-    Return the relative curtailment
-    """
-    assert validate.is_hourly_results_row(summed_rows)
-
-    total_production_MWh = 0
-    for column_name in summed_rows.index:
-        if column_name.startswith("production_"):
-            total_production_MWh += summed_rows[column_name]
-
-    return summed_rows.curtailed_MWh / total_production_MWh
 
 
 def run(year, countries, date_range):
@@ -120,12 +77,14 @@ def run(year, countries, date_range):
             Step 3: Define production capacity variables
             """
             production_capacity = {}
+            hourly_results["total_production_MWh"] = 0
             for production_technology in technologies.technology_types("production"):
                 climate_zones = _get_climate_zones(production_technology, year, bidding_zone)
                 capacity = model.addVars(climate_zones)
                 capacity_sum = gp.quicksum(capacity.values())
                 production_capacity[production_technology] = capacity_sum
                 hourly_results[f"production_{production_technology}_MWh"] = hourly_data.apply(_calculate_hourly_production, args=(capacity,), axis=1)
+                hourly_results["total_production_MWh"] += hourly_results[f"production_{production_technology}_MWh"]
 
             """
             Step 4: Define storage variables and constraints
@@ -183,7 +142,7 @@ def run(year, countries, date_range):
             Step 5: Define demand constraints
             """
             with st.spinner("Adding demand constraints"):
-                hourly_results.apply(_create_demand_constraint, args=(model,), axis=1)
+                hourly_results.apply(lambda row: model.addConstr(row.total_production_MWh - row.net_storage_flow_MWh >= row.demand_MWh), axis=1)
 
             """
             Step 6: Set objective function
@@ -217,13 +176,13 @@ def run(year, countries, date_range):
                 if hourly_results[column_name].dtype == "object":
                     hourly_results[column_name] = hourly_results[column_name].apply(lambda x: x.getValue())
 
-            hourly_results["curtailed_MWh"] = hourly_results.apply(_calculate_hourly_curtailment, axis=1)
+            hourly_results["curtailed_MWh"] = hourly_results.total_production_MWh - hourly_results.demand_MWh - hourly_results.net_storage_flow_MWh
 
             """
             Step 9: Get the final values of the variables
             """
             final_lcoe = model.getObjective().getValue()
-            relative_curtailment = _calculate_relative_curtailment(hourly_results.sum())
+            relative_curtailment = hourly_results.curtailed_MWh.sum() / hourly_results.total_production_MWh.sum()
             installed_pv = production_capacity["pv"].getValue()
             installed_onshore = production_capacity["onshore"].getValue()
             installed_offshore = production_capacity["offshore"].getValue()
