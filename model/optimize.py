@@ -8,35 +8,20 @@ import lcoe
 
 
 @st.experimental_memo
-def _get_hourly_data(year, bidding_zone, *, range=None, only_headers=False):
+def _get_hourly_data(year, bidding_zone, *, range=None):
     """
     Return the hourly data for a specific model year and bidding zone
     """
     assert validate.is_model_year(year)
     assert validate.is_bidding_zone(bidding_zone)
     assert validate.is_date_range(range, required=False)
-    assert validate.is_bool(only_headers)
 
     filepath = f"../input/bidding_zones/{year}/{bidding_zone}.csv"
-    nrows = 0 if only_headers else None
-    data = pd.read_csv(filepath, parse_dates=True, index_col=0, nrows=nrows)
+    data = pd.read_csv(filepath, parse_dates=True, index_col=0)
 
     if not range:
         return data
     return data[range[0].strftime("%Y-%m-%d 00:00:00") : range[1].strftime("%Y-%m-%d 23:59:59")]
-
-
-def _get_climate_zones(technology, year, bidding_zone):
-    """
-    Return a list with the climate zone names for a specific production technology
-    """
-    assert validate.is_technology(technology)
-    assert validate.is_model_year(year)
-    assert validate.is_bidding_zone(bidding_zone)
-
-    columns = _get_hourly_data(year, bidding_zone, only_headers=True).columns
-
-    return [column for column in columns if column.startswith(f"{technology}_")]
 
 
 def _calculate_hourly_production(row, capacities):
@@ -79,7 +64,7 @@ def run(year, countries, date_range):
             production_capacity = {}
             hourly_results["total_production_MWh"] = 0
             for production_technology in technologies.technology_types("production"):
-                climate_zones = _get_climate_zones(production_technology, year, bidding_zone)
+                climate_zones = [column for column in hourly_data.columns if column.startswith(f"{production_technology}_")]
                 capacity = model.addVars(climate_zones)
                 capacity_sum = gp.quicksum(capacity.values())
                 production_capacity[production_technology] = capacity_sum
