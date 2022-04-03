@@ -52,7 +52,7 @@ def is_country_obj_list(value, *, required=True):
     return is_list and has_valid_items
 
 
-def is_data_row(value, *, required=True):
+def is_hourly_data_row(value, *, required=True):
     if value is None:
         return not required
 
@@ -61,6 +61,17 @@ def is_data_row(value, *, required=True):
     includes_pv = any(x.startswith("pv_") for x in value.index)
     includes_onshore = any(x.startswith("onshore_") for x in value.index)
     return is_series and includes_demand and includes_pv and includes_onshore
+
+
+def is_hourly_results_row(value, *, required=True):
+    if value is None:
+        return not required
+
+    is_series = type(value) is pd.core.series.Series
+    includes_demand = any(x.startswith("demand_") for x in value.index)
+    includes_production = any(x.startswith("production_") for x in value.index)
+    includes_net_storage_flow = any(x.startswith("net_storage_flow") for x in value.index)
+    return is_series and includes_demand and includes_production and includes_net_storage_flow
 
 
 def is_date_range(value, *, required=True):

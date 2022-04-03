@@ -30,6 +30,7 @@ def _get_climate_zones(technology, year, bidding_zone):
     """
     Return a list with the climate zone names for a specific production technology
     """
+    assert validate.is_technology(technology)
     assert validate.is_model_year(year)
     assert validate.is_bidding_zone(bidding_zone)
 
@@ -42,6 +43,9 @@ def _create_demand_constraint(row, model):
     """
     Add a production/demand constraint for a specific hour
     """
+    assert validate.is_hourly_results_row(row)
+    assert validate.is_model(model)
+
     total_production = 0
     for column_name in row.index:
         if column_name.startswith("production_"):
@@ -54,6 +58,9 @@ def _calculate_hourly_production(row, capacities):
     """
     Return the production in a specific hour for a specific technology
     """
+    assert validate.is_hourly_data_row(row)
+    assert validate.is_climate_zone_dict(capacities)
+
     total_production = 0
     for climate_zone, capacity in capacities.items():
         total_production += row[climate_zone] * capacity
