@@ -8,7 +8,7 @@ import lcoe
 
 
 @st.experimental_memo
-def _get_hourly_data(year, bidding_zone, *, range=None):
+def _get_hourly_data(year, bidding_zone, *, range):
     """
     Return the hourly data for a specific model year and bidding zone
     """
@@ -19,8 +19,6 @@ def _get_hourly_data(year, bidding_zone, *, range=None):
     filepath = f"../input/bidding_zones/{year}/{bidding_zone}.csv"
     data = pd.read_csv(filepath, parse_dates=True, index_col=0)
 
-    if not range:
-        return data
     return data[range[0].strftime("%Y-%m-%d 00:00:00") : range[1].strftime("%Y-%m-%d 23:59:59")]
 
 
