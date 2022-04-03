@@ -46,12 +46,12 @@ def _create_demand_constraint(row, model):
     assert validate.is_hourly_results_row(row)
     assert validate.is_model(model)
 
-    total_production = 0
+    total_production_MWh = 0
     for column_name in row.index:
         if column_name.startswith("production_"):
-            total_production += row[column_name]
+            total_production_MWh += row[column_name]
 
-    model.addConstr(total_production - row.net_storage_flow_MWh >= row.demand_MWh)
+    model.addConstr(total_production_MWh - row.net_storage_flow_MWh >= row.demand_MWh)
 
 
 def _calculate_hourly_production(row, capacities):
@@ -61,10 +61,10 @@ def _calculate_hourly_production(row, capacities):
     assert validate.is_hourly_data_row(row)
     assert validate.is_climate_zone_dict(capacities)
 
-    total_production = 0
+    total_production_MWh = 0
     for climate_zone, capacity in capacities.items():
-        total_production += row[climate_zone] * capacity
-    return total_production
+        total_production_MWh += row[climate_zone] * capacity
+    return total_production_MWh
 
 
 def run(year, countries, date_range):
