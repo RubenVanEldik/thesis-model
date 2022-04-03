@@ -67,6 +67,34 @@ def _calculate_hourly_production(row, capacities):
     return total_production_MWh
 
 
+def _calculate_hourly_curtailment(row):
+    """
+    Return the curtailed energy for a specific row
+    """
+    assert validate.is_hourly_results_row(row)
+
+    total_production_MWh = 0
+    for column_name in row.index:
+        if column_name.startswith("production_"):
+            total_production_MWh += row[column_name]
+
+    return total_production_MWh - row.demand_MWh - row.net_storage_flow_MWh
+
+
+def _calculate_relative_curtailment(summed_rows):
+    """
+    Return the relative curtailment
+    """
+    assert validate.is_hourly_results_row(summed_rows)
+
+    total_production_MWh = 0
+    for column_name in summed_rows.index:
+        if column_name.startswith("production_"):
+            total_production_MWh += summed_rows[column_name]
+
+    return summed_rows.curtailed_MWh / total_production_MWh
+
+
 def run(year, countries, date_range):
     """
     Run the model!
@@ -189,10 +217,13 @@ def run(year, countries, date_range):
                 if hourly_results[column_name].dtype == "object":
                     hourly_results[column_name] = hourly_results[column_name].apply(lambda x: x.getValue())
 
+            hourly_results["curtailed_MWh"] = hourly_results.apply(_calculate_hourly_curtailment, axis=1)
+
             """
             Step 9: Get the final values of the variables
             """
             final_lcoe = model.getObjective().getValue()
+            relative_curtailment = _calculate_relative_curtailment(hourly_results.sum())
             installed_pv = production_capacity["pv"].getValue()
             installed_onshore = production_capacity["onshore"].getValue()
             installed_offshore = production_capacity["offshore"].getValue()
@@ -205,7 +236,7 @@ def run(year, countries, date_range):
             col1, col2, col3 = st.columns(3)
             col1.metric("LCOE", f"{int(final_lcoe)}€/MWh")
             col2.metric("Firm kWh premium", "-")
-            col3.metric("Curtailment", "-")
+            col3.metric("Curtailment", f"{relative_curtailment:.1%}")
 
             st.subheader("Production capacity")
             col1, col2, col3 = st.columns(3)
