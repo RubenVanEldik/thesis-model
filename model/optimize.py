@@ -39,7 +39,7 @@ def run(config):
             # Initialize the bidding zone
 
             """
-            Step A: Import the hourly data
+            Step 2A: Import the hourly data
             """
             filepath = f"../input/bidding_zones/{config['model_year']}/{bidding_zone}.csv"
             start_date = config["date_range"]["start"]
@@ -50,7 +50,7 @@ def run(config):
             hourly_results[bidding_zone] = hourly_data.loc[:, ["demand_MWh"]]
 
             """
-            Step B: Define production capacity variables
+            Step 2B: Define production capacity variables
             """
             production_capacity[bidding_zone] = {}
             hourly_results[bidding_zone]["total_production_MWh"] = 0
@@ -68,7 +68,7 @@ def run(config):
                     hourly_results[bidding_zone]["total_production_MWh"] += hourly_results[bidding_zone][f"production_{production_technology}_MWh"]
 
             """
-            Step C: Define storage variables and constraints
+            Step 2C: Define storage variables and constraints
             """
             # Create an object to save the storage capacity (energy & power) and add 2 columns to the results DataFrame
             storage_capacity[bidding_zone] = {}
@@ -121,7 +121,7 @@ def run(config):
                         previous_timestamp = timestamp
 
             """
-            Step D: Define demand constraints
+            Step 2D: Define demand constraints
             """
             with st.spinner("Adding demand constraints"):
                 hourly_results[bidding_zone].apply(lambda row: model.addConstr(row.total_production_MWh - row.net_storage_flow_MWh >= row.demand_MWh), axis=1)
