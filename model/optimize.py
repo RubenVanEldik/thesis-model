@@ -1,192 +1,178 @@
+import os
 import pandas as pd
 import gurobipy as gp
 import streamlit as st
 from datetime import datetime
-import validate
-import technologies
+
 import lcoe
+import utils
+import technologies
+import validate
 
 
-@st.experimental_memo
-def _get_hourly_data(year, bidding_zone, *, range):
+def run(config):
     """
-    Return the hourly data for a specific model year and bidding zone
+    Create and run the model
     """
-    assert validate.is_model_year(year)
-    assert validate.is_bidding_zone(bidding_zone)
-    assert validate.is_date_range(range, required=False)
+    assert validate.is_config(config)
 
-    filepath = f"../input/bidding_zones/{year}/{bidding_zone}.csv"
-    data = pd.read_csv(filepath, parse_dates=True, index_col=0)
-
-    return data[range[0].strftime("%Y-%m-%d 00:00:00") : range[1].strftime("%Y-%m-%d 23:59:59")]
-
-
-def _calculate_hourly_production(row, capacities):
     """
-    Return the production in a specific hour for a specific technology
+    Step 1: Create the model
     """
-    assert validate.is_hourly_data_row(row)
-    assert validate.is_climate_zone_dict(capacities)
+    model = gp.Model("Name")
 
-    total_production_MWh = 0
-    for climate_zone, capacity in capacities.items():
-        total_production_MWh += row[climate_zone] * capacity
-    return total_production_MWh
-
-
-def run(year, countries, date_range):
     """
-    Run the model!
+    Step 2: Add the variables and constraints for each bidding zone
     """
-    assert validate.is_model_year(year)
-    assert validate.is_country_obj_list(countries)
-    assert validate.is_date_range(date_range)
+    # Create dictionaries to store all the data per bidding zone
+    hourly_results = {}
+    production_capacity = {}
+    storage_capacity = {}
 
-    for country in countries:
+    # Create a progress bar
+    bidding_zones_count = sum(len(country["zones"]) for country in config["countries"])
+    initialized_bidding_zones_count = 0
+    progress = st.progress(0)
+
+    for country in config["countries"]:
         for bidding_zone in country["zones"]:
-            """
-            Step 1: Create a model
-            """
-            model = gp.Model("Name")
+            # Initialize the bidding zone
 
             """
-            Step 2: Create an hourly_data and hourly_results DataFrame
+            Step A: Import the hourly data
             """
-            hourly_data = _get_hourly_data(year, bidding_zone, range=date_range)
-            hourly_results = hourly_data[["demand_MWh"]]
+            filepath = f"../input/bidding_zones/{config['model_year']}/{bidding_zone}.csv"
+            start_date = config["date_range"]["start"]
+            end_date = config["date_range"]["end"]
+
+            hourly_data = pd.read_csv(filepath, parse_dates=True, index_col=0)
+            hourly_data = hourly_data[start_date.strftime("%Y-%m-%d 00:00:00") : end_date.strftime("%Y-%m-%d 23:59:59")]
+            hourly_results[bidding_zone] = hourly_data[["demand_MWh"]]
 
             """
-            Step 3: Define production capacity variables
+            Step B: Define production capacity variables
             """
-            production_capacity = {}
-            hourly_results["total_production_MWh"] = 0
-            for production_technology in technologies.technology_types("production"):
-                climate_zones = [column for column in hourly_data.columns if column.startswith(f"{production_technology}_")]
-                capacity = model.addVars(climate_zones)
-                capacity_sum = gp.quicksum(capacity.values())
-                production_capacity[production_technology] = capacity_sum
-                hourly_results[f"production_{production_technology}_MWh"] = hourly_data.apply(_calculate_hourly_production, args=(capacity,), axis=1)
-                hourly_results["total_production_MWh"] += hourly_results[f"production_{production_technology}_MWh"]
+            production_capacity[bidding_zone] = {}
+            hourly_results[bidding_zone]["total_production_MWh"] = 0
+            with st.spinner(f"Adding production to {bidding_zone}"):
+                for production_technology in technologies.technology_types("production"):
+                    climate_zones = [column for column in hourly_data.columns if column.startswith(f"{production_technology}_")]
+                    capacity = model.addVars(climate_zones)
+                    capacity_sum = gp.quicksum(capacity.values())
+                    production_capacity[bidding_zone][production_technology] = capacity_sum
+
+                    def calculate_hourly_production(row, capacities):
+                        return sum(row[climate_zone] * capacity for climate_zone, capacity in capacities.items())
+
+                    hourly_results[bidding_zone][f"production_{production_technology}_MWh"] = hourly_data.apply(calculate_hourly_production, args=(capacity,), axis=1)
+                    hourly_results[bidding_zone]["total_production_MWh"] += hourly_results[bidding_zone][f"production_{production_technology}_MWh"]
 
             """
-            Step 4: Define storage variables and constraints
+            Step C: Define storage variables and constraints
             """
             # Create an object to save the storage capacity (energy & power) and add 2 columns to the results DataFrame
-            storage_capacity = {}
-            hourly_results["net_storage_flow_MWh"] = 0
-            hourly_results["energy_stored_MWh"] = 0
-            # Add the variables and constraints for all storage technologies
-            for storage_technology in technologies.technology_types("storage"):
-                # Get the specific storage assumptions
-                assumptions = technologies.assumptions("storage", storage_technology)
+            storage_capacity[bidding_zone] = {}
+            hourly_results[bidding_zone]["net_storage_flow_MWh"] = 0
+            hourly_results[bidding_zone]["energy_stored_MWh"] = 0
+            with st.spinner(f"Adding storage to {bidding_zone}"):
+                # Add the variables and constraints for all storage technologies
+                for storage_technology in technologies.technology_types("storage"):
+                    # Get the specific storage assumptions
+                    assumptions = technologies.assumptions("storage", storage_technology)
 
-                # Create a variable for the energy and power storage capacity
-                storage_capacity[storage_technology] = {
-                    "energy": model.addVar(),
-                    "power": model.addVar(),
-                }
+                    # Create a variable for the energy and power storage capacity
+                    storage_capacity[bidding_zone][storage_technology] = {
+                        "energy": model.addVar(),
+                        "power": model.addVar(),
+                    }
 
-                # Create the hourly state of charge variables
-                soc = model.addVars(hourly_data.index, lb=assumptions["soc_min"], ub=assumptions["soc_max"])
+                    # Create the hourly state of charge variables
+                    soc = model.addVars(hourly_data.index, lb=assumptions["soc_min"], ub=assumptions["soc_max"])
 
-                # Create the hourly inflow and outflow variables
-                inflow = model.addVars(hourly_data.index)
-                outflow = model.addVars(hourly_data.index)
+                    # Create the hourly inflow and outflow variables
+                    inflow = model.addVars(hourly_data.index)
+                    outflow = model.addVars(hourly_data.index)
 
-                # Loop over all hours
-                previous_timestamp = None
-                for timestamp in hourly_data.index:
-                    # Unpack the energy and power capacities
-                    energy_capacity = storage_capacity[storage_technology]["energy"]
-                    power_capacity = storage_capacity[storage_technology]["power"]
+                    # Loop over all hours
+                    previous_timestamp = None
+                    for timestamp in hourly_data.index:
+                        # Unpack the energy and power capacities
+                        energy_capacity = storage_capacity[bidding_zone][storage_technology]["energy"]
+                        power_capacity = storage_capacity[bidding_zone][storage_technology]["power"]
 
-                    # Get the previous state of charge and one-way efficiency
-                    soc_current = soc[timestamp]
-                    soc_previous = soc.get(previous_timestamp, assumptions["soc0"])
-                    efficiency = assumptions["roundtrip_efficiency"] ** 0.5
+                        # Get the previous state of charge and one-way efficiency
+                        soc_current = soc[timestamp]
+                        soc_previous = soc.get(previous_timestamp, assumptions["soc0"])
+                        efficiency = assumptions["roundtrip_efficiency"] ** 0.5
 
-                    # Add the state of charge constraints
-                    model.addConstr(soc_current * energy_capacity == soc_previous * energy_capacity + (inflow[timestamp] * efficiency - outflow[timestamp] / efficiency))
+                        # Add the state of charge constraints
+                        model.addConstr(soc_current * energy_capacity == soc_previous * energy_capacity + (inflow[timestamp] * efficiency - outflow[timestamp] / efficiency))
 
-                    # Add the power capacity constraints (can't be added when the flow variables are defined because it's a gurobipy.Var)
-                    model.addConstr(inflow[timestamp] <= power_capacity)
-                    model.addConstr(outflow[timestamp] <= power_capacity)
+                        # Add the power capacity constraints (can't be added when the flow variables are defined because it's a gurobipy.Var)
+                        model.addConstr(inflow[timestamp] <= power_capacity)
+                        model.addConstr(outflow[timestamp] <= power_capacity)
 
-                    # Add the net flow to the total net storage
-                    net_flow = inflow[timestamp] - outflow[timestamp]
-                    hourly_results.loc[timestamp, "net_storage_flow_MWh"] += net_flow
-                    hourly_results.loc[timestamp, "energy_stored_MWh"] += soc_current * energy_capacity
+                        # Add the net flow to the total net storage
+                        net_flow = inflow[timestamp] - outflow[timestamp]
+                        hourly_results[bidding_zone].loc[timestamp, "net_storage_flow_MWh"] += net_flow
+                        hourly_results[bidding_zone].loc[timestamp, "energy_stored_MWh"] += soc_current * energy_capacity
 
-                    # Update the previous_timestamp
-                    previous_timestamp = timestamp
+                        # Update the previous_timestamp
+                        previous_timestamp = timestamp
 
             """
-            Step 5: Define demand constraints
+            Step D: Define demand constraints
             """
             with st.spinner("Adding demand constraints"):
-                hourly_results.apply(lambda row: model.addConstr(row.total_production_MWh - row.net_storage_flow_MWh >= row.demand_MWh), axis=1)
+                hourly_results[bidding_zone].apply(lambda row: model.addConstr(row.total_production_MWh - row.net_storage_flow_MWh >= row.demand_MWh), axis=1)
 
-            """
-            Step 6: Set objective function
-            """
-            firm_lcoe = lcoe.calculate(production_capacity, storage_capacity, hourly_data.demand_MWh)
-            model.setObjective(firm_lcoe, gp.GRB.MINIMIZE)
+            # Update the progress bar
+            initialized_bidding_zones_count += 1
+            progress.progress(initialized_bidding_zones_count / bidding_zones_count)
 
-            """
-            Step 7: Solve model
-            """
-            with st.spinner(f"Optimizing for {bidding_zone}"):
-                start_optimizing = datetime.now()
+    """
+    Step 3: Set objective function
+    """
+    firm_lcoe = lcoe.calculate(production_capacity, storage_capacity, hourly_results)
+    model.setObjective(firm_lcoe, gp.GRB.MINIMIZE)
 
-                # Run model
-                model.setParam("OutputFlag", 0)
-                model.setParam("NonConvex", 2)
-                model.optimize()
+    """
+    Step 4: Solve model
+    """
+    with st.spinner(f"Optimizing"):
+        start_optimizing = datetime.now()
 
-                # Show success or error message
-                if model.status == gp.GRB.OPTIMAL:
-                    duration = datetime.now() - start_optimizing
-                    st.success(f"Optimization for {bidding_zone} finished succesfully in {duration}")
-                else:
-                    st.error("The model could not be resolved")
-                    return
+        # Run model
+        model.setParam("OutputFlag", 0)
+        model.setParam("NonConvex", 2)
+        model.optimize()
 
-            """
-            Step 8: Get the final values for all cells in the hourly results DataFrame
-            """
-            for column_name in hourly_results:
-                if hourly_results[column_name].dtype == "object":
-                    hourly_results[column_name] = hourly_results[column_name].apply(lambda x: x.getValue())
+        # Show success or error message
+        if model.status == gp.GRB.OPTIMAL:
+            duration = datetime.now() - start_optimizing
+            st.success(f"Optimization finished succesfully in {duration}")
+        else:
+            st.error("The model could not be resolved")
+            return
 
-            hourly_results["curtailed_MWh"] = hourly_results.total_production_MWh - hourly_results.demand_MWh - hourly_results.net_storage_flow_MWh
+    """
+    Step 5: Store the results
+    """
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    output_folder = f"../output/{timestamp}"
+    os.makedirs(output_folder, exist_ok=True)
 
-            """
-            Step 9: Get the final values of the variables
-            """
-            final_lcoe = model.getObjective().getValue()
-            unconstrained_lcoe = lcoe.calculate(production_capacity, storage_capacity, hourly_results.total_production_MWh)
-            firm_kwh_premium = firm_lcoe.getValue() / unconstrained_lcoe.getValue()
-            relative_curtailment = hourly_results.curtailed_MWh.sum() / hourly_results.total_production_MWh.sum()
-            installed_pv = production_capacity["pv"].getValue()
-            installed_onshore = production_capacity["onshore"].getValue()
-            installed_offshore = production_capacity["offshore"].getValue()
-            installed_lion = storage_capacity["lion"]["energy"].X
+    # Store the actual values per bidding zone for the hourly results
+    for bidding_zone, hourly_results in hourly_results.items():
+        hourly_results = utils.convert_variables_recursively(hourly_results)
+        hourly_results["curtailed_MWh"] = hourly_results.total_production_MWh - hourly_results.demand_MWh - hourly_results.net_storage_flow_MWh
+        hourly_results.to_csv(f"{output_folder}/{bidding_zone}.csv")
 
-            """
-            Step 10: Show results
-            """
-            st.subheader("KPI's")
-            col1, col2, col3 = st.columns(3)
-            col1.metric("LCOE", f"{int(final_lcoe)}€/MWh")
-            col2.metric("Firm kWh premium", f"{firm_kwh_premium:.3}")
-            col3.metric("Curtailment", f"{relative_curtailment:.1%}")
+    # Store the actual values for the production capacity
+    production_capacity = utils.convert_variables_recursively(production_capacity)
+    utils.store_yaml(f"{output_folder}/production.yaml", production_capacity)
 
-            st.subheader("Capacities")
-            col1, col2, col3 = st.columns(3)
-            col1.metric("Solar PV", f"{int(installed_pv / 1000):,}GW")
-            col2.metric("Onshore wind", f"{int(installed_onshore / 1000):,}GW")
-            col3.metric("Offshore wind", f"{int(installed_offshore / 1000):,}GW")
-            col1.metric("Li-ion", f"{int(installed_lion / 1000):,}GWh")
-            col2.metric("Pumped hydro", "-")
-            col3.metric("Hydrogen", "-")
+    # Store the actual values for the storage capacity
+    storage_capacity = utils.convert_variables_recursively(storage_capacity)
+    utils.store_yaml(f"{output_folder}/storage.yaml", storage_capacity)
+    utils.store_yaml(f"{output_folder}/config.yaml", config)

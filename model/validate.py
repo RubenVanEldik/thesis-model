@@ -34,6 +34,18 @@ def is_climate_zone_dict(value, *, required=True):
     return is_tupledict and has_valid_keys
 
 
+def is_config(value, *, required=True):
+    if value is None:
+        return not required
+
+    is_dict = type(value) is dict
+    has_valid_model_year = is_model_year(value["model_year"])
+    has_valid_countries = is_country_obj_list(value["countries"])
+    has_valid_date_range = is_date_range(value["date_range"])
+
+    return is_dict and has_valid_model_year and has_valid_countries and has_valid_date_range
+
+
 def is_country_obj(value, *, required=True):
     if value is None:
         return not required
@@ -87,9 +99,10 @@ def is_date_range(value, *, required=True):
     if value is None:
         return not required
 
-    is_tuple = type(value) is tuple and len(value) == 2
-    has_datetime_items = all(type(x) is datetime.date for x in value)
-    return is_tuple and has_datetime_items
+    is_dict = type(value) is dict
+    has_valid_start_date = value["start"] and type(value["start"]) is datetime.date
+    has_valid_end_date = value["end"] and type(value["end"]) is datetime.date
+    return is_dict and has_valid_start_date and has_valid_end_date
 
 
 def is_filepath(value, *, required=True, suffix=None):

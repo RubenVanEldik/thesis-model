@@ -3,6 +3,7 @@ import streamlit as st
 
 import optimize
 import utils
+import validate
 
 
 def select_countries():
@@ -28,16 +29,23 @@ def select_data_range():
     end_default = date(2016, 12, 31)
     start_data = date(1982, 1, 1)
     end_data = date(2016, 12, 31)
-    return st.sidebar.date_input("Data range", (start_default, end_default), start_data, end_data)
+    date_range = st.sidebar.date_input("Climate data range", (start_default, end_default), start_data, end_data)
+
+    if len(date_range) != 2:
+        return None
+
+    return {"start": date_range[0], "end": date_range[1]}
 
 
 if __name__ == "__main__":
-    model_year = st.sidebar.selectbox("Model year", [2025, 2030], index=1)
-    countries = select_countries()
-    data_range = select_data_range()
+    config = {}
+    config["model_year"] = st.sidebar.selectbox("Model year", [2025, 2030], index=1)
+    config["countries"] = select_countries()
+    config["date_range"] = select_data_range()
 
     # Run the model if the button has been pressed, otherwise show a message
-    if st.sidebar.button("Run model"):
-        optimize.run(model_year, countries, data_range)
+    invalid_config = not validate.is_config(config)
+    if st.sidebar.button("Run model", disabled=invalid_config):
+        optimize.run(config)
     else:
         st.info("The model hasnt ran yet.")
