@@ -47,7 +47,7 @@ def run(config):
 
             hourly_data = pd.read_csv(filepath, parse_dates=True, index_col=0)
             hourly_data = hourly_data[start_date.strftime("%Y-%m-%d 00:00:00") : end_date.strftime("%Y-%m-%d 23:59:59")]
-            hourly_results[bidding_zone] = hourly_data[["demand_MWh"]]
+            hourly_results[bidding_zone] = hourly_data.loc[:, ["demand_MWh"]]
 
             """
             Step B: Define production capacity variables
