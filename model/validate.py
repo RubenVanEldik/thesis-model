@@ -52,6 +52,15 @@ def is_country_obj_list(value, *, required=True):
     return is_list and has_valid_items
 
 
+def is_dict_or_list(value, *, required=True):
+    if value is None:
+        return not required
+
+    is_list = type(value) is list
+    is_dict = type(value) is dict
+    return is_list or is_dict
+
+
 def is_hourly_data_row(value, *, required=True):
     if value is None:
         return not required
