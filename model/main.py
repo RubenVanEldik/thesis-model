@@ -48,9 +48,7 @@ if __name__ == "__main__":
     config["countries"] = select_countries()
     config["date_range"] = select_data_range()
 
-    # Run the model if the button has been pressed, otherwise show a message
+    # Run the model if the button has been pressed
     invalid_config = not validate.is_config(config)
     if st.sidebar.button("Run model", disabled=invalid_config):
         optimize.run(config)
-    else:
-        st.info("The model hasnt ran yet.")
