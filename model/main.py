@@ -1,7 +1,8 @@
+from datetime import date
 import streamlit as st
+
 import optimize
 import utils
-from datetime import date
 
 
 def select_countries():
