@@ -160,13 +160,13 @@ def run(config):
     """
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     output_folder = f"../output/{timestamp}"
-    os.makedirs(output_folder, exist_ok=True)
+    os.makedirs(f"{output_folder}/bidding_zones", exist_ok=True)
 
     # Store the actual values per bidding zone for the hourly results
     for bidding_zone, hourly_results in hourly_results.items():
         hourly_results = utils.convert_variables_recursively(hourly_results)
         hourly_results["curtailed_MWh"] = hourly_results.total_production_MWh - hourly_results.demand_MWh - hourly_results.net_storage_flow_MWh
-        hourly_results.to_csv(f"{output_folder}/{bidding_zone}.csv")
+        hourly_results.to_csv(f"{output_folder}/bidding_zones/{bidding_zone}.csv")
 
     # Store the actual values for the production capacity
     production_capacity = utils.convert_variables_recursively(production_capacity)
