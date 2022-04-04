@@ -38,6 +38,11 @@ def select_data_range():
 
 
 if __name__ == "__main__":
+    # Set the page config
+    menu_items = {"Get Help": None, "Report a bug": None, "About": None}
+    st.set_page_config(page_title="Thesis model", page_icon="🌤️", menu_items=menu_items)
+
+    # Collect the model config parameters
     config = {}
     config["model_year"] = st.sidebar.selectbox("Model year", [2025, 2030], index=1)
     config["countries"] = select_countries()
