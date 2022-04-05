@@ -8,6 +8,32 @@ import utils
 import validate
 
 
+class ModelMode:
+    mode = None
+
+    def __init__(self):
+        # Set the page config
+        menu_items = {"Get Help": None, "Report a bug": None, "About": None}
+        st.set_page_config(page_title="Thesis model", page_icon="🌤️", menu_items=menu_items)
+
+        # Get the mode
+        self.mode = self.get()
+
+    def get(self):
+        params = st.experimental_get_query_params()
+        self.mode = params["mode"][0] if params.get("mode") else None
+        return self.mode
+
+    def set(self, mode):
+        self.mode = mode
+        st.experimental_set_query_params(mode=mode)
+
+    def button(self, key, *, label, only_on_click=False):
+        button_is_clicked = st.sidebar.button(label, on_click=lambda: mode.set(key))
+        has_correct_param = self.get() == key
+        return button_is_clicked or (not only_on_click and has_correct_param)
+
+
 def select_countries():
     """
     Let the user select one or multiple countries to include in the model
@@ -40,9 +66,7 @@ def select_data_range():
 
 
 if __name__ == "__main__":
-    # Set the page config
-    menu_items = {"Get Help": None, "Report a bug": None, "About": None}
-    st.set_page_config(page_title="Thesis model", page_icon="🌤️", menu_items=menu_items)
+    mode = ModelMode()
 
     # Settings for a new run
     st.sidebar.title("Run model")
@@ -53,7 +77,7 @@ if __name__ == "__main__":
 
     # Run the model if the button has been pressed
     invalid_config = not validate.is_config(config)
-    if st.sidebar.button("Run model", disabled=invalid_config):
+    if mode.button("optimization", label="Run model", only_on_click=True):
         optimize.run(config)
 
     # Settings for the analysis
@@ -61,6 +85,6 @@ if __name__ == "__main__":
     previous_runs = sorted(os.listdir("../output"), reverse=True)
     selected_run = st.sidebar.selectbox("Previous runs", previous_runs)
 
-    # Run the model if the button has been pressed, otherwise show a message
-    if st.sidebar.button("Analyze run"):
+    # Run the analysis if the button has been pressed or the mode is set to analysis
+    if mode.button("analysis", label="Analyze run"):
         analyze.run(selected_run)
