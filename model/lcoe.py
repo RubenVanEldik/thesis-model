@@ -55,18 +55,19 @@ def _calculate_annual_demand(demand_MWh):
     return demand_MWh.sum() / share_of_year_modelled
 
 
-def calculate(production_capacity_per_bidding_zone, storage_capacity_per_bidding_zone, demand_per_bidding_zone):
+def calculate(production_capacity_per_bidding_zone, storage_capacity_per_bidding_zone, demand_per_bidding_zone, *, unconstrained=False):
     """
     Calculate the average LCOE for all bidding zones
     """
     annualized_production_costs = 0
     annualized_storage_costs = 0
     annual_electricity_demand = 0
+    demand_column = "total_production_MWh" if unconstrained else "demand_MWh"
 
     for bidding_zone in production_capacity_per_bidding_zone:
         annualized_production_costs += _calculate_annualized_production_costs(production_capacity_per_bidding_zone[bidding_zone])
         annualized_storage_costs += _calculate_annualized_storage_costs(storage_capacity_per_bidding_zone[bidding_zone])
-        annual_electricity_demand += _calculate_annual_demand(demand_per_bidding_zone[bidding_zone].demand_MWh)
+        annual_electricity_demand += _calculate_annual_demand(demand_per_bidding_zone[bidding_zone][demand_column])
 
     # Calculate and return the LCOE
     lcoe_dollar = (annualized_production_costs + annualized_storage_costs) / annual_electricity_demand
