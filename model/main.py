@@ -1,6 +1,8 @@
 from datetime import date
+import os
 import streamlit as st
 
+import analyze
 import optimize
 import utils
 import validate
@@ -42,7 +44,8 @@ if __name__ == "__main__":
     menu_items = {"Get Help": None, "Report a bug": None, "About": None}
     st.set_page_config(page_title="Thesis model", page_icon="🌤️", menu_items=menu_items)
 
-    # Collect the model config parameters
+    # Settings for a new run
+    st.sidebar.title("Run model")
     config = {}
     config["model_year"] = st.sidebar.selectbox("Model year", [2025, 2030], index=1)
     config["countries"] = select_countries()
@@ -52,3 +55,12 @@ if __name__ == "__main__":
     invalid_config = not validate.is_config(config)
     if st.sidebar.button("Run model", disabled=invalid_config):
         optimize.run(config)
+
+    # Settings for the analysis
+    st.sidebar.title("Analyze previous run")
+    previous_runs = sorted(os.listdir("../output"), reverse=True)
+    selected_run = st.sidebar.selectbox("Previous runs", previous_runs)
+
+    # Run the model if the button has been pressed, otherwise show a message
+    if st.sidebar.button("Analyze run"):
+        analyze.run(selected_run)
