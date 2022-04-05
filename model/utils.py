@@ -37,7 +37,6 @@ def open_yaml(filepath):
         return yaml.load(f, Loader=yaml.SafeLoader)
 
 
-@st.experimental_memo
 def store_yaml(filepath, data):
     """
     Store a dictionary or list as .yaml file
