@@ -44,9 +44,7 @@ def run(config):
             filepath = f"../input/bidding_zones/{config['model_year']}/{bidding_zone}.csv"
             start_date = config["date_range"]["start"]
             end_date = config["date_range"]["end"]
-
-            hourly_data = pd.read_csv(filepath, parse_dates=True, index_col=0)
-            hourly_data = hourly_data[start_date.strftime("%Y-%m-%d 00:00:00") : end_date.strftime("%Y-%m-%d 23:59:59")]
+            hourly_data = utils.read_hourly_data(filepath, start=start_date, end=end_date)
             hourly_results[bidding_zone] = hourly_data.loc[:, ["demand_MWh"]]
 
             """
