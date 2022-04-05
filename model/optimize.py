@@ -22,24 +22,27 @@ def run(config):
     model = gp.Model("Name")
 
     """
-    Step 2: Add the variables and constraints for each bidding zone
+    Step 2: Create a bidding zone list and set the progress bar
+    """
+    bidding_zone_list = []
+    for country in config["countries"]:
+        bidding_zone_list += country["zones"]
+    bidding_zones_count = len(bidding_zone_list)
+    initialized_bidding_zones_count = 0
+    progress = st.progress(0)
+
+    """
+    Step 3: Initialize each bidding zone
     """
     # Create dictionaries to store all the data per bidding zone
     hourly_results = {}
     production_capacity = {}
     storage_capacity = {}
 
-    # Create a progress bar
-    bidding_zones_count = sum(len(country["zones"]) for country in config["countries"])
-    initialized_bidding_zones_count = 0
-    progress = st.progress(0)
-
     for country in config["countries"]:
         for bidding_zone in country["zones"]:
-            # Initialize the bidding zone
-
             """
-            Step 2A: Import the hourly data
+            Step 3A: Import the hourly data
             """
             filepath = f"../input/bidding_zones/{config['model_year']}/{bidding_zone}.csv"
             start_date = config["date_range"]["start"]
@@ -48,7 +51,7 @@ def run(config):
             hourly_results[bidding_zone] = hourly_data.loc[:, ["demand_MWh"]]
 
             """
-            Step 2B: Define production capacity variables
+            Step 3B: Define production capacity variables
             """
             production_capacity[bidding_zone] = {}
             hourly_results[bidding_zone]["total_production_MWh"] = 0
@@ -66,7 +69,7 @@ def run(config):
                     hourly_results[bidding_zone]["total_production_MWh"] += hourly_results[bidding_zone][f"production_{production_technology}_MWh"]
 
             """
-            Step 2C: Define storage variables and constraints
+            Step 3C: Define storage variables and constraints
             """
             # Create an object to save the storage capacity (energy & power) and add 2 columns to the results DataFrame
             storage_capacity[bidding_zone] = {}
@@ -119,23 +122,25 @@ def run(config):
                         previous_timestamp = timestamp
 
             """
-            Step 2D: Define demand constraints
+            Step 3D: Define demand constraints
             """
             with st.spinner("Adding demand constraints"):
                 hourly_results[bidding_zone].apply(lambda row: model.addConstr(row.total_production_MWh - row.net_storage_flow_MWh >= row.demand_MWh), axis=1)
 
-            # Update the progress bar
+            """
+            Step 3E: Update the progress bar
+            """
             initialized_bidding_zones_count += 1
             progress.progress(initialized_bidding_zones_count / bidding_zones_count)
 
     """
-    Step 3: Set objective function
+    Step 4: Set objective function
     """
     firm_lcoe = lcoe.calculate(production_capacity, storage_capacity, hourly_results)
     model.setObjective(firm_lcoe, gp.GRB.MINIMIZE)
 
     """
-    Step 4: Solve model
+    Step 5: Solve model
     """
     with st.spinner(f"Optimizing"):
         start_optimizing = datetime.now()
@@ -154,7 +159,7 @@ def run(config):
             return
 
     """
-    Step 5: Store the results
+    Step 6: Store the results
     """
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     output_folder = f"../output/{timestamp}"
