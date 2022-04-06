@@ -36,6 +36,7 @@ def run(config):
     hourly_results = {}
     production_capacity = {}
     storage_capacity = {}
+    interconnections = {}
 
     for index, bidding_zone in enumerate(bidding_zones):
         """
@@ -46,6 +47,11 @@ def run(config):
         end_date = config["date_range"]["end"]
         hourly_data = utils.read_hourly_data(filepath, start=start_date, end=end_date)
         hourly_results[bidding_zone] = hourly_data.loc[:, ["demand_MWh"]]
+
+        # Create empty DataFrames for the interconnections, if they don't exist yet
+        if not len(interconnections):
+            interconnections["hvac"] = pd.DataFrame(index=hourly_results[bidding_zone].index)
+            interconnections["hvdc"] = pd.DataFrame(index=hourly_results[bidding_zone].index)
 
         """
         Step 3B: Define production capacity variables
@@ -119,10 +125,21 @@ def run(config):
                     previous_timestamp = timestamp
 
         """
-        Step 3D: Define demand constraints
+        Step 3D: Define the interconnection variables
         """
-        with st.spinner("Adding demand constraints"):
-            hourly_results[bidding_zone].apply(lambda row: model.addConstr(row.total_production_MWh - row.net_storage_flow_MWh >= row.demand_MWh), axis=1)
+
+        def add_interconnection(timestamp, *, limits, model_year, model):
+            interconnection_timestamp = timestamp.replace(year=model_year)
+            limit = limits.loc[interconnection_timestamp]
+            return model.addVar(ub=limit)
+
+        with st.spinner(f"Adding interconnections to {bidding_zone}"):
+            for connection_type in ["hvac", "hvdc"]:
+                interconnection_limits = utils.get_interconnections(bidding_zone, type=connection_type, config=config)
+                for column in interconnection_limits:
+                    interconnection_limit = interconnection_limits[column]
+                    interconnection_index = interconnections[connection_type].index.to_series()
+                    interconnections[connection_type][column] = interconnection_index.apply(add_interconnection, limits=interconnection_limit, model_year=config["model_year"], model=model)
 
         """
         Step 3E: Update the progress bar
@@ -130,13 +147,38 @@ def run(config):
         progress.progress((index + 1) / len(bidding_zones))
 
     """
-    Step 4: Set objective function
+    Step 4: Define demand constraints
+    """
+    for bidding_zone in bidding_zones:
+        with st.spinner(f"Adding demand constraints to {bidding_zone}"):
+            # Add a column for the hourly export to each country
+            for type in interconnections:
+                relevant_interconnections = [interconnection for interconnection in interconnections[type] if bidding_zone in interconnection]
+                for interconnection in relevant_interconnections:
+                    direction = 1 if interconnection[0] == bidding_zone else -1
+                    other_bidding_zone = interconnection[1 if interconnection[0] == bidding_zone else 0]
+                    column_name = f"net_export_{other_bidding_zone}_MWh"
+                    if column_name not in hourly_results:
+                        hourly_results[bidding_zone][column_name] = 0
+                    hourly_results[bidding_zone][column_name] += direction * interconnections[type][interconnection]
+            hourly_results[bidding_zone]["net_export_MWh"] = 0
+
+            # Add a column for the total hourly export
+            for column_name in hourly_results[bidding_zone]:
+                if column_name.startswith("net_export_") and column_name != "net_export_MWh":
+                    hourly_results[bidding_zone]["net_export_MWh"] += hourly_results[bidding_zone][column_name]
+
+            # Add the demand constraint
+            hourly_results[bidding_zone].apply(lambda row: model.addConstr(row.total_production_MWh - row.net_storage_flow_MWh - row.net_export_MWh >= row.demand_MWh), axis=1)
+
+    """
+    Step 5: Set objective function
     """
     firm_lcoe = lcoe.calculate(production_capacity, storage_capacity, hourly_results)
     model.setObjective(firm_lcoe, gp.GRB.MINIMIZE)
 
     """
-    Step 5: Solve model
+    Step 6: Solve model
     """
     with st.spinner(f"Optimizing"):
         start_optimizing = datetime.now()
@@ -150,12 +192,13 @@ def run(config):
         if model.status == gp.GRB.OPTIMAL:
             duration = datetime.now() - start_optimizing
             st.success(f"Optimization finished succesfully in {duration}")
+            progress.empty()
         else:
             st.error("The model could not be resolved")
             return
 
     """
-    Step 6: Store the results
+    Step 7: Store the results
     """
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     output_folder = f"../output/{timestamp}"
@@ -164,7 +207,7 @@ def run(config):
     # Store the actual values per bidding zone for the hourly results
     for bidding_zone, hourly_results in hourly_results.items():
         hourly_results = utils.convert_variables_recursively(hourly_results)
-        hourly_results["curtailed_MWh"] = hourly_results.total_production_MWh - hourly_results.demand_MWh - hourly_results.net_storage_flow_MWh
+        hourly_results["curtailed_MWh"] = hourly_results.total_production_MWh - hourly_results.demand_MWh - hourly_results.net_storage_flow_MWh - hourly_results.net_export_MWh
         hourly_results.to_csv(f"{output_folder}/bidding_zones/{bidding_zone}.csv")
 
     # Store the actual values for the production capacity

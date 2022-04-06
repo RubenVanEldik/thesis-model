@@ -11,6 +11,15 @@ def is_bidding_zone(value, *, required=True):
     return bool(re.search("^[A-Z]{2}[0-9A-Z]{2}$", value))
 
 
+def is_bidding_zone_list(value, *, required=True):
+    if value is None:
+        return not required
+
+    is_list = type(value) is list
+    has_bidding_zone_items = all(is_bidding_zone(x) for x in value)
+    return is_list and has_bidding_zone_items
+
+
 def is_bool(value, *, required=True):
     if value is None:
         return not required
@@ -126,6 +135,20 @@ def is_func(value, *, required=True):
         return not required
 
     return callable(value)
+
+
+def is_interconnection_type(value, *, required=True):
+    if value is None:
+        return not required
+
+    return value in ["hvac", "hvdc"]
+
+
+def is_interconnection_direction(value, *, required=True):
+    if value is None:
+        return not required
+
+    return value in ["import", "export"]
 
 
 def is_model(value, *, required=True):
