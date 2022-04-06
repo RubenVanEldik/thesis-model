@@ -68,12 +68,12 @@ def run(timestamp):
     installed_pv = total_production_capacity["pv"]
     installed_onshore = total_production_capacity["onshore"]
     installed_offshore = total_production_capacity["offshore"]
-    installed_lion = total_storage_capacity["lion"]["energy"]
+    installed_lion_hours = total_storage_capacity["lion"]["energy"] / total_hourly_results.demand_MWh.mean()
 
     st.subheader("KPI's")
     col1, col2, col3 = st.columns(3)
     col1.metric("LCOE", f"{int(firm_lcoe)}€/MWh")
-    col2.metric("Firm kWh premium", f"{firm_kwh_premium:.3}")
+    col2.metric("Firm kWh premium", f"{firm_kwh_premium:.2f}")
     col3.metric("Curtailment", f"{relative_curtailment:.1%}")
 
     st.subheader("Capacities")
@@ -81,6 +81,6 @@ def run(timestamp):
     col1.metric("Solar PV", f"{int(installed_pv / 1000):,}GW")
     col2.metric("Onshore wind", f"{int(installed_onshore / 1000):,}GW")
     col3.metric("Offshore wind", f"{int(installed_offshore / 1000):,}GW")
-    col1.metric("Li-ion", f"{int(installed_lion / 1000):,}GWh")
+    col1.metric("Li-ion", f"{installed_lion_hours:.1f}Hr")
     col2.metric("Pumped hydro", "-")
     col3.metric("Hydrogen", "-")
