@@ -41,12 +41,13 @@ def select_countries():
     countries = utils.open_yaml("../input/countries.yaml")
 
     # Let the user select the country
-    format_func = lambda code: countries[code]["name"]
+    country_codes = [country["code"] for country in countries]
     default_countries = ["NL", "BE", "DE"]
-    country_codes = st.sidebar.multiselect("Countries", countries.keys(), default=default_countries, format_func=format_func)
+    format_func = lambda code: next((country["name"] for country in countries if country["code"] == code), None)
+    selected_countries = st.sidebar.multiselect("Countries", country_codes, default=default_countries, format_func=format_func)
 
     # Return the country object for all selected countries
-    return [countries[country_code] for country_code in country_codes]
+    return [country for country in countries if country["code"] in selected_countries]
 
 
 def select_data_range():

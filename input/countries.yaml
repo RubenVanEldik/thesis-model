@@ -1,111 +1,111 @@
-AL:
+- code: AL
   name: Albania
   zones: [AL00]
-AT:
+- code: AT
   name: Austria
   zones: [AT00]
-BA:
+- code: BA
   name: Bosnia and Herzegovina
   zones: [BA00]
-BE:
+- code: BE
   name: Belgium
   zones: [BE00]
-BG:
+- code: BG
   name: Bulgaria
   zones: [BG00]
-CH:
+- code: CH
   name: Switzerland
   zones: [CH00]
-CY:
+- code: CY
   name: Cyprus
   zones: [CY00]
-CZ:
+- code: CZ
   name: Czech Republic
   zones: [CZ00]
-DE:
+- code: DE
   name: Germany
   zones: [DE00]
-DK:
+- code: DK
   name: Denmark
   zones: [DKE1, DKW1]
-EE:
+- code: EE
   name: Estonia
   zones: [EE00]
-ES:
+- code: ES
   name: Spain
   zones: [ES00]
-FI:
+- code: FI
   name: Finland
   zones: [FI00]
-FR:
+- code: FR
   name: France
   zones: [FR00, FR15]
-GR:
+- code: GR
   name: Greece
   zones: [GR00, GR03]
-HR:
+- code: HR
   name: Croatia
   zones: [HR00]
-HU:
+- code: HU
   name: Hungary
   zones: [HU00]
-IE:
+- code: IE
   name: Ireland
   zones: [IE00]
-IT:
+- code: IT
   name: Italy
   zones: [ITCA, ITCN, ITCS, ITN1, ITS1, ITSA, ITSI]
-LT:
+- code: LT
   name: Lithuania
   zones: [LT00]
-LU:
+- code: LU
   name: Luxembourg
   zones: [LUB1, LUF1, LUG1]
-LV:
+- code: LV
   name: Latvia
   zones: [LV00]
-ME:
+- code: ME
   name: Montenegro
   zones: [ME00]
-MK:
+- code: MK
   name: FYR of Macedonia
   zones: [MK00]
-MT:
+- code: MT
   name: Malta
   zones: [MT00]
-NL:
+- code: NL
   name: Netherlands
   zones: [NL00]
-NO:
+- code: NO
   name: Norway
   zones: [NOM1, NON1, NOS0]
-PL:
+- code: PL
   name: Poland
   zones: [PL00]
-PT:
+- code: PT
   name: Portugal
   zones: [PT00]
-RO:
+- code: RO
   name: Romania
   zones: [RO00]
-RS:
+- code: RS
   name: Serbia
   zones: [RS00]
-SE:
+- code: SE
   name: Sweden
   zones: [SE01, SE02, SE03, SE04]
-SI:
+- code: SI
   name: Slovenia
   zones: [SI00]
-SK:
+- code: SK
   name: Slovak Republic
   zones: [SK00]
-TR:
+- code: TR
   name: Republic of Turkey
   zones: [TR00]
-UA:
+- code: UA
   name: Ukraine
   zones: [UA01]
-UK:
+- code: UK
   name: United Kingdom
   zones: [UK00, UKNI]
