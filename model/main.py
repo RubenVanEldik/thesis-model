@@ -79,6 +79,7 @@ if __name__ == "__main__":
     invalid_config = not validate.is_config(config)
     if mode.button("optimization", label="Run model", only_on_click=True):
         optimize.run(config)
+        mode.set("analysis")  # Set the mode to analysis so the analysis will automatically run
 
     # Settings for the analysis
     st.sidebar.title("Analyze previous run")
