@@ -51,7 +51,9 @@ def run(timestamp):
     # Show a line chart with the hourly data
     with st.expander("Hourly data"):
         bidding_zone = st.selectbox("Bidding zone", hourly_results.keys())
-        st.line_chart(hourly_results[bidding_zone])
+        columns = st.multiselect("Columns", hourly_results[bidding_zone].columns)
+        st.line_chart(hourly_results[bidding_zone][columns] if columns else hourly_results[bidding_zone])
+        st.write(hourly_results[bidding_zone])
 
     """
     Step 2: Calculate and show the main indicators
