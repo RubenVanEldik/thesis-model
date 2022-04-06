@@ -68,8 +68,9 @@ def run(config):
                 def calculate_hourly_production(row, capacities):
                     return sum(row[climate_zone] * capacity for climate_zone, capacity in capacities.items())
 
-                hourly_results[bidding_zone][f"production_{production_technology}_MWh"] = hourly_data.apply(calculate_hourly_production, args=(capacity,), axis=1)
-                hourly_results[bidding_zone]["total_production_MWh"] += hourly_results[bidding_zone][f"production_{production_technology}_MWh"]
+                column_name = f"production_{production_technology}_MWh"
+                hourly_results[bidding_zone][column_name] = hourly_data.apply(calculate_hourly_production, args=(capacity,), axis=1)
+                hourly_results[bidding_zone]["total_production_MWh"] += hourly_results[bidding_zone][column_name]
 
         """
         Step 3C: Define storage variables and constraints
