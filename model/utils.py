@@ -60,13 +60,13 @@ def convert_variables_recursively(data):
     if type(data) is dict:
         for key, value in data.items():
             data[key] = convert_variables_recursively(value)
+        return data
     elif type(data) is list:
-        for index, value in enumerate(data):
-            data[index] = convert_variables_recursively(value)
+        return [convert_variables_recursively(value) for value in data]
     elif type(data) is pd.core.frame.DataFrame:
-        data = data.applymap(convert_variables_recursively)
+        return data.applymap(convert_variables_recursively)
     elif type(data) is gp.Var:
-        data = data.X
+        return data.X
     elif type(data) in [gp.LinExpr, gp.QuadExpr]:
-        data = data.getValue()
+        return data.getValue()
     return data
