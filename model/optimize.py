@@ -127,7 +127,7 @@ def run(config):
         """
         Step 3E: Update the progress bar
         """
-        progress.progress(index + 1 / len(bidding_zones))
+        progress.progress((index + 1) / len(bidding_zones))
 
     """
     Step 4: Set objective function
