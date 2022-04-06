@@ -19,6 +19,9 @@ def run(timestamp):
             filepath = f"{output_folder}/bidding_zones/{bidding_zone}.csv"
             hourly_results[bidding_zone] = utils.read_hourly_data(filepath)
 
+            if hourly_results[bidding_zone].isnull().values.any():
+                st.warning(f"Bidding zone {bidding_zone} contains NaN values")
+
     """
     Step 2: Group all results
     """
