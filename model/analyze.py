@@ -44,7 +44,7 @@ def run(timestamp):
     total_hourly_results = None
     for hourly_results_local in hourly_results.values():
         if total_hourly_results is None:
-            total_hourly_results = hourly_results_local
+            total_hourly_results = hourly_results_local.copy(deep=True)
         else:
             total_hourly_results += hourly_results_local
 
