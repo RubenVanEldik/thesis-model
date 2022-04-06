@@ -4,6 +4,7 @@ import gurobipy as gp
 import streamlit as st
 from datetime import datetime
 
+import analyze
 import lcoe
 import utils
 import technologies
@@ -175,3 +176,8 @@ def run(config):
     storage_capacity = utils.convert_variables_recursively(storage_capacity)
     utils.store_yaml(f"{output_folder}/storage.yaml", storage_capacity)
     utils.store_yaml(f"{output_folder}/config.yaml", config)
+
+    """
+    Step 8: Analyze the results
+    """
+    analyze.run(timestamp)
