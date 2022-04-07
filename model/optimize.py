@@ -42,16 +42,17 @@ def run(config):
         """
         Step 3A: Import the hourly data
         """
-        filepath = f"../input/bidding_zones/{config['model_year']}/{bidding_zone}.csv"
-        start_date = config["date_range"]["start"]
-        end_date = config["date_range"]["end"]
-        hourly_data = utils.read_hourly_data(filepath, start=start_date, end=end_date)
-        hourly_results[bidding_zone] = hourly_data.loc[:, ["demand_MWh"]]
+        with st.spinner(f"Importing data for {bidding_zone}"):
+            filepath = f"../input/bidding_zones/{config['model_year']}/{bidding_zone}.csv"
+            start_date = config["date_range"]["start"]
+            end_date = config["date_range"]["end"]
+            hourly_data = utils.read_hourly_data(filepath, start=start_date, end=end_date)
+            hourly_results[bidding_zone] = hourly_data.loc[:, ["demand_MWh"]]
 
-        # Create empty DataFrames for the interconnections, if they don't exist yet
-        if not len(interconnections):
-            interconnections["hvac"] = pd.DataFrame(index=hourly_results[bidding_zone].index)
-            interconnections["hvdc"] = pd.DataFrame(index=hourly_results[bidding_zone].index)
+            # Create empty DataFrames for the interconnections, if they don't exist yet
+            if not len(interconnections):
+                interconnections["hvac"] = pd.DataFrame(index=hourly_results[bidding_zone].index)
+                interconnections["hvdc"] = pd.DataFrame(index=hourly_results[bidding_zone].index)
 
         """
         Step 3B: Define production capacity variables
