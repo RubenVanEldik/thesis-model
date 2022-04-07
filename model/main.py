@@ -28,8 +28,8 @@ class ModelMode:
         self.mode = mode
         st.experimental_set_query_params(mode=mode)
 
-    def button(self, key, *, label, only_on_click=False):
-        button_is_clicked = st.sidebar.button(label, on_click=lambda: mode.set(key))
+    def button(self, key, *, label, only_on_click=False, disabled=False):
+        button_is_clicked = st.sidebar.button(label, on_click=lambda: mode.set(key), disabled=disabled)
         has_correct_param = self.get() == key
         return button_is_clicked or (not only_on_click and has_correct_param)
 
@@ -78,7 +78,7 @@ if __name__ == "__main__":
 
     # Run the model if the button has been pressed
     invalid_config = not validate.is_config(config)
-    if mode.button("optimization", label="Run model", only_on_click=True):
+    if mode.button("optimization", label="Run model", only_on_click=True, disabled=invalid_config):
         optimize.run(config)
         mode.set("analysis")  # Set the mode to analysis so the analysis will automatically run
 

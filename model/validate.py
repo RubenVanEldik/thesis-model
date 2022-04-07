@@ -69,8 +69,9 @@ def is_country_obj_list(value, *, required=True):
         return not required
 
     is_list = type(value) is list
+    has_items = len(value) > 0
     has_valid_items = all(is_country_obj(x) for x in value)
-    return is_list and has_valid_items
+    return is_list and has_items and has_valid_items
 
 
 def is_date(value, *, required=True):
