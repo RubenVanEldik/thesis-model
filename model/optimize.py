@@ -93,7 +93,7 @@ def run(config):
                 }
 
                 # Create the hourly state of charge variables
-                soc = model.addVars(hourly_data.index, lb=assumptions["soc_min"], ub=assumptions["soc_max"])
+                energy_stored_hourly = model.addVars(hourly_data.index)
 
                 # Create the hourly inflow and outflow variables
                 inflow = model.addVars(hourly_data.index)
@@ -107,12 +107,16 @@ def run(config):
                     power_capacity = storage_capacity[bidding_zone][storage_technology]["power"]
 
                     # Get the previous state of charge and one-way efficiency
-                    soc_current = soc[timestamp]
-                    soc_previous = soc.get(previous_timestamp, assumptions["soc0"])
+                    energy_stored_current = energy_stored_hourly[timestamp]
+                    energy_stored_previous = energy_stored_hourly.get(previous_timestamp, assumptions["soc0"] * energy_capacity)
                     efficiency = assumptions["roundtrip_efficiency"] ** 0.5
 
                     # Add the state of charge constraints
-                    model.addConstr(soc_current * energy_capacity == soc_previous * energy_capacity + (inflow[timestamp] * efficiency - outflow[timestamp] / efficiency))
+                    model.addConstr(energy_stored_current == energy_stored_previous + (inflow[timestamp] * efficiency - outflow[timestamp] / efficiency))
+
+                    # Add the energy capacity constraints (can't be added when the flow variables are defined because it's a gurobipy.Var)
+                    model.addConstr(energy_stored_hourly[timestamp] >= assumptions["soc_min"] * energy_capacity)
+                    model.addConstr(energy_stored_hourly[timestamp] <= assumptions["soc_max"] * energy_capacity)
 
                     # Add the power capacity constraints (can't be added when the flow variables are defined because it's a gurobipy.Var)
                     model.addConstr(inflow[timestamp] <= power_capacity)
@@ -121,7 +125,7 @@ def run(config):
                     # Add the net flow to the total net storage
                     net_flow = inflow[timestamp] - outflow[timestamp]
                     hourly_results[bidding_zone].loc[timestamp, "net_storage_flow_MWh"] += net_flow
-                    hourly_results[bidding_zone].loc[timestamp, "energy_stored_MWh"] += soc_current * energy_capacity
+                    hourly_results[bidding_zone].loc[timestamp, "energy_stored_MWh"] += energy_stored_current
 
                     # Update the previous_timestamp
                     previous_timestamp = timestamp
@@ -187,7 +191,6 @@ def run(config):
 
         # Run model
         model.setParam("OutputFlag", 0)
-        model.setParam("NonConvex", 2)
         model.optimize()
 
         # Show success or error message
