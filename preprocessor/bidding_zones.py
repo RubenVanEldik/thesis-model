@@ -80,6 +80,7 @@ def import_data(data, filepath, *, bidding_zone, column_name=None):
         # Import the Excel sheet for a zone
         usecols_func = lambda col: col in ["Date", "Hour"] or isinstance(col, int)
         sheet = pd.read_excel(filepath, sheet_name=zone, index_col=[0, 1], skiprows=10, usecols=usecols_func)
+        formatted_column_name = column_name.replace("{zone}", zone[2:])
 
         # Transform the sheet DataFrame to a Series with appropriate index
         new_column = pd.Series([], dtype="float64")
@@ -88,8 +89,17 @@ def import_data(data, filepath, *, bidding_zone, column_name=None):
             data_year.index = utils.create_datetime_index(sheet.index, year_column)
             new_column = new_column.append(data_year)
 
+        # Don't include the column if it contains NaN values (only applicable to DEKF)
+        if new_column.isna().any():
+            print(f"  - Column {formatted_column_name} contains NaN values and is not included")
+            continue
+
+        # Don't include the column if it only contains zeroes (only applicable to offshore wind in land-locked countries)
+        if new_column.max() == 0.0:
+            print(f"  - Column {formatted_column_name} contains only zeroes and is not included")
+            continue
+
         # Add the new column to the DataFrame or create a new data DataFrame if it doesn't exist yet
-        formatted_column_name = column_name.replace("{zone}", zone[2:])
         if data is None:
             new_column.name = formatted_column_name
             data = new_column.to_frame()
