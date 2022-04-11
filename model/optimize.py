@@ -162,7 +162,7 @@ def run(config):
             for type in interconnections:
                 relevant_interconnections = [interconnection for interconnection in interconnections[type] if bidding_zone in interconnection]
                 for interconnection in relevant_interconnections:
-                    direction = 1 if interconnection[0] == bidding_zone else -1
+                    direction = 1 if interconnection[0] == bidding_zone else -0.95  # TODO: Check the interconnection efficiency
                     other_bidding_zone = interconnection[1 if interconnection[0] == bidding_zone else 0]
                     column_name = f"net_export_{other_bidding_zone}_MWh"
                     if column_name not in hourly_results:
