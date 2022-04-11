@@ -177,6 +177,7 @@ def run(config):
 
             # Add the demand constraint
             hourly_results[bidding_zone].apply(lambda row: model.addConstr(row.total_production_MWh - row.net_storage_flow_MWh - row.net_export_MWh >= row.demand_MWh), axis=1)
+    progress.empty()
 
     """
     Step 5: Set objective function
@@ -197,7 +198,6 @@ def run(config):
         # Show success or error message
         if model.status == gp.GRB.OPTIMAL:
             status_message.success(f"Optimization finished succesfully in {timedelta(seconds=model.Runtime)}")
-            progress.empty()
         elif model.status == gp.GRB.TIME_LIMIT:
             status_message.warning(f"Optimization finished due to the time limit in {timedelta(seconds=model.Runtime)}")
         else:
