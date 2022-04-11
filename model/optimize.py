@@ -188,13 +188,47 @@ def run(config):
     """
     Step 6: Solve model
     """
+    # Set the status message and create
     status_message.info("Optimizing")
 
-    # Run model
+    # Create three columns for statistics
+    col1, col2, col3 = st.columns(3)
+    stat1 = col1.empty()
+    stat2 = col2.empty()
+    stat3 = col3.empty()
+
+    # Create the optimization log expander
+    with st.expander("Optimization log"):
+        log_messages = []
+        info = st.empty()
+
+    def optimization_callback(model, where):
+        """
+        Show the intermediate results
+        """
+        if where == gp.GRB.Callback.BARRIER:
+            iteration = model.cbGet(gp.GRB.Callback.BARRIER_ITRCNT)
+            objective_value = model.cbGet(gp.GRB.Callback.BARRIER_PRIMOBJ)
+            infeasibility = model.cbGet(gp.GRB.Callback.BARRIER_PRIMINF)
+            stat1.metric("Iteration (barrier)", f"{iteration:,}")
+            stat2.metric("Objective", f"{int(objective_value)}€/MWh")
+            stat3.metric("Infeasibility", f"{infeasibility:.2E}")
+        if where == gp.GRB.Callback.SIMPLEX and model.cbGet(gp.GRB.Callback.SPX_ITRCNT) % 1000 == 0:
+            iteration = model.cbGet(int(gp.GRB.Callback.SPX_ITRCNT))
+            objective_value = model.cbGet(gp.GRB.Callback.SPX_OBJVAL)
+            infeasibility = model.cbGet(gp.GRB.Callback.SPX_PRIMINF)
+            stat1.metric("Iteration (simplex)", f"{int(iteration):,}")
+            stat2.metric("Objective", f"{int(objective_value)}€/MWh")
+            stat3.metric("Infeasibility", f"{infeasibility:.2E}")
+        if where == gp.GRB.Callback.MESSAGE:
+            log_messages.append(model.cbGet(gp.GRB.Callback.MSG_STRING))
+            info.code("".join(log_messages))
+
+    # Set parameters and run model
     model.setParam("Method", config["optimization_method"])
     model.setParam("TimeLimit", (config["optimization_time_limit"] - datetime.now()).total_seconds())
     model.setParam("OutputFlag", 0)
-    model.optimize()
+    model.optimize(optimization_callback)
 
     # Show success or error message
     if model.status == gp.GRB.OPTIMAL:
@@ -226,3 +260,4 @@ def run(config):
     storage_capacity = utils.convert_variables_recursively(storage_capacity)
     utils.store_yaml(f"{output_folder}/storage.yaml", storage_capacity)
     utils.store_yaml(f"{output_folder}/config.yaml", config)
+    utils.store_text(f"{output_folder}/log.txt", "".join(log_messages))
