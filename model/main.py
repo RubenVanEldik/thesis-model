@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import datetime, date, timedelta
 import os
 import streamlit as st
 
@@ -66,6 +66,13 @@ def select_data_range():
     return {"start": date_range[0], "end": date_range[1]}
 
 
+def select_time_limit():
+    col1, col2 = st.columns(2)
+    end_date = col1.date_input("End date", min_value=datetime.now())
+    end_time = col2.time_input("End time", value=datetime.now() + timedelta(hours=1))
+    return datetime.combine(end_date, end_time)
+
+
 if __name__ == "__main__":
     mode = ModelMode()
 
@@ -75,6 +82,8 @@ if __name__ == "__main__":
     config["model_year"] = st.sidebar.selectbox("Model year", [2025, 2030], index=1)
     config["countries"] = select_countries()
     config["date_range"] = select_data_range()
+    with st.sidebar.expander("Optimization parameters"):
+        config["time_limit"] = select_time_limit()
 
     # Run the model if the button has been pressed
     invalid_config = not validate.is_config(config)

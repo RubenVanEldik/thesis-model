@@ -190,6 +190,7 @@ def run(config):
     with st.spinner(f"Optimizing"):
 
         # Run model
+        model.setParam("TimeLimit", (config["time_limit"] - datetime.now()).total_seconds())
         model.setParam("OutputFlag", 0)
         model.optimize()
 
@@ -197,6 +198,8 @@ def run(config):
         if model.status == gp.GRB.OPTIMAL:
             status_message.success(f"Optimization finished succesfully in {timedelta(seconds=model.Runtime)}")
             progress.empty()
+        elif model.status == gp.GRB.TIME_LIMIT:
+            status_message.warning(f"Optimization finished due to the time limit in {timedelta(seconds=model.Runtime)}")
         else:
             st.error("The model could not be resolved")
             return
