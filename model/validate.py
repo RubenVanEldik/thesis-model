@@ -185,6 +185,16 @@ def is_optimization_method(value, *, required=True):
     return is_integer and has_valid_value
 
 
+def is_string(value, *, required=True, min_length=0):
+    if value is None:
+        return not required
+
+    is_string = type(value) is str
+    has_valid_length = len(value) >= min_length
+
+    return is_string and has_valid_length
+
+
 def is_technology(value, *, required=True):
     if value is None:
         return not required

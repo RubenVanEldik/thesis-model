@@ -56,6 +56,17 @@ def store_yaml(filepath, data):
         return yaml.dump(data, f, Dumper=yaml.Dumper)
 
 
+def store_text(filepath, text):
+    """
+    Store a string as .txt file
+    """
+    assert validate.is_filepath(filepath, suffix=".txt")
+    assert validate.is_string(text, min_length=1)
+
+    with open(filepath, "w") as f:
+        f.write(text)
+
+
 def get_interconnections(bidding_zone, *, config, type, direction="export"):
     """
     Find the relevant interconnections for a bidding zone
