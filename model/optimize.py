@@ -201,7 +201,7 @@ def run(config):
         elif model.status == gp.GRB.TIME_LIMIT:
             status_message.warning(f"Optimization finished due to the time limit in {timedelta(seconds=model.Runtime)}")
         else:
-            st.error("The model could not be resolved")
+            status_message.error("The model could not be resolved")
             return
 
     """
