@@ -76,6 +76,11 @@ def select_time_limit():
     return datetime.combine(end_date, end_time)
 
 
+def select_method():
+    method_options = {-1: "Automatic", 0: "Primal simplex", 1: "Dual simplex", 2: "Barrier", 3: "Concurrent", 4: "Deterministic concurrent", 5: "Deterministic concurrent simplex"}
+    return st.selectbox("Method", method_options.keys(), format_func=lambda key: method_options[key])
+
+
 if __name__ == "__main__":
     mode = ModelMode()
 
@@ -86,6 +91,7 @@ if __name__ == "__main__":
     config["countries"] = select_countries()
     config["date_range"] = select_data_range()
     with st.sidebar.expander("Optimization parameters"):
+        config["optimization_method"] = select_method()
         config["optimization_time_limit"] = select_time_limit()
 
     # Run the model if the button has been pressed

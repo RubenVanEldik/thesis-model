@@ -191,6 +191,7 @@ def run(config):
     with st.spinner(f"Optimizing"):
 
         # Run model
+        model.setParam("Method", config["optimization_method"])
         model.setParam("TimeLimit", (config["optimization_time_limit"] - datetime.now()).total_seconds())
         model.setParam("OutputFlag", 0)
         model.optimize()

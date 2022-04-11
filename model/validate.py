@@ -52,8 +52,9 @@ def is_config(value, *, required=True):
     has_valid_countries = is_country_obj_list(value["countries"])
     has_valid_date_range = is_date_range(value["date_range"])
     has_valid_time_limit = is_datetime(value["optimization_time_limit"]) and value["optimization_time_limit"] > datetime.datetime.now()
+    has_valid_method = is_optimization_method(value["optimization_method"])
 
-    return is_dict and has_valid_model_year and has_valid_countries and has_valid_date_range and has_valid_time_limit
+    return is_dict and has_valid_model_year and has_valid_countries and has_valid_date_range and has_valid_time_limit and has_valid_method
 
 
 def is_country_obj(value, *, required=True):
@@ -172,6 +173,16 @@ def is_model_year(value, *, required=True):
         return not required
 
     return value == 2025 or value == 2030
+
+
+def is_optimization_method(value, *, required=True):
+    if value is None:
+        return not required
+
+    is_integer = type(value) is int
+    has_valid_value = -1 <= value <= 5
+
+    return is_integer and has_valid_value
 
 
 def is_technology(value, *, required=True):
