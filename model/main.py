@@ -86,7 +86,7 @@ if __name__ == "__main__":
     config["countries"] = select_countries()
     config["date_range"] = select_data_range()
     with st.sidebar.expander("Optimization parameters"):
-        config["time_limit"] = select_time_limit()
+        config["optimization_time_limit"] = select_time_limit()
 
     # Run the model if the button has been pressed
     invalid_config = not validate.is_config(config)

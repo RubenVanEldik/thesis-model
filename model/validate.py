@@ -51,7 +51,7 @@ def is_config(value, *, required=True):
     has_valid_model_year = is_model_year(value["model_year"])
     has_valid_countries = is_country_obj_list(value["countries"])
     has_valid_date_range = is_date_range(value["date_range"])
-    has_valid_time_limit = is_datetime(value["time_limit"]) and value["time_limit"] > datetime.datetime.now()
+    has_valid_time_limit = is_datetime(value["optimization_time_limit"]) and value["optimization_time_limit"] > datetime.datetime.now()
 
     return is_dict and has_valid_model_year and has_valid_countries and has_valid_date_range and has_valid_time_limit
 
