@@ -2,7 +2,7 @@ import os
 import pandas as pd
 import gurobipy as gp
 import streamlit as st
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import lcoe
 import utils
@@ -19,6 +19,7 @@ def run(config):
     """
     Step 1: Create the model
     """
+    status_message = st.empty()
     model = gp.Model("Name")
 
     """
@@ -187,7 +188,6 @@ def run(config):
     Step 6: Solve model
     """
     with st.spinner(f"Optimizing"):
-        start_optimizing = datetime.now()
 
         # Run model
         model.setParam("OutputFlag", 0)
@@ -195,8 +195,7 @@ def run(config):
 
         # Show success or error message
         if model.status == gp.GRB.OPTIMAL:
-            duration = datetime.now() - start_optimizing
-            st.success(f"Optimization finished succesfully in {duration}")
+            status_message.success(f"Optimization finished succesfully in {timedelta(seconds=model.Runtime)}")
             progress.empty()
         else:
             st.error("The model could not be resolved")
