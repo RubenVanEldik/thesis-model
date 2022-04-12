@@ -67,6 +67,16 @@ def store_text(filepath, text):
         f.write(text)
 
 
+def get_country_of_bidding_zone(bidding_zone):
+    """
+    Find to which country a bidding zone belongs to
+    """
+    assert validate.is_bidding_zone(bidding_zone)
+
+    countries = open_yaml(f"../input/countries.yaml")
+    return next(country["code"] for country in countries if bidding_zone in country["zones"])
+
+
 def get_interconnections(bidding_zone, *, config, type, direction="export"):
     """
     Find the relevant interconnections for a bidding zone

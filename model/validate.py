@@ -103,7 +103,7 @@ def is_aggregation_level(value, *, required=True):
     if value is None:
         return not required
 
-    return value in ["all"]
+    return value in ["all", "country"]
 
 
 def is_hourly_data_row(value, *, required=True):

@@ -20,6 +20,17 @@ def _get_production_capacity(timestamp, *, group=None):
     if group is None:
         return production_capacity
 
+    # Return the sum of all bidding zones per country
+    if group == "country":
+        production_capacity_per_country = {}
+        for bidding_zone, production_capacity_local in production_capacity.items():
+            country_code = utils.get_country_of_bidding_zone(bidding_zone)
+            if not production_capacity_per_country.get(country_code):
+                production_capacity_per_country[country_code] = {}
+            for technology in production_capacity_local:
+                production_capacity_per_country[country_code][technology] = production_capacity_per_country[country_code].get(technology, 0) + production_capacity_local[technology]
+        return production_capacity_per_country
+
     # Return the sum of all bidding zones
     if group == "all":
         total_production_capacity = {}
@@ -43,6 +54,20 @@ def _get_storage_capacity(timestamp, *, group=None):
     # Return all bidding zones individually if not grouped
     if group is None:
         return storage_capacity
+
+    # Return the sum of all bidding zones per country
+    if group == "country":
+        storage_capacity_per_country = {}
+        for bidding_zone, storage_capacity_local in storage_capacity.items():
+            country_code = utils.get_country_of_bidding_zone(bidding_zone)
+            if not storage_capacity_per_country.get(country_code):
+                storage_capacity_per_country[country_code] = {}
+            for technology in storage_capacity_local:
+                if not storage_capacity_per_country[country_code].get(technology):
+                    storage_capacity_per_country[country_code][technology] = {"energy": 0, "power": 0}
+                storage_capacity_per_country[country_code][technology]["energy"] += storage_capacity_local[technology]["energy"]
+                storage_capacity_per_country[country_code][technology]["power"] += storage_capacity_local[technology]["power"]
+        return storage_capacity_per_country
 
     # Return the sum of all bidding zones
     if group == "all":
@@ -81,6 +106,17 @@ def _get_hourly_results(timestamp, *, group=None):
     if group is None:
         return hourly_results
 
+    # Return the sum of all bidding zones per country
+    if group == "country":
+        hourly_results_per_country = {}
+        for bidding_zone, hourly_results_local in hourly_results.items():
+            country_code = utils.get_country_of_bidding_zone(bidding_zone)
+            if hourly_results_per_country.get(country_code) is None:
+                hourly_results_per_country[country_code] = hourly_results_local
+            else:
+                hourly_results_per_country[country_code] += hourly_results_local
+        return hourly_results_per_country
+
     # Return the sum of all bidding zones
     if group == "all":
         total_hourly_results = None
@@ -98,17 +134,18 @@ def hourly_results(timestamp):
     """
     assert validate.is_timestamp_string(timestamp)
 
-    # Get the bidding zone and columns
-    hourly_results = _get_hourly_results(timestamp)
-    bidding_zone = st.selectbox("Bidding zone", hourly_results.keys())
-    columns = st.multiselect("Columns", hourly_results[bidding_zone].columns)
+    # Get the country and columns
+    config = utils.open_yaml(f"../output/{timestamp}/config.yaml")
+    country = st.selectbox("Country", config["countries"], format_func=lambda country: country["name"])
+    hourly_results = _get_hourly_results(timestamp, group="country")[country["code"]]
+    columns = st.multiselect("Columns", hourly_results.columns)
 
     # Show the line chart
-    st.line_chart(hourly_results[bidding_zone][columns] if columns else hourly_results[bidding_zone])
+    st.line_chart(hourly_results[columns] if columns else hourly_results)
 
     # Show the table in an expander
     with st.expander("Raw data"):
-        st.write(hourly_results[bidding_zone])
+        st.write(hourly_results)
 
 
 def statistics(timestamp):
