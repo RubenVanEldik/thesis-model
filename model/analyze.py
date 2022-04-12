@@ -134,14 +134,24 @@ def hourly_results(timestamp):
     """
     assert validate.is_timestamp_string(timestamp)
 
-    # Get the country and columns
+    # Get hourly results for a country
+    all_hourly_results = _get_hourly_results(timestamp, group="country")
     config = utils.open_yaml(f"../output/{timestamp}/config.yaml")
     country = st.selectbox("Country", config["countries"], format_func=lambda country: country["name"])
-    hourly_results = _get_hourly_results(timestamp, group="country")[country["code"]]
+    hourly_results = all_hourly_results[country["code"]]
+
+    # Filter the data columns
     columns = st.multiselect("Columns", hourly_results.columns)
+    hourly_results = hourly_results[columns] if columns else hourly_results
+
+    # Filter the data temporarily
+    start_data = hourly_results.index.min().to_pydatetime()
+    end_data = hourly_results.index.max().to_pydatetime()
+    data_range = st.slider("Date range", value=(start_data, end_data), min_value=start_data, max_value=end_data)
+    hourly_results = hourly_results.loc[data_range[0] : data_range[1]]
 
     # Show the line chart
-    st.line_chart(hourly_results[columns] if columns else hourly_results)
+    st.line_chart(hourly_results)
 
     # Show the table in an expander
     with st.expander("Raw data"):
