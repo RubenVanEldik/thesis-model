@@ -1,5 +1,7 @@
 import streamlit as st
+import re
 
+import chart
 import lcoe
 import validate
 import utils
@@ -201,3 +203,23 @@ def statistics(timestamp):
     col1.metric("Li-ion", f"{installed_lion_hours:.1f}Hr")
     col2.metric("Pumped hydro", "-")
     col3.metric("Hydrogen", "-")
+
+
+def distribution(timestamp):
+    """
+    Analyze the storage
+    """
+    assert validate.is_timestamp_string(timestamp)
+
+    # Get the storage capacity and hourly results
+    all_hourly_results = _get_hourly_results(timestamp, group="country")
+
+    # Select a column
+    first_country = next(iter(all_hourly_results))
+    columns = all_hourly_results[first_country].columns
+    relevant_columns = [column for column in columns if not re.search("^net_export_[0-9A-Z]{4}_MWh$", column)]
+    selected_column = st.selectbox("Column", relevant_columns)
+
+    # Create the plot
+    plot = chart.waterfall(all_hourly_results, column=selected_column)
+    st.write(plot)

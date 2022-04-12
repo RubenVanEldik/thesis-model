@@ -76,6 +76,23 @@ def is_country_obj_list(value, *, required=True):
     return is_list and has_items and has_valid_items
 
 
+def is_dataframe(value, *, required=True):
+    if value is None:
+        return not required
+
+    return isinstance(value, pd.DataFrame)
+
+
+def is_dataframe_dict(value, *, required=True):
+    if value is None:
+        return not required
+
+    is_dict = type(value) is dict
+    has_valid_items = all(is_dataframe(value[x]) for x in value)
+
+    return is_dict and has_valid_items
+
+
 def is_date(value, *, required=True):
     if value is None:
         return not required
