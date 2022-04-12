@@ -99,6 +99,13 @@ def is_dict_or_list(value, *, required=True):
     return is_list or is_dict
 
 
+def is_aggregation_level(value, *, required=True):
+    if value is None:
+        return not required
+
+    return value in ["all"]
+
+
 def is_hourly_data_row(value, *, required=True):
     if value is None:
         return not required
@@ -216,6 +223,17 @@ def is_technology_type(value, *, required=True):
         return not required
 
     return value in ["production", "storage"]
+
+
+def is_timestamp_string(value, *, required=True):
+    if value is None:
+        return not required
+
+    try:
+        datetime.datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
+        return True
+    except ValueError:
+        return False
 
 
 def is_variable(value, *, required=True):
