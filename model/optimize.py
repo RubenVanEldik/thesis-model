@@ -22,6 +22,7 @@ def run(config):
     status_message = st.empty()
     model = gp.Model("Name")
     model.setParam("OutputFlag", 0)
+    model.setParam("Threads", config["thread_count"])
     model.setParam("Method", config["optimization_method"])
     model.setParam("TimeLimit", (config["optimization_time_limit"] - datetime.now()).total_seconds())
 

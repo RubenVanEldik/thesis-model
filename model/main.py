@@ -81,6 +81,11 @@ def select_method():
     return st.selectbox("Method", method_options.keys(), format_func=lambda key: method_options[key])
 
 
+def select_thread_count():
+    cpu_count = os.cpu_count()
+    return st.slider("Thread count", value=cpu_count, min_value=1, max_value=cpu_count)
+
+
 if __name__ == "__main__":
     mode = ModelMode()
 
@@ -93,6 +98,7 @@ if __name__ == "__main__":
     with st.sidebar.expander("Optimization parameters"):
         config["optimization_method"] = select_method()
         config["optimization_time_limit"] = select_time_limit()
+        config["thread_count"] = select_thread_count()
 
     # Run the model if the button has been pressed
     invalid_config = not validate.is_config(config)
