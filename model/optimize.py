@@ -17,10 +17,13 @@ def run(config):
     assert validate.is_config(config)
 
     """
-    Step 1: Create the model
+    Step 1: Create the model and set the parameters
     """
     status_message = st.empty()
     model = gp.Model("Name")
+    model.setParam("OutputFlag", 0)
+    model.setParam("Method", config["optimization_method"])
+    model.setParam("TimeLimit", (config["optimization_time_limit"] - datetime.now()).total_seconds())
 
     """
     Step 2: Create a bidding zone list and set the progress bar
@@ -224,10 +227,7 @@ def run(config):
             log_messages.append(model.cbGet(gp.GRB.Callback.MSG_STRING))
             info.code("".join(log_messages))
 
-    # Set parameters and run model
-    model.setParam("Method", config["optimization_method"])
-    model.setParam("TimeLimit", (config["optimization_time_limit"] - datetime.now()).total_seconds())
-    model.setParam("OutputFlag", 0)
+    # Run the model
     model.optimize(optimization_callback)
 
     # Show success or error message
