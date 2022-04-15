@@ -10,6 +10,21 @@ import technologies
 import validate
 
 
+class Status:
+    def __init__(self):
+        self.status = st.empty()
+        self.text = None
+
+    def update(self, text, *, type="info", timestamp=None):
+        # Update the status if there is no timestamp, or the text is different, or its the first timestamp of the month
+        if timestamp is None:
+            getattr(self.status, type)(text)
+            self.text = text
+        elif self.text != text or (timestamp.is_month_start and timestamp.hour == 0):
+            getattr(self.status, type)(f"{text} ({timestamp.strftime('%B %Y')})")
+            self.text = text
+
+
 def run(config):
     """
     Create and run the model
@@ -19,7 +34,7 @@ def run(config):
     """
     Step 1: Create the model and set the parameters
     """
-    status_message = st.empty()
+    status = Status()
     model = gp.Model("Name")
     model.setParam("OutputFlag", 0)
     model.setParam("Threads", config["thread_count"])
@@ -47,7 +62,7 @@ def run(config):
         """
         Step 3A: Import the hourly data
         """
-        status_message.info(f"Importing data for {bidding_zone}")
+        status.update(f"Importing data for {bidding_zone}")
         filepath = f"../input/bidding_zones/{config['model_year']}/{bidding_zone}.csv"
         start_date = config["date_range"]["start"]
         end_date = config["date_range"]["end"]
@@ -62,10 +77,10 @@ def run(config):
         """
         Step 3B: Define production capacity variables
         """
-        status_message.info(f"Adding production to {bidding_zone}")
         production_capacity[bidding_zone] = {}
         hourly_results[bidding_zone]["total_production_MWh"] = 0
         for production_technology in technologies.technology_types("production"):
+            status.update(f"Adding {production_technology} production to {bidding_zone}")
             climate_zones = [column for column in hourly_data.columns if column.startswith(f"{production_technology}_")]
             capacity = model.addVars(climate_zones)
             capacity_sum = gp.quicksum(capacity.values())
@@ -81,7 +96,6 @@ def run(config):
         """
         Step 3C: Define storage variables and constraints
         """
-        status_message.info(f"Adding storage to {bidding_zone}")
         # Create an object to save the storage capacity (energy & power) and add 2 columns to the results DataFrame
         storage_capacity[bidding_zone] = {}
         hourly_results[bidding_zone]["net_storage_flow_MWh"] = 0
@@ -107,6 +121,7 @@ def run(config):
             # Loop over all hours
             previous_timestamp = None
             for timestamp in hourly_data.index:
+                status.update(f"Adding {storage_technology} storage to {bidding_zone}", timestamp=timestamp)
                 # Unpack the energy and power capacities
                 energy_capacity = storage_capacity[bidding_zone][storage_technology]["energy"]
                 power_capacity = storage_capacity[bidding_zone][storage_technology]["power"]
@@ -138,7 +153,6 @@ def run(config):
         """
         Step 3D: Define the interconnection variables
         """
-        status_message.info(f"Adding interconnections to {bidding_zone}")
 
         def add_interconnection(timestamp, *, limits, model_year, model):
             interconnection_timestamp = timestamp.replace(year=model_year)
@@ -146,6 +160,7 @@ def run(config):
             return model.addVar(ub=limit)
 
         for connection_type in ["hvac", "hvdc"]:
+            status.update(f"Adding {connection_type.upper()} interconnections to {bidding_zone}")
             interconnection_limits = utils.get_interconnections(bidding_zone, type=connection_type, config=config)
             for column in interconnection_limits:
                 interconnection_limit = interconnection_limits[column]
@@ -159,7 +174,7 @@ def run(config):
     Step 4: Define demand constraints
     """
     for bidding_zone in bidding_zones:
-        status_message.info(f"Adding demand constraints to {bidding_zone}")
+        status.update(f"Adding demand constraints to {bidding_zone}")
         # Add a column for the hourly export to each country
         for type in interconnections:
             relevant_interconnections = [interconnection for interconnection in interconnections[type] if bidding_zone in interconnection]
@@ -193,7 +208,7 @@ def run(config):
     Step 6: Solve model
     """
     # Set the status message and create
-    status_message.info("Optimizing")
+    status.update("Optimizing")
 
     # Create three columns for statistics
     col1, col2, col3 = st.columns(3)
@@ -233,11 +248,11 @@ def run(config):
 
     # Show success or error message
     if model.status == gp.GRB.OPTIMAL:
-        status_message.success(f"Optimization finished succesfully in {timedelta(seconds=model.Runtime)}")
+        status.update(f"Optimization finished succesfully in {timedelta(seconds=model.Runtime)}", type="success")
     elif model.status == gp.GRB.TIME_LIMIT:
-        status_message.warning(f"Optimization finished due to the time limit in {timedelta(seconds=model.Runtime)}")
+        status.update(f"Optimization finished due to the time limit in {timedelta(seconds=model.Runtime)}", type="warning")
     else:
-        status_message.error("The model could not be resolved")
+        status.update("The model could not be resolved", type="error")
         return
 
     """
