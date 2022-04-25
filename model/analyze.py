@@ -211,15 +211,31 @@ def distribution(timestamp):
     """
     assert validate.is_string(timestamp)
 
+    st.title("Duration curve")
+
     # Get the storage capacity and hourly results
     all_hourly_results = _get_hourly_results(timestamp, group="country")
 
-    # Select a column
+    # Select a column as numerator and denominator
+    st.subheader("Columns")
     first_country = next(iter(all_hourly_results))
     columns = all_hourly_results[first_country].columns
     relevant_columns = [column for column in columns if not re.search("^net_export_[0-9A-Z]{4}_MWh$", column)]
-    selected_column = st.selectbox("Column", relevant_columns)
+    col1, col2 = st.columns(2)
+    numerator = col1.selectbox("Numerator", relevant_columns)
+    denominator = col2.selectbox("Denominator", relevant_columns)
+
+    # Set the label for the y-axis
+    st.subheader("Labels")
+    numerator_label = re.search("(.+)_MWh", numerator).group(1).replace("_", " ").capitalize()
+    ylabel = st.text_input("Label y-axis", value=f"{numerator_label} (%)")
+
+    # Set the waterfall parameters
+    st.subheader("Options")
+    individual_lines = st.checkbox("Individual lines", value=True)
+    range_area = st.checkbox("Range area", value=True)
+    unity_line = st.checkbox("Unity line", value=False)
 
     # Create the plot
-    plot = chart.waterfall(all_hourly_results, column=selected_column)
+    plot = chart.waterfall(all_hourly_results, numerator=numerator, denominator=denominator, ylabel=ylabel, individual_lines=individual_lines, range_area=range_area, unity_line=unity_line)
     st.write(plot)
