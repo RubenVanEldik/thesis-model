@@ -44,3 +44,27 @@ def blue(value):
     if value == 900:
         return "#0C4A6E"
     return "#B91C1C"  # Red
+
+
+def red(value):
+    if value == 50:
+        return "#FEF2F2"
+    if value == 100:
+        return "#FEE2E2"
+    if value == 200:
+        return "#FECACA"
+    if value == 300:
+        return "#FCA5A5"
+    if value == 400:
+        return "#F87171"
+    if value == 500:
+        return "#EF4444"
+    if value == 600:
+        return "#DC2626"
+    if value == 700:
+        return "#B91C1C"
+    if value == 800:
+        return "#991B1B"
+    if value == 900:
+        return "#7F1D1D"
+    return "#737373"  # Gray
