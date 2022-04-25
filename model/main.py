@@ -148,5 +148,5 @@ if __name__ == "__main__":
     analysis = st.sidebar.selectbox("Analyses", analysis_options, format_func=lambda option: option.replace("_", " ").capitalize())
 
     # Run the analysis if the button has been pressed or the mode is set to analysis
-    if mode.button("analysis", label="Analyze run"):
+    if mode.button("analysis", label="Analyze run", disabled=not selected_run):
         getattr(analyze, analysis)(selected_run)
