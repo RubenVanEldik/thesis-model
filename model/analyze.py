@@ -12,7 +12,7 @@ def _get_production_capacity(timestamp, *, group=None):
     """
     Return the (grouped) production capacity
     """
-    assert validate.is_timestamp_string(timestamp)
+    assert validate.is_string(timestamp)
     assert validate.is_aggregation_level(group, required=False)
 
     # Get the production data
@@ -47,7 +47,7 @@ def _get_storage_capacity(timestamp, *, group=None):
     """
     Return the (grouped) storage capacity
     """
-    assert validate.is_timestamp_string(timestamp)
+    assert validate.is_string(timestamp)
     assert validate.is_aggregation_level(group, required=False)
 
     # Get the storage data
@@ -88,7 +88,7 @@ def _get_hourly_results(timestamp, *, group=None):
     """
     Return the (grouped) production capacity
     """
-    assert validate.is_timestamp_string(timestamp)
+    assert validate.is_string(timestamp)
     assert validate.is_aggregation_level(group, required=False)
 
     # Get the config
@@ -134,7 +134,7 @@ def hourly_results(timestamp):
     """
     Show the hourly results in a chart and table
     """
-    assert validate.is_timestamp_string(timestamp)
+    assert validate.is_string(timestamp)
 
     # Get hourly results for a country
     all_hourly_results = _get_hourly_results(timestamp, group="country")
@@ -164,7 +164,7 @@ def statistics(timestamp):
     """
     Show the key indicators for a run
     """
-    assert validate.is_timestamp_string(timestamp)
+    assert validate.is_string(timestamp)
 
     # Get both the grouped and ungrouped results
     hourly_results = _get_hourly_results(timestamp)
@@ -209,7 +209,7 @@ def distribution(timestamp):
     """
     Analyze the storage
     """
-    assert validate.is_timestamp_string(timestamp)
+    assert validate.is_string(timestamp)
 
     # Get the storage capacity and hourly results
     all_hourly_results = _get_hourly_results(timestamp, group="country")

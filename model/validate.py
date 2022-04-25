@@ -242,17 +242,6 @@ def is_technology_type(value, *, required=True):
     return value in ["production", "storage"]
 
 
-def is_timestamp_string(value, *, required=True):
-    if value is None:
-        return not required
-
-    try:
-        datetime.datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
-        return True
-    except ValueError:
-        return False
-
-
 def is_variable(value, *, required=True):
     if value is None:
         return not required
