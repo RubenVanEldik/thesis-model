@@ -258,8 +258,7 @@ def run(config):
     """
     Step 7: Store the results
     """
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    output_folder = f"../output/{timestamp}"
+    output_folder = f"../output/{config['name']}"
     os.makedirs(f"{output_folder}/bidding_zones", exist_ok=True)
 
     # Store the actual values per bidding zone for the hourly results

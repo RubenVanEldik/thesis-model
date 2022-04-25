@@ -6,6 +6,7 @@ import analyze
 import optimize
 import utils
 import validate
+import re
 
 
 class ModelMode:
@@ -37,11 +38,40 @@ class ModelMode:
         return button_is_clicked or (not only_on_click and has_correct_param)
 
 
+def get_previous_runs():
+    """
+    Get the names of all previous runs
+    """
+    output_folder = "../output"
+    files_and_directories = os.listdir(output_folder)
+    directories = [item for item in files_and_directories if os.path.isdir(os.path.join(output_folder, item))]
+    return sorted(directories, reverse=True)
+
+
+def select_name():
+    """
+    Let the user create a name for this run
+    """
+    runs = get_previous_runs()
+    runs_with_proper_names = [run for run in runs if re.search(r"^Run \d\d\d\d", run)]
+
+    # Calculate what the next default name should be
+    if runs_with_proper_names:
+        last_run_with_proper_name = runs_with_proper_names[0]
+        last_run_number = re.search(r"^Run (\d\d\d\d)", last_run_with_proper_name).group(1)
+        default_name = f"Run {int(last_run_number) + 1:04}"
+    else:
+        default_name = "Run 0001"
+
+    # Return the name for the next run
+    return st.sidebar.text_input("Name", value=default_name, max_chars=50)
+
+
 def select_countries():
     """
     Let the user select one or multiple countries to include in the model
     """
-    countries = utils.open_yaml("../input/countries.yaml")
+    countries = utils.open_yaml(os.path.join("../input", "countries.yaml"))
 
     # Let the user select the country
     country_codes = [country["code"] for country in countries]
@@ -92,6 +122,7 @@ if __name__ == "__main__":
     # Settings for a new run
     st.sidebar.title("Run model")
     config = {}
+    config["name"] = select_name()
     config["model_year"] = st.sidebar.selectbox("Model year", [2025, 2030], index=1)
     config["countries"] = select_countries()
     config["date_range"] = select_data_range()
@@ -103,12 +134,15 @@ if __name__ == "__main__":
     # Run the model if the button has been pressed
     invalid_config = not validate.is_config(config)
     if mode.button("optimization", label="Run model", only_on_click=True, disabled=invalid_config):
-        optimize.run(config)
+        if config["name"] in get_previous_runs():
+            st.error(f"There is already a run called '{config['name']}'")
+        else:
+            optimize.run(config)
         mode.set(None)  # Set the mode to None so the URL params are updated
 
     # Settings for the analysis
     st.sidebar.title("Analyze previous run")
-    previous_runs = sorted(os.listdir("../output"), reverse=True)
+    previous_runs = get_previous_runs()
     selected_run = st.sidebar.selectbox("Previous runs", previous_runs)
     analysis_options = ["statistics", "hourly_results", "distribution"]
     analysis = st.sidebar.selectbox("Analyses", analysis_options, format_func=lambda option: option.replace("_", " ").capitalize())
