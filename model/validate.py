@@ -224,7 +224,7 @@ def is_technology(value, *, required=True):
         return not required
 
     production_technologies = ["pv", "onshore", "offshore"]
-    storage_technologies = ["lion"]
+    storage_technologies = ["lion", "hydrogen"]
     return value in production_technologies or value in storage_technologies
 
 
