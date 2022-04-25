@@ -145,7 +145,7 @@ if __name__ == "__main__":
     st.sidebar.title("Analyze previous run")
     previous_runs = get_previous_runs()
     selected_run = st.sidebar.selectbox("Previous runs", previous_runs)
-    analysis_options = ["statistics", "hourly_results", "distribution"]
+    analysis_options = ["statistics", "hourly_results", "duration_curve"]
     analysis = st.sidebar.selectbox("Analyses", analysis_options, format_func=lambda option: option.replace("_", " ").capitalize())
 
     # Run the analysis if the button has been pressed or the mode is set to analysis

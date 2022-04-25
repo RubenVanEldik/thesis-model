@@ -205,7 +205,7 @@ def statistics(timestamp):
     col3.metric("Hydrogen", "-")
 
 
-def distribution(timestamp):
+def duration_curve(timestamp):
     """
     Analyze the storage
     """
