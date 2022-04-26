@@ -62,7 +62,7 @@ def calculate(production_capacity_per_bidding_zone, storage_capacity_per_bidding
     annualized_production_costs = 0
     annualized_storage_costs = 0
     annual_electricity_demand = 0
-    demand_column = "total_production_MWh" if unconstrained else "demand_MWh"
+    demand_column = "production_total_MWh" if unconstrained else "demand_MWh"
 
     for bidding_zone in production_capacity_per_bidding_zone:
         annualized_production_costs += _calculate_annualized_production_costs(production_capacity_per_bidding_zone[bidding_zone])

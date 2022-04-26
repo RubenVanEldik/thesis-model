@@ -78,7 +78,7 @@ def run(config):
         Step 3B: Define production capacity variables
         """
         production_capacity[bidding_zone] = {}
-        hourly_results[bidding_zone]["total_production_MWh"] = 0
+        hourly_results[bidding_zone]["production_total_MWh"] = 0
         for production_technology in technologies.technology_types("production"):
             status.update(f"Adding {production_technology} production to {bidding_zone}")
             climate_zones = [column for column in hourly_data.columns if column.startswith(f"{production_technology}_")]
@@ -91,7 +91,7 @@ def run(config):
 
             column_name = f"production_{production_technology}_MWh"
             hourly_results[bidding_zone][column_name] = hourly_data.apply(calculate_hourly_production, args=(capacity,), axis=1)
-            hourly_results[bidding_zone]["total_production_MWh"] += hourly_results[bidding_zone][column_name]
+            hourly_results[bidding_zone]["production_total_MWh"] += hourly_results[bidding_zone][column_name]
 
         """
         Step 3C: Define storage variables and constraints
@@ -198,7 +198,7 @@ def run(config):
                 hourly_results[bidding_zone]["net_export_MWh"] += hourly_results[bidding_zone][column_name]
 
         # Add the demand constraint
-        hourly_results[bidding_zone].apply(lambda row: model.addConstr(row.total_production_MWh - row.net_storage_flow_total_MWh - row.net_export_MWh >= row.demand_MWh), axis=1)
+        hourly_results[bidding_zone].apply(lambda row: model.addConstr(row.production_total_MWh - row.net_storage_flow_total_MWh - row.net_export_MWh >= row.demand_MWh), axis=1)
 
     # Remove the progress bar
     progress.empty()
@@ -269,8 +269,8 @@ def run(config):
     # Store the actual values per bidding zone for the hourly results
     for bidding_zone, hourly_results in hourly_results.items():
         hourly_results = utils.convert_variables_recursively(hourly_results)
-        curtailed_MWh = hourly_results.total_production_MWh - hourly_results.demand_MWh - hourly_results.net_storage_flow_total_MWh - hourly_results.net_export_MWh
-        hourly_results.insert(hourly_results.columns.get_loc("total_production_MWh"), "curtailed_MWh", curtailed_MWh)
+        curtailed_MWh = hourly_results.production_total_MWh - hourly_results.demand_MWh - hourly_results.net_storage_flow_total_MWh - hourly_results.net_export_MWh
+        hourly_results.insert(hourly_results.columns.get_loc("production_total_MWh"), "curtailed_MWh", curtailed_MWh)
         hourly_results.to_csv(f"{output_folder}/bidding_zones/{bidding_zone}.csv")
 
     # Store the actual values for the production capacity

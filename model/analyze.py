@@ -178,7 +178,7 @@ def statistics(timestamp):
     firm_lcoe = lcoe.calculate(production_capacity, storage_capacity, hourly_results)
     unconstrained_lcoe = lcoe.calculate(production_capacity, storage_capacity, hourly_results, unconstrained=True)
     firm_kwh_premium = firm_lcoe / unconstrained_lcoe
-    relative_curtailment = total_hourly_results.curtailed_MWh.sum() / total_hourly_results.total_production_MWh.sum()
+    relative_curtailment = total_hourly_results.curtailed_MWh.sum() / total_hourly_results.production_total_MWh.sum()
     installed_pv = total_production_capacity["pv"]
     installed_onshore = total_production_capacity["onshore"]
     installed_offshore = total_production_capacity["offshore"]
