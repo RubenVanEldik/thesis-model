@@ -222,7 +222,7 @@ def duration_curve(timestamp):
 
     # Set the label for the y-axis
     st.subheader("Labels")
-    numerator_label = re.search("(.+)_MWh", numerator).group(1).replace("_", " ").capitalize()
+    numerator_label = re.search("(.+)_\w+$", numerator).group(1).replace("_", " ").capitalize()
     ylabel = st.text_input("Label y-axis", value=f"{numerator_label} (%)")
 
     # Set the waterfall parameters
