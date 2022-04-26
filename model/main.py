@@ -4,6 +4,7 @@ import streamlit as st
 
 import analyze
 import optimize
+import technologies
 import utils
 import validate
 import re
@@ -99,6 +100,27 @@ def select_data_range():
     return {"start": date_range[0], "end": date_range[1]}
 
 
+def select_technologies(scenario):
+    col1, col2 = st.columns(2)
+
+    # Add the checked production technologies
+    col1.subheader("Production")
+    production_technologies = {}
+    for technology in technologies.technology_types("production"):
+        if col1.checkbox(technologies.labelize(technology), value=True):
+            production_technologies[technology] = technologies.assumptions("production", technology, scenario=scenario)
+
+    # Add the checked storagetechnologies
+    col2.subheader("Storage")
+    storage_technologies = {}
+    for technology in technologies.technology_types("storage"):
+        if col2.checkbox(technologies.labelize(technology), value=True):
+            storage_technologies[technology] = technologies.assumptions("storage", technology, scenario=scenario)
+
+    # Return the checked production and storage technologies
+    return {"production": production_technologies, "storage": storage_technologies}
+
+
 def select_time_limit():
     col1, col2 = st.columns(2)
     end_date = col1.date_input("End date", value=datetime.now() + timedelta(days=1), min_value=datetime.now())
@@ -127,6 +149,11 @@ if __name__ == "__main__":
     config["model_year"] = st.sidebar.selectbox("Model year", [2025, 2030], index=1)
     config["countries"] = select_countries()
     config["date_range"] = select_data_range()
+    with st.sidebar.expander("Technologies"):
+        config["technologies"] = {}
+        scenario = st.select_slider("Scenario", options=["conservative", "moderate", "advanced"], value="moderate", format_func=lambda option: option.capitalize())
+        config["technologies"]["scenario"] = scenario
+        config["technologies"] = select_technologies(scenario)
     with st.sidebar.expander("Optimization parameters"):
         config["optimization_method"] = select_method()
         config["optimization_time_limit"] = select_time_limit()

@@ -6,7 +6,6 @@ from datetime import datetime, timedelta
 
 import lcoe
 import utils
-import technologies
 import validate
 
 
@@ -79,7 +78,7 @@ def run(config):
         """
         production_capacity[bidding_zone] = {}
         hourly_results[bidding_zone]["production_total_MWh"] = 0
-        for production_technology in technologies.technology_types("production"):
+        for production_technology in config["technologies"]["production"]:
             status.update(f"Adding {production_technology} production to {bidding_zone}")
             climate_zones = [column for column in hourly_data.columns if column.startswith(f"{production_technology}_")]
             capacity = model.addVars(climate_zones)
@@ -101,9 +100,9 @@ def run(config):
         hourly_results[bidding_zone]["net_storage_flow_total_MWh"] = 0
         hourly_results[bidding_zone]["energy_stored_total_MWh"] = 0
         # Add the variables and constraints for all storage technologies
-        for storage_technology in technologies.technology_types("storage"):
+        for storage_technology in config["technologies"]["storage"]:
             # Get the specific storage assumptions
-            assumptions = technologies.assumptions("storage", storage_technology)
+            assumptions = config["technologies"]["storage"][storage_technology]
 
             # Create a variable for the energy and power storage capacity
             storage_capacity[bidding_zone][storage_technology] = {
@@ -206,7 +205,7 @@ def run(config):
     """
     Step 5: Set objective function
     """
-    firm_lcoe = lcoe.calculate(production_capacity, storage_capacity, hourly_results)
+    firm_lcoe = lcoe.calculate(production_capacity, storage_capacity, hourly_results, technologies=config["technologies"])
     model.setObjective(firm_lcoe, gp.GRB.MINIMIZE)
 
     """

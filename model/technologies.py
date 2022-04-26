@@ -18,7 +18,7 @@ def technology_types(type):
     return assumptions.keys()
 
 
-def assumptions(type, technology, *, scenario="moderate"):
+def assumptions(type, technology, *, scenario):
     """
     Return the assumptions dictionary for a specific technology
     """

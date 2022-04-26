@@ -5,15 +5,13 @@ import utils
 import technologies
 
 
-def _calculate_annualized_production_costs(production_capacity_MW):
+def _calculate_annualized_production_costs(production_technologies, production_capacity_MW):
     """
     Calculate the annualized production costs
     """
     # Calculate the total annual production costs
     annualized_costs_production = 0
-    for technology in technologies.technology_types("production"):
-        assumptions = technologies.assumptions("production", technology)
-
+    for technology, assumptions in production_technologies.items():
         capacity_kW = production_capacity_MW[technology] * 1000
         capex = capacity_kW * assumptions["capex"]
         fixed_om = capacity_kW * assumptions["fixed_om"]
@@ -23,15 +21,13 @@ def _calculate_annualized_production_costs(production_capacity_MW):
     return annualized_costs_production
 
 
-def _calculate_annualized_storage_costs(storage_capacity_MWh):
+def _calculate_annualized_storage_costs(storage_technologies, storage_capacity_MWh):
     """
     Calculate the annualized storage costs
     """
     # Calculate the total annual storage costs
     annualized_costs_storage = 0
-    for technology in technologies.technology_types("storage"):
-        assumptions = technologies.assumptions("storage", technology)
-
+    for technology, assumptions in storage_technologies.items():
         capacity_energy_kWh = storage_capacity_MWh[technology]["energy"] * 1000
         capacity_power_kW = storage_capacity_MWh[technology]["power"] * 1000
 
@@ -55,7 +51,7 @@ def _calculate_annual_demand(demand_MWh):
     return demand_MWh.sum() / share_of_year_modelled
 
 
-def calculate(production_capacity_per_bidding_zone, storage_capacity_per_bidding_zone, demand_per_bidding_zone, *, unconstrained=False):
+def calculate(production_capacity_per_bidding_zone, storage_capacity_per_bidding_zone, demand_per_bidding_zone, *, technologies, unconstrained=False):
     """
     Calculate the average LCOE for all bidding zones
     """
@@ -65,8 +61,8 @@ def calculate(production_capacity_per_bidding_zone, storage_capacity_per_bidding
     demand_column = "production_total_MWh" if unconstrained else "demand_MWh"
 
     for bidding_zone in production_capacity_per_bidding_zone:
-        annualized_production_costs += _calculate_annualized_production_costs(production_capacity_per_bidding_zone[bidding_zone])
-        annualized_storage_costs += _calculate_annualized_storage_costs(storage_capacity_per_bidding_zone[bidding_zone])
+        annualized_production_costs += _calculate_annualized_production_costs(technologies["production"], production_capacity_per_bidding_zone[bidding_zone])
+        annualized_storage_costs += _calculate_annualized_storage_costs(technologies["storage"], storage_capacity_per_bidding_zone[bidding_zone])
         annual_electricity_demand += _calculate_annual_demand(demand_per_bidding_zone[bidding_zone][demand_column])
 
     # Calculate and return the LCOE
