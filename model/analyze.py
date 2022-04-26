@@ -227,8 +227,8 @@ def duration_curve(timestamp):
 
     # Set the waterfall parameters
     st.subheader("Options")
-    individual_lines = st.checkbox("Individual lines", value=True)
     range_area = st.checkbox("Range area", value=True)
+    individual_lines = st.checkbox("Individual lines", value=False)
     unity_line = st.checkbox("Unity line", value=False)
 
     # Create the plot
