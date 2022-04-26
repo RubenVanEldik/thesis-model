@@ -46,3 +46,22 @@ def assumptions(type, technology, *, scenario="moderate"):
 
     # Return the assumptions for a specific scenario
     return assumptions_scenario
+
+
+def labelize(key):
+    """
+    Return the label for a specific technology key
+    """
+    assert validate.is_technology(key)
+
+    if key == "pv":
+        return "Solar PV"
+    if key == "onshore":
+        return "Onshore wind"
+    if key == "offshore":
+        return "Offshore wind"
+    if key == "lion":
+        return "Lithium-ion"
+    if key == "hydrogen":
+        return "Hydrogen"
+    return key
