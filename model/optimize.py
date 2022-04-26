@@ -98,8 +98,8 @@ def run(config):
         """
         # Create an object to save the storage capacity (energy & power) and add 2 columns to the results DataFrame
         storage_capacity[bidding_zone] = {}
-        hourly_results[bidding_zone]["net_storage_flow_MWh"] = 0
-        hourly_results[bidding_zone]["energy_stored_MWh"] = 0
+        hourly_results[bidding_zone]["net_storage_flow_total_MWh"] = 0
+        hourly_results[bidding_zone]["energy_stored_total_MWh"] = 0
         # Add the variables and constraints for all storage technologies
         for storage_technology in technologies.technology_types("storage"):
             # Get the specific storage assumptions
@@ -117,6 +117,9 @@ def run(config):
             # Create the hourly inflow and outflow variables
             inflow = model.addVars(hourly_data.index)
             outflow = model.addVars(hourly_data.index)
+
+            hourly_results[bidding_zone][f"net_storage_flow_{storage_technology}_MWh"] = 0
+            hourly_results[bidding_zone][f"energy_stored_{storage_technology}_MWh"] = 0
 
             # Loop over all hours
             previous_timestamp = None
@@ -144,8 +147,10 @@ def run(config):
 
                 # Add the net flow to the total net storage
                 net_flow = inflow[timestamp] - outflow[timestamp]
-                hourly_results[bidding_zone].loc[timestamp, "net_storage_flow_MWh"] += net_flow
-                hourly_results[bidding_zone].loc[timestamp, "energy_stored_MWh"] += energy_stored_current
+                hourly_results[bidding_zone].loc[timestamp, f"net_storage_flow_{storage_technology}_MWh"] = net_flow
+                hourly_results[bidding_zone].loc[timestamp, f"energy_stored_{storage_technology}_MWh"] = energy_stored_current
+                hourly_results[bidding_zone].loc[timestamp, "net_storage_flow_total_MWh"] += net_flow
+                hourly_results[bidding_zone].loc[timestamp, "energy_stored_total_MWh"] += energy_stored_current
 
                 # Update the previous_timestamp
                 previous_timestamp = timestamp
@@ -193,7 +198,7 @@ def run(config):
                 hourly_results[bidding_zone]["net_export_MWh"] += hourly_results[bidding_zone][column_name]
 
         # Add the demand constraint
-        hourly_results[bidding_zone].apply(lambda row: model.addConstr(row.total_production_MWh - row.net_storage_flow_MWh - row.net_export_MWh >= row.demand_MWh), axis=1)
+        hourly_results[bidding_zone].apply(lambda row: model.addConstr(row.total_production_MWh - row.net_storage_flow_total_MWh - row.net_export_MWh >= row.demand_MWh), axis=1)
 
     # Remove the progress bar
     progress.empty()
@@ -264,7 +269,7 @@ def run(config):
     # Store the actual values per bidding zone for the hourly results
     for bidding_zone, hourly_results in hourly_results.items():
         hourly_results = utils.convert_variables_recursively(hourly_results)
-        hourly_results["curtailed_MWh"] = hourly_results.total_production_MWh - hourly_results.demand_MWh - hourly_results.net_storage_flow_MWh - hourly_results.net_export_MWh
+        hourly_results["curtailed_MWh"] = hourly_results.total_production_MWh - hourly_results.demand_MWh - hourly_results.net_storage_flow_total_MWh - hourly_results.net_export_MWh
         hourly_results.to_csv(f"{output_folder}/bidding_zones/{bidding_zone}.csv")
 
     # Store the actual values for the production capacity
