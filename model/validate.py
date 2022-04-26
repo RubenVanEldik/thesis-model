@@ -47,14 +47,16 @@ def is_config(value, *, required=True):
     if value is None:
         return not required
 
-    is_dict = type(value) is dict
+    if type(value) is not dict:
+        return false
+
     has_valid_model_year = is_model_year(value["model_year"])
     has_valid_countries = is_country_obj_list(value["countries"])
     has_valid_date_range = is_date_range(value["date_range"])
     has_valid_time_limit = is_datetime(value["optimization_time_limit"]) and value["optimization_time_limit"] > datetime.datetime.now()
     has_valid_method = is_optimization_method(value["optimization_method"])
 
-    return is_dict and has_valid_model_year and has_valid_countries and has_valid_date_range and has_valid_time_limit and has_valid_method
+    return has_valid_model_year and has_valid_countries and has_valid_date_range and has_valid_time_limit and has_valid_method
 
 
 def is_country_obj(value, *, required=True):
