@@ -269,7 +269,8 @@ def run(config):
     # Store the actual values per bidding zone for the hourly results
     for bidding_zone, hourly_results in hourly_results.items():
         hourly_results = utils.convert_variables_recursively(hourly_results)
-        hourly_results["curtailed_MWh"] = hourly_results.total_production_MWh - hourly_results.demand_MWh - hourly_results.net_storage_flow_total_MWh - hourly_results.net_export_MWh
+        curtailed_MWh = hourly_results.total_production_MWh - hourly_results.demand_MWh - hourly_results.net_storage_flow_total_MWh - hourly_results.net_export_MWh
+        hourly_results.insert(hourly_results.columns.get_loc("total_production_MWh"), "curtailed_MWh", curtailed_MWh)
         hourly_results.to_csv(f"{output_folder}/bidding_zones/{bidding_zone}.csv")
 
     # Store the actual values for the production capacity
