@@ -1,4 +1,4 @@
-from datetime import datetime, date, timedelta
+from datetime import datetime, time, date, timedelta
 import os
 import streamlit as st
 
@@ -101,8 +101,8 @@ def select_data_range():
 
 def select_time_limit():
     col1, col2 = st.columns(2)
-    end_date = col1.date_input("End date", min_value=datetime.now())
-    end_time = col2.time_input("End time", value=datetime.now() + timedelta(hours=1))
+    end_date = col1.date_input("End date", value=datetime.now() + timedelta(days=1), min_value=datetime.now())
+    end_time = col2.time_input("End time", value=time(9))
     return datetime.combine(end_date, end_time)
 
 
