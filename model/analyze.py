@@ -229,8 +229,9 @@ def duration_curve(timestamp):
     st.subheader("Options")
     range_area = st.checkbox("Range area", value=True)
     individual_lines = st.checkbox("Individual lines", value=False)
+    ignore_zeroes = st.checkbox("Ignore zeroes", value=False)
     unity_line = st.checkbox("Unity line", value=False)
 
     # Create the plot
-    plot = chart.waterfall(all_hourly_results, numerator=numerator, denominator=denominator, ylabel=ylabel, individual_lines=individual_lines, range_area=range_area, unity_line=unity_line)
+    plot = chart.waterfall(all_hourly_results, numerator=numerator, denominator=denominator, ylabel=ylabel, individual_lines=individual_lines, range_area=range_area, ignore_zeroes=ignore_zeroes, unity_line=unity_line)
     st.write(plot)

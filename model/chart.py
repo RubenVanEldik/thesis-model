@@ -11,7 +11,7 @@ plt.rcParams["font.family"] = "serif"
 
 
 @st.experimental_memo
-def merge_dataframes_on_column(dfs, column):
+def merge_dataframes_on_column(dfs, column, *, ignore_zeroes=False):
     """
     Create one DataFrame from a dictionary of DataFrames by selecting only one column per DataFrame
     """
@@ -23,6 +23,11 @@ def merge_dataframes_on_column(dfs, column):
         col = dfs[key].sort_values(column, ascending=False)[column]
         df[key] = col.tolist()
 
+    # Remove all rows where all values are zero
+    if ignore_zeroes:
+        last_non_zero_row = df[df.max(axis=1) != 0].iloc[-1].name
+        df = df[:last_non_zero_row]
+
     # Create an index ranging from 0 to 1
     num_rows = df.shape[0]
     df["index"] = [i / num_rows for i in range(num_rows)]
@@ -30,7 +35,7 @@ def merge_dataframes_on_column(dfs, column):
     return df
 
 
-def waterfall(dfs, *, numerator, denominator=None, ylabel, individual_lines=True, range_area=True, unity_line=False):
+def waterfall(dfs, *, numerator, denominator=None, ylabel, individual_lines=True, range_area=True, ignore_zeroes=False, unity_line=False):
     """
     Create a waterfall chart
     """
@@ -43,8 +48,8 @@ def waterfall(dfs, *, numerator, denominator=None, ylabel, individual_lines=True
     assert validate.is_bool(unity_line)
 
     # Create two new DataFrames with only the numerator/denominator column and all values sorted
-    numerator_df = merge_dataframes_on_column(dfs, numerator)
-    denominator_df = merge_dataframes_on_column(dfs, denominator)
+    numerator_df = merge_dataframes_on_column(dfs, numerator, ignore_zeroes=ignore_zeroes)
+    denominator_df = merge_dataframes_on_column(dfs, denominator, ignore_zeroes=ignore_zeroes)
 
     # Create the figure
     fig, ax = plt.subplots(figsize=(7, 5))
