@@ -3,11 +3,15 @@ import pandas as pd
 import gurobipy as gp
 import streamlit as st
 from datetime import datetime, timedelta
+from pandarallel import pandarallel
 
 import lcoe
 import utils
 import technologies
 import validate
+
+# Initialize pandarallel
+pandarallel.initialize()
 
 
 class Status:
@@ -317,7 +321,7 @@ def run(config):
 
         # Calculate the time of energy stored per storage technology per hour
         for storage_technology in config["technologies"]["storage"]:
-            time_stored_H = hourly_results.apply(calculate_time_energy_stored, storage_technology=storage_technology, hourly_results=hourly_results, axis=1)
+            time_stored_H = hourly_results.parallel_apply(calculate_time_energy_stored, storage_technology=storage_technology, hourly_results=hourly_results, axis=1)
             column_index = hourly_results.columns.get_loc(f"energy_stored_{storage_technology}_MWh") + 1
             hourly_results.insert(column_index, f"time_stored_{storage_technology}_H", time_stored_H)
 
