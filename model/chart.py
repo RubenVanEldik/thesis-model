@@ -41,7 +41,7 @@ def waterfall(dfs, *, numerator, denominator=None, ylabel, individual_lines=True
     """
     assert validate.is_dataframe_dict(dfs)
     assert validate.is_string(numerator)
-    assert validate.is_string(denominator)
+    assert validate.is_string(denominator, required=False)
     assert validate.is_string(ylabel)
     assert validate.is_bool(individual_lines)
     assert validate.is_bool(range_area)
@@ -49,7 +49,10 @@ def waterfall(dfs, *, numerator, denominator=None, ylabel, individual_lines=True
 
     # Create two new DataFrames with only the numerator/denominator column and all values sorted
     numerator_df = merge_dataframes_on_column(dfs, numerator, ignore_zeroes=ignore_zeroes)
-    denominator_df = merge_dataframes_on_column(dfs, denominator, ignore_zeroes=ignore_zeroes)
+    if denominator is None:
+        denominator_df = pd.DataFrame(1, index=numerator_df.index, columns=numerator_df.columns)
+    else:
+        denominator_df = merge_dataframes_on_column(dfs, denominator, ignore_zeroes=ignore_zeroes)
 
     # Create the figure
     fig, ax = plt.subplots(figsize=(7, 5))
@@ -78,7 +81,7 @@ def waterfall(dfs, *, numerator, denominator=None, ylabel, individual_lines=True
 
     # Format the axes to be percentages
     ax.set_xticklabels(["{:,.0%}".format(x) for x in ax.get_xticks()])
-    ax.set_yticklabels(["{:,.0%}".format(x) for x in ax.get_yticks()])
+    ax.set_yticklabels([("{:,.0f}" if denominator is None else "{:,.0%}").format(x) for x in ax.get_yticks()])
 
     # Return the figure
     return fig

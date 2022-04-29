@@ -216,14 +216,17 @@ def duration_curve(timestamp):
     first_country = next(iter(all_hourly_results))
     columns = all_hourly_results[first_country].columns
     relevant_columns = [column for column in columns if not re.search("^net_export_[0-9A-Z]{4}_MWh$", column)]
+    relative = st.checkbox("Relative")
     col1, col2 = st.columns(2)
     numerator = col1.selectbox("Numerator", relevant_columns)
-    denominator = col2.selectbox("Denominator", relevant_columns)
+    denominator = col2.selectbox("Denominator", relevant_columns) if relative else None
 
     # Set the label for the y-axis
     st.subheader("Labels")
-    numerator_label = re.search("(.+)_\w+$", numerator).group(1).replace("_", " ").capitalize()
-    ylabel = st.text_input("Label y-axis", value=f"{numerator_label} (%)")
+    label_match = re.search("(.+)_(\w+)$", numerator)
+    label_text = label_match.group(1).replace("_", " ").capitalize()
+    label_unit = label_match.group(2) if denominator is None else "%"
+    ylabel = st.text_input("Label y-axis", value=f"{label_text} ({label_unit})")
 
     # Set the waterfall parameters
     st.subheader("Options")
