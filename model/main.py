@@ -78,7 +78,7 @@ def select_countries():
     country_codes = [country["code"] for country in countries]
     default_countries = ["NL", "BE", "DE"]
     format_func = lambda code: next((country["name"] for country in countries if country["code"] == code), None)
-    selected_countries = st.sidebar.multiselect("Countries", country_codes, default=default_countries, format_func=format_func)
+    selected_countries = st.multiselect("Countries", country_codes, default=default_countries, format_func=format_func)
 
     # Return the country object for all selected countries
     return [country for country in countries if country["code"] in selected_countries]
@@ -92,7 +92,7 @@ def select_data_range():
     end_default = date(2016, 12, 31)
     start_data = date(1982, 1, 1)
     end_data = date(2016, 12, 31)
-    date_range = st.sidebar.date_input("Climate data range", (start_default, end_default), start_data, end_data)
+    date_range = st.date_input("Climate data range", (start_default, end_default), start_data, end_data)
 
     if len(date_range) != 2:
         return None
@@ -146,9 +146,10 @@ if __name__ == "__main__":
     st.sidebar.title("Run model")
     config = {}
     config["name"] = select_name()
-    config["model_year"] = st.sidebar.selectbox("Model year", [2025, 2030], index=1)
-    config["countries"] = select_countries()
-    config["date_range"] = select_data_range()
+    with st.sidebar.expander("Scope"):
+        config["model_year"] = st.selectbox("Model year", [2025, 2030], index=1)
+        config["countries"] = select_countries()
+        config["date_range"] = select_data_range()
     with st.sidebar.expander("Technologies"):
         config["technologies"] = {}
         scenario = st.select_slider("Scenario", options=["conservative", "moderate", "advanced"], value="moderate", format_func=lambda option: option.capitalize())
