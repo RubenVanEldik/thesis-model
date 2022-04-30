@@ -214,7 +214,7 @@ def run(config):
             status.update(f"Adding {connection_type.upper()} interconnections to {bidding_zone}")
             interconnection_limits = utils.get_interconnections(bidding_zone, type=connection_type, config=config)
             for column in interconnection_limits:
-                interconnection_limit = interconnection_limits[column] * config["relative_interconnections"]
+                interconnection_limit = interconnection_limits[column] * config["interconnections"]["relative_capacity"]
                 interconnection_index = interconnections[connection_type].index.to_series()
                 interconnections[connection_type][column] = interconnection_index.apply(add_interconnection, limits=interconnection_limit, model_year=config["model_year"], model=model)
 
@@ -230,15 +230,15 @@ def run(config):
         for type in interconnections:
             relevant_interconnections = [interconnection for interconnection in interconnections[type] if bidding_zone in interconnection]
             for interconnection in relevant_interconnections:
-                direction = 1 if interconnection[0] == bidding_zone else -0.95  # TODO: Check the interconnection efficiency
+                direction = 1 if interconnection[0] == bidding_zone else -config["interconnections"]["efficiency"][type]
                 other_bidding_zone = interconnection[1 if interconnection[0] == bidding_zone else 0]
                 column_name = f"net_export_{other_bidding_zone}_MWh"
                 if column_name not in hourly_results:
                     hourly_results[bidding_zone][column_name] = 0
                 hourly_results[bidding_zone][column_name] += direction * interconnections[type][interconnection]
-        hourly_results[bidding_zone]["net_export_MWh"] = 0
 
         # Add a column for the total hourly export
+        hourly_results[bidding_zone]["net_export_MWh"] = 0
         for column_name in hourly_results[bidding_zone]:
             if column_name.startswith("net_export_") and column_name != "net_export_MWh":
                 hourly_results[bidding_zone]["net_export_MWh"] += hourly_results[bidding_zone][column_name]

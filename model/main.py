@@ -151,10 +151,14 @@ if __name__ == "__main__":
     config["date_range"] = select_data_range()
     with st.sidebar.expander("Technologies"):
         config["technologies"] = {}
-        config["relative_interconnections"] = st.slider("Interconnections", value=1.0, max_value=1.5, step=0.05)
         scenario = st.select_slider("Scenario", options=["conservative", "moderate", "advanced"], value="moderate", format_func=lambda option: option.capitalize())
         config["technologies"]["scenario"] = scenario
         config["technologies"] = select_technologies(scenario)
+    with st.sidebar.expander("Interconnections"):
+        config["interconnections"] = {"efficiency": {}}
+        config["interconnections"]["relative_capacity"] = st.slider("Relative capacity", value=1.0, max_value=1.5, step=0.05)
+        config["interconnections"]["efficiency"]["hvac"] = st.number_input("Efficiency HVAC", value=0.95, max_value=1.0)
+        config["interconnections"]["efficiency"]["hvdc"] = st.number_input("Efficiency HVDC", value=0.95, max_value=1.0)
     with st.sidebar.expander("Optimization parameters"):
         config["optimization_method"] = select_method()
         config["optimization_time_limit"] = select_time_limit()
