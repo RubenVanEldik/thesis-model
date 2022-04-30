@@ -160,9 +160,10 @@ if __name__ == "__main__":
         config["interconnections"]["efficiency"]["hvac"] = st.number_input("Efficiency HVAC", value=0.95, max_value=1.0)
         config["interconnections"]["efficiency"]["hvdc"] = st.number_input("Efficiency HVDC", value=0.95, max_value=1.0)
     with st.sidebar.expander("Optimization parameters"):
-        config["optimization_method"] = select_method()
-        config["optimization_time_limit"] = select_time_limit()
-        config["thread_count"] = select_thread_count()
+        config["optimization"] = {}
+        config["optimization"]["method"] = select_method()
+        config["optimization"]["time_limit"] = select_time_limit()
+        config["optimization"]["thread_count"] = select_thread_count()
 
     # Run the model if the button has been pressed
     invalid_config = not validate.is_config(config)

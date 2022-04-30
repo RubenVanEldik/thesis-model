@@ -83,9 +83,9 @@ def run(config):
     status = Status()
     model = gp.Model("Name")
     model.setParam("OutputFlag", 0)
-    model.setParam("Threads", config["thread_count"])
-    model.setParam("Method", config["optimization_method"])
-    model.setParam("TimeLimit", (config["optimization_time_limit"] - datetime.now()).total_seconds())
+    model.setParam("Threads", config["optimization"]["thread_count"])
+    model.setParam("Method", config["optimization"]["method"])
+    model.setParam("TimeLimit", (config["optimization"]["time_limit"] - datetime.now()).total_seconds())
 
     """
     Step 2: Create a bidding zone list and set the progress bar

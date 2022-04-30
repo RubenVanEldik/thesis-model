@@ -53,8 +53,9 @@ def is_config(value, *, required=True):
     has_valid_model_year = is_model_year(value["model_year"])
     has_valid_countries = is_country_obj_list(value["countries"])
     has_valid_date_range = is_date_range(value["date_range"])
-    has_valid_time_limit = is_datetime(value["optimization_time_limit"]) and value["optimization_time_limit"] > datetime.datetime.now()
-    has_valid_method = is_optimization_method(value["optimization_method"])
+    has_valid_time_limit = is_datetime(value["optimization"]["time_limit"]) and value["optimization"]["time_limit"] > datetime.datetime.now()
+    has_valid_method = is_integer(value["optimization"]["method"], min_value=-1, max_value=6)
+    has_valid_thread_count = is_integer(value["optimization"]["thread_count"], min_value=1)
 
     return has_valid_model_year and has_valid_countries and has_valid_date_range and has_valid_time_limit and has_valid_method
 
@@ -187,6 +188,15 @@ def is_interconnection_direction(value, *, required=True):
     return value in ["import", "export"]
 
 
+def is_integer(value, *, required=True, min_value=None, max_value=None):
+    if value is None:
+        return not required
+
+    is_integer = type(value) is int
+    valid_integer = (min_value is None or value >= min_value) and (max_value is None or value <= max_value)
+    return is_integer and valid_integer
+
+
 def is_model(value, *, required=True):
     if value is None:
         return not required
@@ -199,16 +209,6 @@ def is_model_year(value, *, required=True):
         return not required
 
     return value == 2025 or value == 2030
-
-
-def is_optimization_method(value, *, required=True):
-    if value is None:
-        return not required
-
-    is_integer = type(value) is int
-    has_valid_value = -1 <= value <= 5
-
-    return is_integer and has_valid_value
 
 
 def is_string(value, *, required=True, min_length=0):
