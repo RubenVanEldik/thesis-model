@@ -214,7 +214,7 @@ def run(config):
             status.update(f"Adding {connection_type.upper()} interconnections to {bidding_zone}")
             interconnection_limits = utils.get_interconnections(bidding_zone, type=connection_type, config=config)
             for column in interconnection_limits:
-                interconnection_limit = interconnection_limits[column]
+                interconnection_limit = interconnection_limits[column] * config["relative_interconnections"]
                 interconnection_index = interconnections[connection_type].index.to_series()
                 interconnections[connection_type][column] = interconnection_index.apply(add_interconnection, limits=interconnection_limit, model_year=config["model_year"], model=model)
 

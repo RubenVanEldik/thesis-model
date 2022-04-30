@@ -151,6 +151,7 @@ if __name__ == "__main__":
     config["date_range"] = select_data_range()
     with st.sidebar.expander("Technologies"):
         config["technologies"] = {}
+        config["relative_interconnections"] = st.slider("Interconnections", value=1.0, max_value=1.5, step=0.05)
         scenario = st.select_slider("Scenario", options=["conservative", "moderate", "advanced"], value="moderate", format_func=lambda option: option.capitalize())
         config["technologies"]["scenario"] = scenario
         config["technologies"] = select_technologies(scenario)
