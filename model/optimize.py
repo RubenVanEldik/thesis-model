@@ -310,7 +310,7 @@ def run(config):
     Step 7: Store the results
     """
     output_folder = f"../output/{config['name']}"
-    os.makedirs(f"{output_folder}/bidding_zones", exist_ok=True)
+    os.makedirs(f"{output_folder}/hourly_results")
 
     # Store the actual values per bidding zone for the hourly results
     for bidding_zone, hourly_results in hourly_results.items():
@@ -326,7 +326,7 @@ def run(config):
             hourly_results.insert(column_index, f"time_stored_{storage_technology}_H", time_stored_H)
 
         # Store the hourly results to a CSV file
-        hourly_results.to_csv(f"{output_folder}/bidding_zones/{bidding_zone}.csv")
+        hourly_results.to_csv(f"{output_folder}/hourly_results/{bidding_zone}.csv")
 
     # Store the actual values for the production capacity
     production_capacity = utils.convert_variables_recursively(production_capacity)

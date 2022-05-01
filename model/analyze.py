@@ -99,7 +99,7 @@ def _get_hourly_results(timestamp, *, group=None):
     hourly_results = {}
     for country in config["countries"]:
         for bidding_zone in country["zones"]:
-            filepath = f"../output/{timestamp}/bidding_zones/{bidding_zone}.csv"
+            filepath = f"../output/{timestamp}/hourly_results/{bidding_zone}.csv"
             hourly_results[bidding_zone] = utils.read_hourly_data(filepath)
 
             if hourly_results[bidding_zone].isnull().values.any():
