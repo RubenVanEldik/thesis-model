@@ -67,6 +67,44 @@ def store_text(filepath, text):
         f.write(text)
 
 
+def get_nested_key(dict, key_string):
+    """
+    Return the value of a nested key, specified as a dot separated string
+    """
+
+    # Start off pointing at the original dictionary that was passed in
+    here = dict
+    keys = key_string.split(".")
+
+    # For each key in key_string set here to its value
+    for key in keys:
+        if here.get(key) is None:
+            raise ValueError(f"Can not find '{key}' in '{key_string}'")
+        here = here[key]
+
+    # Return the final nested value
+    return here
+
+
+def set_nested_key(dict, key_string, value):
+    """
+    Set the value of a nested key, specified as a dot separated string
+    """
+
+    # Start off pointing at the original dictionary that was passed in
+    here = dict_copy
+    keys = key_string.split(".")
+
+    # For each key in key_string set here to its value
+    for key in keys[:-1]:
+        if here.get(key) is None:
+            raise ValueError(f"Can not find '{key}' in '{key_string}'")
+        here = here[key]
+
+    # Set the final key to the given value
+    here[keys[-1]] = value
+
+
 def get_country_of_bidding_zone(bidding_zone):
     """
     Find to which country a bidding zone belongs to
