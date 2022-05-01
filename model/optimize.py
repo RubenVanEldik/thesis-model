@@ -60,7 +60,7 @@ def calculate_time_energy_stored(row, *, storage_technology, hourly_results):
             continue
 
         # Add the weighted time difference to to the time and update the minimum energy stored variable
-        hour_delta = (timestamp_current - timestamp).seconds / 3600
+        hour_delta = (timestamp_current - timestamp).total_seconds() / 3600
         weighted_time += hour_delta * ((energy_stored_min - max(energy_stored, energy_stored_current)) / -energy_delta)
         energy_stored_min = energy_stored
 
