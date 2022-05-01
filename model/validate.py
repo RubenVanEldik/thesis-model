@@ -211,6 +211,17 @@ def is_model_year(value, *, required=True):
     return value == 2025 or value == 2030
 
 
+def is_sensitivity_config(value, *, required=True):
+    if value is None:
+        return not required
+
+    is_dict = type(value) is dict
+    has_valid_steps = all(type(key) is str and type(value) is float for key, value in value["steps"].items())
+    has_valid_variables = len(value["variables"]) and all(type(variable) is str for variable in value["variables"])
+
+    return is_dict and has_valid_steps and has_valid_variables
+
+
 def is_string(value, *, required=True, min_length=0):
     if value is None:
         return not required

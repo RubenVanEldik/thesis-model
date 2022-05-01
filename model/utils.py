@@ -92,7 +92,7 @@ def set_nested_key(dict, key_string, value):
     """
 
     # Start off pointing at the original dictionary that was passed in
-    here = dict_copy
+    here = dict
     keys = key_string.split(".")
 
     # For each key in key_string set here to its value

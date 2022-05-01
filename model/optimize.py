@@ -1,3 +1,4 @@
+from copy import deepcopy
 import os
 import pandas as pd
 import gurobipy as gp
@@ -71,7 +72,7 @@ def calculate_time_energy_stored(row, *, storage_technology, hourly_results):
     return weighted_time
 
 
-def run(config):
+def run(config, *, output_folder):
     """
     Create and run the model
     """
@@ -309,7 +310,6 @@ def run(config):
     """
     Step 7: Store the results
     """
-    output_folder = f"../output/{config['name']}"
     os.makedirs(f"{output_folder}/hourly_results")
 
     # Store the actual values per bidding zone for the hourly results
@@ -337,3 +337,28 @@ def run(config):
     utils.store_yaml(f"{output_folder}/storage.yaml", storage_capacity)
     utils.store_yaml(f"{output_folder}/config.yaml", config)
     utils.store_text(f"{output_folder}/log.txt", "".join(log_messages))
+
+
+def run_sensitivity(config, sensitivity_config):
+    """
+    Run the model for each step in the sensitivity analysis
+    """
+    assert validate.is_config(config)
+    assert validate.is_sensitivity_config(sensitivity_config)
+
+    output_folder = f"../output/{config['name']}"
+
+    # Loop over each sensitivity analysis step
+    for step_key, step_value in sensitivity_config["steps"].items():
+        step_config = deepcopy(config)
+
+        # Update each config variable that is part of the sensitivity analysis
+        for variable_key in sensitivity_config["variables"]:
+            variable_value = utils.get_nested_key(step_config, variable_key)
+            utils.set_nested_key(step_config, variable_key, variable_value * step_value)
+
+        # Run the optimization
+        run(step_config, output_folder=f"{output_folder}/{step_key}")
+
+    # Store the sensitivity config file
+    utils.store_yaml(f"{output_folder}/sensitivity.yaml", sensitivity_config)

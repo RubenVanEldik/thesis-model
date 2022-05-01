@@ -1,4 +1,5 @@
 from datetime import datetime, time, date, timedelta
+import numpy as np
 import os
 import streamlit as st
 
@@ -121,6 +122,29 @@ def select_technologies(scenario):
     return {"production": production_technologies, "storage": storage_technologies}
 
 
+def get_sensitivity_options(config):
+    options = {}
+    options["interconnections.relative_capacity"] = "Interconnection capacity"
+    options["interconnections.efficiency.hvac"] = "HVAC efficiency"
+    options["interconnections.efficiency.hvdc"] = "HVDC efficiency"
+    for production_technology in config["technologies"]["production"]:
+        production_technology_label = technologies.labelize(production_technology)
+        options[f"technologies.production.{production_technology}.economic_lifetime"] = f"{production_technology_label} - Economic lifetime"
+        options[f"technologies.production.{production_technology}.capex"] = f"{production_technology_label} - CAPEX"
+        options[f"technologies.production.{production_technology}.fixed_om"] = f"{production_technology_label} - Fixed O&M"
+        options[f"technologies.production.{production_technology}.variable_om"] = f"{production_technology_label} - Variable O&M"
+        options[f"technologies.production.{production_technology}.wacc"] = f"{production_technology_label} - WACC"
+    for storage_technology in config["technologies"]["storage"]:
+        storage_technology_label = technologies.labelize(storage_technology)
+        options[f"technologies.storage.{storage_technology}.economic_lifetime"] = f"{storage_technology_label} - Economic lifetime"
+        options[f"technologies.storage.{storage_technology}.energy_capex"] = f"{storage_technology_label} - Energy CAPEX"
+        options[f"technologies.storage.{storage_technology}.power_capex"] = f"{storage_technology_label} - Power CAPEX"
+        options[f"technologies.storage.{storage_technology}.fixed_om"] = f"{storage_technology_label} - Fixed O&M"
+        options[f"technologies.storage.{storage_technology}.roundtrip_efficiency"] = f"{storage_technology_label} - Roundtrip efficiency"
+        options[f"technologies.storage.{storage_technology}.wacc"] = f"{storage_technology_label} - WACC"
+    return options
+
+
 def select_time_limit():
     col1, col2 = st.columns(2)
     end_date = col1.date_input("End date", value=datetime.now() + timedelta(days=1), min_value=datetime.now())
@@ -160,6 +184,20 @@ if __name__ == "__main__":
         config["interconnections"]["relative_capacity"] = st.slider("Relative capacity", value=1.0, max_value=1.5, step=0.05)
         config["interconnections"]["efficiency"]["hvac"] = st.number_input("Efficiency HVAC", value=0.95, max_value=1.0)
         config["interconnections"]["efficiency"]["hvdc"] = st.number_input("Efficiency HVDC", value=0.95, max_value=1.0)
+    with st.sidebar.expander("Sensitivity analysis"):
+        # Toggle the sensitivity analysis
+        sensitivity_enabled = st.checkbox("Enabled")
+        sensitivity_config = {}
+
+        # Select the sensitivity variables
+        sensitivity_options = get_sensitivity_options(config)
+        sensitivity_config["variables"] = st.multiselect("Variables", sensitivity_options.keys(), format_func=lambda key: sensitivity_options[key], disabled=not sensitivity_enabled)
+
+        # Select the sensitivity range and steps
+        sensitivity_start, sensitivity_stop = st.slider("Relative range", value=(0.5, 1.5), min_value=0.0, max_value=2.0, step=0.05, disabled=not sensitivity_enabled)
+        number_steps = st.slider("Number of steps", value=5, min_value=3, max_value=15, step=2, disabled=not sensitivity_enabled)
+        sensitity_steps = np.linspace(start=sensitivity_start, stop=sensitivity_stop, num=number_steps)
+        sensitivity_config["steps"] = dict([(f"{step:.3f}", float(step)) for step in sensitity_steps])
     with st.sidebar.expander("Optimization parameters"):
         config["optimization"] = {}
         config["optimization"]["method"] = select_method()
@@ -168,19 +206,25 @@ if __name__ == "__main__":
 
     # Run the model if the button has been pressed
     invalid_config = not validate.is_config(config)
-    if mode.button("optimization", label="Run model", only_on_click=True, disabled=invalid_config):
+    invalid_sensitivity_config = sensitivity_enabled and not validate.is_sensitivity_config(sensitivity_config)
+    if mode.button("optimization", label="Run model", only_on_click=True, disabled=invalid_config or invalid_sensitivity_config):
         if config["name"] in get_previous_runs():
             st.error(f"There is already a run called '{config['name']}'")
+        elif sensitivity_enabled:
+            optimize.run_sensitivity(config, sensitivity_config)
         else:
-            optimize.run(config)
+            optimize.run(config, output_folder=f"../output/{config['name']}")
         mode.set(None)  # Set the mode to None so the URL params are updated
 
     # Settings for the analysis
     st.sidebar.title("Analyze previous run")
     previous_runs = get_previous_runs()
     selected_run = st.sidebar.selectbox("Previous runs", previous_runs)
-    analysis_options = ["statistics", "hourly_results", "duration_curve"]
-    analysis = st.sidebar.selectbox("Analyses", analysis_options, format_func=lambda option: option.replace("_", " ").capitalize())
+    if os.path.isfile(f"../output/{selected_run}/sensitivity.yaml"):
+        analysis = "sensitivity"
+    else:
+        analysis_options = ["statistics", "hourly_results", "duration_curve"]
+        analysis = st.sidebar.selectbox("Analyses", analysis_options, format_func=lambda option: option.replace("_", " ").capitalize())
 
     # Run the analysis if the button has been pressed or the mode is set to analysis
     if mode.button("analysis", label="Analyze run", disabled=not selected_run):

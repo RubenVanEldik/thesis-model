@@ -1,3 +1,4 @@
+import pandas as pd
 import streamlit as st
 import re
 
@@ -238,3 +239,32 @@ def duration_curve(timestamp):
     # Create the plot
     plot = chart.waterfall(all_hourly_results, numerator=numerator, denominator=denominator, ylabel=ylabel, individual_lines=individual_lines, range_area=range_area, ignore_zeroes=ignore_zeroes, unity_line=unity_line)
     st.write(plot)
+
+
+def sensitivity(run_name):
+    """
+    Analyze the sensitivity
+    """
+    assert validate.is_string(run_name)
+
+    st.title("Sensitivity analysis")
+
+    sensitivity_config = utils.open_yaml(f"../output/{run_name}/sensitivity.yaml")
+    output_variable_options = ["LCOE"]
+    output_variables = st.multiselect("Output variable", output_variable_options)
+    if output_variables:
+        sensitivity_steps = sensitivity_config["steps"]
+        output_values = pd.DataFrame(index=sensitivity_steps.values(), columns=output_variable_options)
+
+        # Loop over each step in the sensitivity analysis
+        for step_key, step_value in sensitivity_steps.items():
+            production_capacity = _get_production_capacity(f"{run_name}/{step_key}")
+            storage_capacity = _get_storage_capacity(f"{run_name}/{step_key}")
+            hourly_results = _get_hourly_results(f"{run_name}/{step_key}")
+            config = utils.open_yaml(f"../output/{run_name}/{step_key}/config.yaml")
+
+            firm_lcoe = lcoe.calculate(production_capacity, storage_capacity, hourly_results, technologies=config["technologies"])
+            output_values.loc[step_value, "LCOE"] = firm_lcoe
+
+        # Show a line chart with the selected output variables
+        st.line_chart(output_values[output_variables])
