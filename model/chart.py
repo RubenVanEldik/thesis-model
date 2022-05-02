@@ -35,7 +35,7 @@ def merge_dataframes_on_column(dfs, column, *, ignore_zeroes=False):
     return df
 
 
-def waterfall(dfs, *, numerator, denominator=None, ylabel, individual_lines=True, range_area=True, ignore_zeroes=False, unity_line=False):
+def waterfall(dfs, *, numerator, denominator=None, xlabel, ylabel, individual_lines=True, range_area=True, ignore_zeroes=False, unity_line=False, xscale="linear", yscale="linear"):
     """
     Create a waterfall chart
     """
@@ -75,9 +75,11 @@ def waterfall(dfs, *, numerator, denominator=None, ylabel, individual_lines=True
     if unity_line:
         ax.axhline(y=1, color=color.red(600), linewidth=1)
 
-    # Set the axes' labels
-    ax.set(xlabel="Time (%)")
+    # Set the axes' labels and scale
+    ax.set(xlabel=xlabel)
     ax.set(ylabel=ylabel)
+    ax.set_xscale(xscale)
+    ax.set_yscale(yscale)
 
     # Format the axes to be percentages
     ax.set_xticklabels(["{:,.0%}".format(x) for x in ax.get_xticks()])

@@ -223,11 +223,16 @@ def duration_curve(timestamp):
     denominator = col2.selectbox("Denominator", relevant_columns) if relative else None
 
     # Set the label for the y-axis
-    st.subheader("Labels")
-    label_match = re.search("(.+)_(\w+)$", numerator)
-    label_text = label_match.group(1).replace("_", " ").capitalize()
-    label_unit = label_match.group(2) if denominator is None else "%"
-    ylabel = st.text_input("Label y-axis", value=f"{label_text} ({label_unit})")
+    st.subheader("Axes")
+    col1, col2 = st.columns(2)
+    ylabel_match = re.search("(.+)_(\w+)$", numerator)
+    ylabel_text = ylabel_match.group(1).replace("_", " ").capitalize()
+    ylabel_unit = ylabel_match.group(2) if denominator is None else "%"
+    xlabel = col1.text_input("Label x-axis", value="Time (%)")
+    ylabel = col2.text_input("Label y-axis", value=f"{ylabel_text} ({ylabel_unit})")
+    axis_scale_options = ["linear", "log", "symlog", "logit"]
+    xscale = col1.selectbox("Scale x-axis", axis_scale_options, format_func=lambda item: item.capitalize())
+    yscale = col2.selectbox("Scale y-axis", axis_scale_options, format_func=lambda item: item.capitalize())
 
     # Set the waterfall parameters
     st.subheader("Options")
@@ -237,7 +242,7 @@ def duration_curve(timestamp):
     unity_line = st.checkbox("Unity line", value=False)
 
     # Create the plot
-    plot = chart.waterfall(all_hourly_results, numerator=numerator, denominator=denominator, ylabel=ylabel, individual_lines=individual_lines, range_area=range_area, ignore_zeroes=ignore_zeroes, unity_line=unity_line)
+    plot = chart.waterfall(all_hourly_results, numerator=numerator, denominator=denominator, xlabel=xlabel, ylabel=ylabel, xscale=xscale, yscale=yscale, individual_lines=individual_lines, range_area=range_area, ignore_zeroes=ignore_zeroes, unity_line=unity_line)
     st.write(plot)
 
 
