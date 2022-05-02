@@ -1,4 +1,5 @@
 from matplotlib import pyplot as plt
+from matplotlib import ticker as mticker
 import pandas as pd
 import re
 import streamlit as st
@@ -8,6 +9,40 @@ import validate
 
 # Set the font for all plots to serif
 plt.rcParams["font.family"] = "serif"
+
+
+class Chart:
+    fig = None
+    ax = None
+
+    def __init__(self, *, xlabel, ylabel, xscale="linear", yscale="linear"):
+        # Create the figure
+        fig, ax = plt.subplots(figsize=(7, 5))
+
+        # Store the figure and axis
+        self.fig = fig
+        self.ax = ax
+
+        # Set the axes' labels and scale
+        self.ax.set(xlabel=xlabel)
+        self.ax.set(ylabel=ylabel)
+        self.ax.set_xscale(xscale)
+        self.ax.set_yscale(yscale)
+
+    def format_xticklabels(self, label):
+        ticks_loc = self.ax.get_xticks().tolist()
+        self.ax.xaxis.set_major_locator(mticker.FixedLocator(ticks_loc))
+        xticks = self.ax.get_xticks()
+        self.ax.set_xticklabels([label.format(tick) for tick in xticks])
+
+    def format_yticklabels(self, label):
+        ticks_loc = self.ax.get_yticks().tolist()
+        self.ax.yaxis.set_major_locator(mticker.FixedLocator(ticks_loc))
+        yticks = self.ax.get_yticks()
+        self.ax.set_yticklabels([label.format(tick) for tick in yticks])
+
+    def save(self, filepath):
+        plt.savefig(filepath, dpi=250, bbox_inches="tight", pad_inches=0.2)
 
 
 @st.experimental_memo
@@ -35,14 +70,13 @@ def merge_dataframes_on_column(dfs, column, *, ignore_zeroes=False):
     return df
 
 
-def waterfall(dfs, *, numerator, denominator=None, xlabel, ylabel, individual_lines=True, range_area=True, ignore_zeroes=False, unity_line=False, xscale="linear", yscale="linear"):
+def waterfall(dfs, *, numerator, denominator=None, individual_lines=True, range_area=True, ignore_zeroes=False, unity_line=False, **figure_options):
     """
     Create a waterfall chart
     """
     assert validate.is_dataframe_dict(dfs)
     assert validate.is_string(numerator)
     assert validate.is_string(denominator, required=False)
-    assert validate.is_string(ylabel)
     assert validate.is_bool(individual_lines)
     assert validate.is_bool(range_area)
     assert validate.is_bool(unity_line)
@@ -55,35 +89,29 @@ def waterfall(dfs, *, numerator, denominator=None, xlabel, ylabel, individual_li
         denominator_df = merge_dataframes_on_column(dfs, denominator, ignore_zeroes=ignore_zeroes)
 
     # Create the figure
-    fig, ax = plt.subplots(figsize=(7, 5))
+    chart = Chart(**figure_options)
 
     # Plot the range fill
     if range_area:
         df_rel = numerator_df / denominator_df.max()
         relative_min = df_rel.min(axis=1)
         relative_max = df_rel.max(axis=1)
-        ax.fill_between(numerator_df.index, relative_min, relative_max, color=color.blue(100))
+        chart.ax.fill_between(numerator_df.index, relative_min, relative_max, color=color.blue(100))
     # Plot a line for each column (country)
     if individual_lines:
         for column_name in numerator_df:
             relative_column = numerator_df[column_name] / denominator_df[column_name].max()
-            ax.plot(relative_column, color=color.blue(300), linewidth=1)
+            chart.ax.plot(relative_column, color=color.blue(300), linewidth=1)
     # Plot the mean values
     relative_mean = numerator_df.mean(axis=1) / denominator_df.mean(axis=1).max()
-    ax.plot(relative_mean, color=color.blue(700))
+    chart.ax.plot(relative_mean, color=color.blue(700))
     # Plot the unity line
     if unity_line:
-        ax.axhline(y=1, color=color.red(600), linewidth=1)
-
-    # Set the axes' labels and scale
-    ax.set(xlabel=xlabel)
-    ax.set(ylabel=ylabel)
-    ax.set_xscale(xscale)
-    ax.set_yscale(yscale)
+        chart.ax.axhline(y=1, color=color.red(600), linewidth=1)
 
     # Format the axes to be percentages
-    ax.set_xticklabels(["{:,.0%}".format(x) for x in ax.get_xticks()])
-    ax.set_yticklabels([("{:,.0f}" if denominator is None else "{:,.0%}").format(x) for x in ax.get_yticks()])
+    chart.format_xticklabels("{:,.0%}")
+    chart.format_yticklabels("{:,.0f}" if denominator is None else "{:,.0%}")
 
     # Return the figure
-    return fig
+    return chart.fig
