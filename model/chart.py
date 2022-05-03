@@ -17,11 +17,7 @@ class Chart:
 
     def __init__(self, *, xlabel, ylabel, xscale="linear", yscale="linear"):
         # Create the figure
-        fig, ax = plt.subplots(figsize=(7, 5))
-
-        # Store the figure and axis
-        self.fig = fig
-        self.ax = ax
+        self.fig, self.ax = plt.subplots(figsize=(7, 5))
 
         # Set the axes' labels and scale
         self.ax.set(xlabel=xlabel)
