@@ -142,7 +142,7 @@ def hourly_results(timestamp):
     all_hourly_results = _get_hourly_results(timestamp, group="country")
     config = utils.open_yaml(f"../output/{timestamp}/config.yaml")
     country = st.selectbox("Country", config["countries"], format_func=lambda country: country["name"])
-    hourly_results = all_hourly_results[country["code"]]
+    hourly_results = all_hourly_results[country["nuts_2"]]
 
     # Filter the data columns
     columns = st.multiselect("Columns", hourly_results.columns)

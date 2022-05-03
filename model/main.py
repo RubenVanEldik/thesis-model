@@ -76,13 +76,13 @@ def select_countries():
     countries = utils.open_yaml(os.path.join("../input", "countries.yaml"))
 
     # Let the user select the country
-    country_codes = [country["code"] for country in countries]
+    country_codes = [country["nuts_2"] for country in countries]
     default_countries = ["NL", "BE", "DE"]
-    format_func = lambda code: next((country["name"] for country in countries if country["code"] == code), None)
+    format_func = lambda nuts_2: next((country["name"] for country in countries if country["nuts_2"] == nuts_2), None)
     selected_countries = st.multiselect("Countries", country_codes, default=default_countries, format_func=format_func)
 
     # Return the country object for all selected countries
-    return [country for country in countries if country["code"] in selected_countries]
+    return [country for country in countries if country["nuts_2"] in selected_countries]
 
 
 def select_data_range():

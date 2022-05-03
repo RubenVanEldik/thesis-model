@@ -112,7 +112,7 @@ def get_country_of_bidding_zone(bidding_zone):
     assert validate.is_bidding_zone(bidding_zone)
 
     countries = open_yaml(f"../input/countries.yaml")
-    return next(country["code"] for country in countries if bidding_zone in country["zones"])
+    return next(country["nuts_2"] for country in countries if bidding_zone in country["zones"])
 
 
 def get_interconnections(bidding_zone, *, config, type, direction="export"):

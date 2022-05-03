@@ -1,111 +1,112 @@
-- code: AL
+- nuts_2: AL
   name: Albania
   zones: [AL00]
-- code: AT
+
+- nuts_2: AT
   name: Austria
   zones: [AT00]
-- code: BA
+- nuts_2: BA
   name: Bosnia and Herzegovina
   zones: [BA00]
-- code: BE
+- nuts_2: BE
   name: Belgium
   zones: [BE00]
-- code: BG
+- nuts_2: BG
   name: Bulgaria
   zones: [BG00]
-- code: CH
+- nuts_2: CH
   name: Switzerland
   zones: [CH00]
-- code: CY
+- nuts_2: CY
   name: Cyprus
   zones: [CY00]
-- code: CZ
+- nuts_2: CZ
   name: Czech Republic
   zones: [CZ00]
-- code: DE
+- nuts_2: DE
   name: Germany
   zones: [DE00]
-- code: DK
+- nuts_2: DK
   name: Denmark
   zones: [DKE1, DKW1]
-- code: EE
+- nuts_2: EE
   name: Estonia
   zones: [EE00]
-- code: ES
+- nuts_2: ES
   name: Spain
   zones: [ES00]
-- code: FI
+- nuts_2: FI
   name: Finland
   zones: [FI00]
-- code: FR
+- nuts_2: FR
   name: France
   zones: [FR00, FR15]
-- code: GR
+- nuts_2: GR
   name: Greece
   zones: [GR00, GR03]
-- code: HR
+- nuts_2: HR
   name: Croatia
   zones: [HR00]
-- code: HU
+- nuts_2: HU
   name: Hungary
   zones: [HU00]
-- code: IE
+- nuts_2: IE
   name: Ireland
   zones: [IE00]
-- code: IT
+- nuts_2: IT
   name: Italy
   zones: [ITCA, ITCN, ITCS, ITN1, ITS1, ITSA, ITSI]
-- code: LT
+- nuts_2: LT
   name: Lithuania
   zones: [LT00]
-- code: LU
+- nuts_2: LU
   name: Luxembourg
   zones: [LUB1, LUF1, LUG1]
-- code: LV
+- nuts_2: LV
   name: Latvia
   zones: [LV00]
-- code: ME
+- nuts_2: ME
   name: Montenegro
   zones: [ME00]
-- code: MK
+- nuts_2: MK
   name: FYR of Macedonia
   zones: [MK00]
-- code: MT
+- nuts_2: MT
   name: Malta
   zones: [MT00]
-- code: NL
+- nuts_2: NL
   name: Netherlands
   zones: [NL00]
-- code: NO
+- nuts_2: NO
   name: Norway
   zones: [NOM1, NON1, NOS0]
-- code: PL
+- nuts_2: PL
   name: Poland
   zones: [PL00]
-- code: PT
+- nuts_2: PT
   name: Portugal
   zones: [PT00]
-- code: RO
+- nuts_2: RO
   name: Romania
   zones: [RO00]
-- code: RS
+- nuts_2: RS
   name: Serbia
   zones: [RS00]
-- code: SE
+- nuts_2: SE
   name: Sweden
   zones: [SE01, SE02, SE03, SE04]
-- code: SI
+- nuts_2: SI
   name: Slovenia
   zones: [SI00]
-- code: SK
+- nuts_2: SK
   name: Slovak Republic
   zones: [SK00]
-- code: TR
+- nuts_2: TR
   name: Republic of Turkey
   zones: [TR00]
-- code: UA
+- nuts_2: UA
   name: Ukraine
   zones: [UA01]
-- code: UK
+- nuts_2: UK
   name: United Kingdom
   zones: [UK00, UKNI]
