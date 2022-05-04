@@ -335,6 +335,8 @@ def run(config, *, output_folder):
     # Store the actual values for the storage capacity
     storage_capacity = utils.convert_variables_recursively(storage_capacity)
     utils.write_yaml(f"{output_folder}/storage.yaml", storage_capacity)
+
+    # Store the config and optimization log
     utils.write_yaml(f"{output_folder}/config.yaml", config)
     utils.store_text(f"{output_folder}/log.txt", "".join(log_messages))
 
