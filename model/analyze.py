@@ -10,15 +10,15 @@ import utils
 
 
 @st.experimental_memo
-def _get_production_capacity(timestamp, *, group=None):
+def _get_production_capacity(run_name, *, group=None):
     """
     Return the (grouped) production capacity
     """
-    assert validate.is_string(timestamp)
+    assert validate.is_string(run_name)
     assert validate.is_aggregation_level(group, required=False)
 
     # Get the production data
-    production_capacity = utils.open_yaml(f"../output/{timestamp}/production.yaml")
+    production_capacity = utils.open_yaml(f"../output/{run_name}/production.yaml")
 
     # Return all bidding zones individually if not grouped
     if group is None:
@@ -45,15 +45,15 @@ def _get_production_capacity(timestamp, *, group=None):
 
 
 @st.experimental_memo
-def _get_storage_capacity(timestamp, *, group=None):
+def _get_storage_capacity(run_name, *, group=None):
     """
     Return the (grouped) storage capacity
     """
-    assert validate.is_string(timestamp)
+    assert validate.is_string(run_name)
     assert validate.is_aggregation_level(group, required=False)
 
     # Get the storage data
-    storage_capacity = utils.open_yaml(f"../output/{timestamp}/storage.yaml")
+    storage_capacity = utils.open_yaml(f"../output/{run_name}/storage.yaml")
 
     # Return all bidding zones individually if not grouped
     if group is None:
@@ -86,21 +86,21 @@ def _get_storage_capacity(timestamp, *, group=None):
 
 
 @st.experimental_memo
-def _get_hourly_results(timestamp, *, group=None):
+def _get_hourly_results(run_name, *, group=None):
     """
     Return the (grouped) production capacity
     """
-    assert validate.is_string(timestamp)
+    assert validate.is_string(run_name)
     assert validate.is_aggregation_level(group, required=False)
 
     # Get the config
-    config = utils.open_yaml(f"../output/{timestamp}/config.yaml")
+    config = utils.open_yaml(f"../output/{run_name}/config.yaml")
 
     # Get the hourly data for each bidding zone
     hourly_results = {}
     for country in config["countries"]:
         for bidding_zone in country["zones"]:
-            filepath = f"../output/{timestamp}/hourly_results/{bidding_zone}.csv"
+            filepath = f"../output/{run_name}/hourly_results/{bidding_zone}.csv"
             hourly_results[bidding_zone] = utils.read_hourly_data(filepath)
 
             if hourly_results[bidding_zone].isnull().values.any():
@@ -132,15 +132,15 @@ def _get_hourly_results(timestamp, *, group=None):
         return total_hourly_results
 
 
-def hourly_results(timestamp):
+def hourly_results(run_name):
     """
     Show the hourly results in a chart and table
     """
-    assert validate.is_string(timestamp)
+    assert validate.is_string(run_name)
 
     # Get hourly results for a country
-    all_hourly_results = _get_hourly_results(timestamp, group="country")
-    config = utils.open_yaml(f"../output/{timestamp}/config.yaml")
+    all_hourly_results = _get_hourly_results(run_name, group="country")
+    config = utils.open_yaml(f"../output/{run_name}/config.yaml")
     country = st.selectbox("Country", config["countries"], format_func=lambda country: country["name"])
     hourly_results = all_hourly_results[country["nuts_2"]]
 
@@ -162,24 +162,24 @@ def hourly_results(timestamp):
         st.write(hourly_results)
 
 
-def statistics(timestamp):
+def statistics(run_name):
     """
     Show the key indicators for a run
     """
-    assert validate.is_string(timestamp)
+    assert validate.is_string(run_name)
 
     # Get both the grouped and ungrouped results
-    hourly_results = _get_hourly_results(timestamp)
-    total_hourly_results = _get_hourly_results(timestamp, group="all")
-    production_capacity = _get_production_capacity(timestamp)
-    total_production_capacity = _get_production_capacity(timestamp, group="all")
-    storage_capacity = _get_storage_capacity(timestamp)
-    total_storage_capacity = _get_storage_capacity(timestamp, group="all")
+    hourly_results = _get_hourly_results(run_name)
+    total_hourly_results = _get_hourly_results(run_name, group="all")
+    production_capacity = _get_production_capacity(run_name)
+    total_production_capacity = _get_production_capacity(run_name, group="all")
+    storage_capacity = _get_storage_capacity(run_name)
+    total_storage_capacity = _get_storage_capacity(run_name, group="all")
 
     # Show the KPI's
     st.header("KPI's")
     col1, col2, col3 = st.columns(3)
-    config = utils.open_yaml(f"../output/{timestamp}/config.yaml")
+    config = utils.open_yaml(f"../output/{run_name}/config.yaml")
     firm_lcoe = lcoe.calculate(production_capacity, storage_capacity, hourly_results, technologies=config["technologies"])
     unconstrained_lcoe = lcoe.calculate(production_capacity, storage_capacity, hourly_results, technologies=config["technologies"], unconstrained=True)
     col1.metric("LCOE", f"{int(firm_lcoe)}€/MWh")
@@ -201,16 +201,16 @@ def statistics(timestamp):
         cols[index].metric(technologies.labelize(technology), f"{installed_hours:.1f}Hr")
 
 
-def duration_curve(timestamp):
+def duration_curve(run_name):
     """
     Analyze the storage
     """
-    assert validate.is_string(timestamp)
+    assert validate.is_string(run_name)
 
     st.title("Duration curve")
 
     # Get the storage capacity and hourly results
-    all_hourly_results = _get_hourly_results(timestamp, group="country")
+    all_hourly_results = _get_hourly_results(run_name, group="country")
 
     # Select a column as numerator and denominator
     st.subheader("Columns")
