@@ -229,8 +229,14 @@ def duration_curve(run_name):
     ignore_zeroes = st.checkbox("Ignore zeroes", value=False)
     unity_line = st.checkbox("Unity line", value=False)
 
+    # Create two new DataFrames with only the numerator/denominator column and all values sorted
+    waterfall_df = utils.merge_dataframes_on_column(all_hourly_results, numerator, sorted=True)
+    if denominator:
+        denominator_df = utils.merge_dataframes_on_column(all_hourly_results, denominator, sorted=True)
+        waterfall_df = waterfall_df / denominator_df.max()
+
     # Create the plot
-    plot = chart.waterfall(all_hourly_results, numerator=numerator, denominator=denominator, xlabel=xlabel, ylabel=ylabel, xscale=xscale, yscale=yscale, individual_lines=individual_lines, range_area=range_area, ignore_zeroes=ignore_zeroes, unity_line=unity_line)
+    plot = chart.waterfall(waterfall_df, is_relative=bool(denominator), xlabel=xlabel, ylabel=ylabel, xscale=xscale, yscale=yscale, individual_lines=individual_lines, range_area=range_area, ignore_zeroes=ignore_zeroes, unity_line=unity_line)
     st.write(plot)
 
 
