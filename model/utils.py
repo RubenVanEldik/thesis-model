@@ -1,4 +1,5 @@
 import gurobipy as gp
+import geopandas as gpd
 import pandas as pd
 import streamlit as st
 import yaml
@@ -65,6 +66,17 @@ def store_text(filepath, text):
 
     with open(filepath, "w") as f:
         f.write(text)
+
+
+@st.experimental_memo
+def read_shapefile(filepath):
+    """
+    Returns the content of a .shp file as a geopandas DataFrame
+    """
+    assert validate.is_filepath(filepath, suffix=".shp")
+
+    # Read and return the file
+    return gpd.read_file("../input/countries/ne_10m_admin_0_map_subunits.shp")
 
 
 def get_nested_key(dict, key_string):

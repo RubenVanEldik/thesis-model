@@ -3,15 +3,21 @@ from matplotlib import ticker as mticker
 import pandas as pd
 import re
 import streamlit as st
+import numpy as np
 
 import color
 import validate
+import utils
 
 # Set the font for all plots to serif
 plt.rcParams["font.family"] = "serif"
 
 
 class Chart:
+    """
+    Create a matplotlib figure
+    """
+
     fig = None
     ax = None
 
@@ -39,6 +45,56 @@ class Chart:
 
     def save(self, filepath):
         plt.savefig(filepath, dpi=250, bbox_inches="tight", pad_inches=0.2)
+
+
+class Map:
+    """
+    Create a geopandas map based on a Series with country level data
+    """
+
+    fig = None
+    ax = None
+
+    def __init__(self, data, *, label=None):
+        # Create the figure
+        self.fig, self.ax = plt.subplots(figsize=(7, 5))
+        self.ax.axis("off")
+        self.ax.margins(0.02)
+
+        # Create the color bar
+        colormap = color.colormap("blue")
+        vmin = data.min()
+        vmax = data[data < np.Inf].max()
+        scalar_mappable = plt.cm.ScalarMappable(cmap=colormap, norm=plt.Normalize(vmin=vmin, vmax=vmax))
+        self.fig.colorbar(scalar_mappable, shrink=0.7, aspect=20, label=label)
+
+        # Get a list of all included geographic units and all excluded geographic sub-units
+        included_geographic_units = []
+        excluded_geographic_subunits = []
+        countries = utils.read_yaml("../input/countries.yaml")
+        relevant_countries = [country for country in countries if country["nuts_2"] in data.index]
+        for country in relevant_countries:
+            included_geographic_units.extend(country.get("included_geographic_units") or [])
+            excluded_geographic_subunits.extend(country.get("excluded_geographic_subunits") or [])
+
+        # Get a Geopandas DataFrame with the relevant rows
+        map_df = utils.read_shapefile("../input/countries/ne_10m_admin_0_map_subunits.shp")
+        map_df = map_df[map_df.GU_A3.isin(included_geographic_units)]
+        map_df = map_df[~map_df.SU_A3.isin(excluded_geographic_subunits)]
+
+        # Merge the regions for each country and set the country code as the index
+        map_df = map_df.dissolve(by="SOV_A3")
+        map_df = map_df.set_index("ADM0_A3")
+        map_df = map_df[["geometry"]]
+
+        # Map the data to map_df
+        map_df["data"] = map_df.apply(lambda row: data[next(country["nuts_2"] for country in relevant_countries if country["alpha_3"] == row.name)], axis=1)
+
+        # Plot the data
+        map_df.plot(column="data", cmap=colormap, linewidth=0.5, ax=self.ax, edgecolor=color.gray(600))
+
+    def save(self, filepath):
+        plt.savefig(filepath, dpi=2500, bbox_inches="tight", pad_inches=0.2)
 
 
 @st.experimental_memo

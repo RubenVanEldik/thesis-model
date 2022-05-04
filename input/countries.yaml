@@ -2,147 +2,185 @@
   alpha_3: ALB
   name: Albania
   zones: [AL00]
+  included_geographic_units: [ALB]
 - nuts_2: AT
   alpha_3: AUT
   name: Austria
   zones: [AT00]
+  included_geographic_units: [AUT]
 - nuts_2: BA
   alpha_3: BIH
   name: Bosnia and Herzegovina
   zones: [BA00]
+  included_geographic_units: [BHF, BIS, BHB]
 - nuts_2: BE
   alpha_3: BEL
   name: Belgium
   zones: [BE00]
+  included_geographic_units: [BFR, BWR, BCR]
 - nuts_2: BG
   alpha_3: BGR
   name: Bulgaria
   zones: [BG00]
+  included_geographic_units: [BGR]
 - nuts_2: CH
   alpha_3: CHE
   name: Switzerland
   zones: [CH00]
+  included_geographic_units: [CHE]
 - nuts_2: CY
   alpha_3: CYP
   name: Cyprus
   zones: [CY00]
+  included_geographic_units: [CYP]
 - nuts_2: CZ
   alpha_3: CZE
   name: Czech Republic
   zones: [CZ00]
+  included_geographic_units: [CZE]
 - nuts_2: DE
   alpha_3: DEU
   name: Germany
   zones: [DE00]
+  included_geographic_units: [DEU]
 - nuts_2: DK
   alpha_3: DNK
   name: Denmark
   zones: [DKE1, DKW1]
+  included_geographic_units: [DNK]
 - nuts_2: EE
   alpha_3: EST
   name: Estonia
   zones: [EE00]
+  included_geographic_units: [EST]
 - nuts_2: ES
   alpha_3: ESP
   name: Spain
   zones: [ES00]
+  included_geographic_units: [ESP]
+  excluded_geographic_subunits: [ESC]
 - nuts_2: FI
   alpha_3: FIN
   name: Finland
   zones: [FI00]
+  included_geographic_units: [FIN, ALD]
 - nuts_2: FR
   alpha_3: FRA
   name: France
   zones: [FR00, FR15]
+  included_geographic_units: [FXX]
 - nuts_2: GR
   alpha_3: GRC
   name: Greece
   zones: [GR00, GR03]
+  included_geographic_units: [GRC]
 - nuts_2: HR
   alpha_3: HRV
   name: Croatia
   zones: [HR00]
+  included_geographic_units: [HRV]
 - nuts_2: HU
   alpha_3: HUN
   name: Hungary
   zones: [HU00]
+  included_geographic_units: [HUN]
 - nuts_2: IE
   alpha_3: IRL
   name: Ireland
   zones: [IE00]
+  included_geographic_units: [IRL]
 - nuts_2: IT
   alpha_3: ITA
   name: Italy
   zones: [ITCA, ITCN, ITCS, ITN1, ITS1, ITSA, ITSI]
+  included_geographic_units: [ITA]
 - nuts_2: LT
   alpha_3: LTU
   name: Lithuania
   zones: [LT00]
+  included_geographic_units: [LTU]
 - nuts_2: LU
   alpha_3: LUX
   name: Luxembourg
   zones: [LUB1, LUF1, LUG1]
+  included_geographic_units: [LUX]
 - nuts_2: LV
   alpha_3: LVA
   name: Latvia
   zones: [LV00]
+  included_geographic_units: [LVA]
 - nuts_2: ME
   alpha_3: MNE
   name: Montenegro
   zones: [ME00]
+  included_geographic_units: [MNE]
 - nuts_2: MK
   alpha_3: MKD
   name: FYR of Macedonia
   zones: [MK00]
+  included_geographic_units: [MKD]
 - nuts_2: MT
   alpha_3: MLT
   name: Malta
   zones: [MT00]
+  included_geographic_units: [MLT]
 - nuts_2: NL
   alpha_3: NLD
   name: Netherlands
   zones: [NL00]
+  included_geographic_units: [NLX]
 - nuts_2: "NO" # Strings are required, otherwise the YAML parser will parse it as a boolean False value
   alpha_3: NOR
   name: Norway
   zones: [NOM1, NON1, NOS0]
+  included_geographic_units: [NOW]
 - nuts_2: PL
   alpha_3: POL
   name: Poland
   zones: [PL00]
+  included_geographic_units: [POL]
 - nuts_2: PT
   alpha_3: PRT
   name: Portugal
   zones: [PT00]
+  included_geographic_units: [PRX]
 - nuts_2: RO
   alpha_3: ROU
   name: Romania
   zones: [RO00]
+  included_geographic_units: [ROU]
 - nuts_2: RS
   alpha_3: SRB
   name: Serbia
   zones: [RS00]
+  included_geographic_units: [SRV, SRS]
 - nuts_2: SE
   alpha_3: SWE
   name: Sweden
   zones: [SE01, SE02, SE03, SE04]
+  included_geographic_units: [SWE]
 - nuts_2: SI
   alpha_3: SVN
   name: Slovenia
   zones: [SI00]
+  included_geographic_units: [SVN]
 - nuts_2: SK
   alpha_3: SVK
   name: Slovak Republic
   zones: [SK00]
+  included_geographic_units: [SVK]
 - nuts_2: TR
   alpha_3: TUR
   name: Republic of Turkey
   zones: [TR00]
+  included_geographic_units: [TUR]
 - nuts_2: UA
   alpha_3: UKR
   name: Ukraine
   zones: [UA01]
+  included_geographic_units: [UKR]
 - nuts_2: UK
   alpha_3: GBR
   name: United Kingdom
   zones: [UK00, UKNI]
+  included_geographic_units: [ENG, GGY, IMN, GGY, JEY, NIR, SCT, WLS]

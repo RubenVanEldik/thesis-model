@@ -201,6 +201,18 @@ def statistics(run_name):
         cols[index].metric(technologies.labelize(technology), f"{installed_hours:.1f}Hr")
 
 
+def countries(run_name):
+    """
+    Analyze the storage
+    """
+    production_capacity = _get_production_capacity(run_name, group="country")
+    production_capacity_df = pd.DataFrame(data=production_capacity).transpose()
+    pv_capacity = production_capacity_df.pv
+
+    map = chart.Map(pv_capacity / 1000, label="PV capacity (GW)")
+    st.pyplot(map.fig)
+
+
 def duration_curve(run_name):
     """
     Analyze the storage

@@ -204,6 +204,13 @@ def is_integer(value, *, required=True, min_value=None, max_value=None):
     return is_integer and valid_integer
 
 
+def is_list_like(value, *, required=True):
+    if value is None:
+        return not required
+
+    return pd.api.types.is_list_like(value)
+
+
 def is_model(value, *, required=True):
     if value is None:
         return not required
