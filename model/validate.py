@@ -43,6 +43,13 @@ def is_climate_zone_dict(value, *, required=True):
     return is_tupledict and has_valid_keys
 
 
+def is_color(value, *, required=True):
+    if value is None:
+        return not required
+
+    return value in ["gray", "blue", "red"]
+
+
 def is_config(value, *, required=True):
     if value is None:
         return not required
