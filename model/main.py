@@ -73,7 +73,7 @@ def select_countries():
     """
     Let the user select one or multiple countries to include in the model
     """
-    countries = utils.open_yaml(os.path.join("../input", "countries.yaml"))
+    countries = utils.read_yaml(os.path.join("../input", "countries.yaml"))
 
     # Let the user select the country
     country_codes = [country["nuts_2"] for country in countries]

@@ -330,12 +330,12 @@ def run(config, *, output_folder):
 
     # Store the actual values for the production capacity
     production_capacity = utils.convert_variables_recursively(production_capacity)
-    utils.store_yaml(f"{output_folder}/production.yaml", production_capacity)
+    utils.write_yaml(f"{output_folder}/production.yaml", production_capacity)
 
     # Store the actual values for the storage capacity
     storage_capacity = utils.convert_variables_recursively(storage_capacity)
-    utils.store_yaml(f"{output_folder}/storage.yaml", storage_capacity)
-    utils.store_yaml(f"{output_folder}/config.yaml", config)
+    utils.write_yaml(f"{output_folder}/storage.yaml", storage_capacity)
+    utils.write_yaml(f"{output_folder}/config.yaml", config)
     utils.store_text(f"{output_folder}/log.txt", "".join(log_messages))
 
 
@@ -361,4 +361,4 @@ def run_sensitivity(config, sensitivity_config):
         run(step_config, output_folder=f"{output_folder}/{step_key}")
 
     # Store the sensitivity config file
-    utils.store_yaml(f"{output_folder}/sensitivity.yaml", sensitivity_config)
+    utils.write_yaml(f"{output_folder}/sensitivity.yaml", sensitivity_config)

@@ -33,7 +33,7 @@ def read_hourly_data(filepath, *, start=None, end=None):
 
 
 @st.experimental_memo
-def open_yaml(filepath):
+def read_yaml(filepath):
     """
     Returns the content of a .yaml file as python list or dictionary
     """
@@ -44,7 +44,7 @@ def open_yaml(filepath):
         return yaml.load(f, Loader=yaml.SafeLoader)
 
 
-def store_yaml(filepath, data):
+def write_yaml(filepath, data):
     """
     Store a dictionary or list as .yaml file
     """
@@ -111,7 +111,7 @@ def get_country_of_bidding_zone(bidding_zone):
     """
     assert validate.is_bidding_zone(bidding_zone)
 
-    countries = open_yaml(f"../input/countries.yaml")
+    countries = read_yaml(f"../input/countries.yaml")
     return next(country["nuts_2"] for country in countries if bidding_zone in country["zones"])
 
 
