@@ -101,8 +101,10 @@ def run(config, *, output_folder):
     """
     # Create dictionaries to store all the data per bidding zone
     hourly_results = {}
-    production_capacity = {}
-    storage_capacity = {}
+    production_capacity_columns = config["technologies"]["production"]
+    production_capacity = pd.DataFrame(0, index=bidding_zones, columns=production_capacity_columns)
+    storage_capacity_columns = pd.MultiIndex.from_product([config["technologies"]["storage"], ["energy", "power"]])
+    storage_capacity = pd.DataFrame(0, index=bidding_zones, columns=storage_capacity_columns)
     interconnections = {}
 
     for index, bidding_zone in enumerate(bidding_zones):
@@ -124,14 +126,13 @@ def run(config, *, output_folder):
         """
         Step 3B: Define production capacity variables
         """
-        production_capacity[bidding_zone] = {}
         hourly_results[bidding_zone]["production_total_MWh"] = 0
         for production_technology in config["technologies"]["production"]:
             status.update(f"Adding {technologies.labelize(production_technology)} production to {bidding_zone}")
             climate_zones = [column for column in hourly_data.columns if column.startswith(f"{production_technology}_")]
             capacity = model.addVars(climate_zones)
             capacity_sum = gp.quicksum(capacity.values())
-            production_capacity[bidding_zone][production_technology] = capacity_sum
+            production_capacity.loc[bidding_zone, production_technology] = capacity_sum
 
             def calculate_hourly_production(row, capacities):
                 return sum(row[climate_zone] * capacity for climate_zone, capacity in capacities.items())
@@ -144,7 +145,6 @@ def run(config, *, output_folder):
         Step 3C: Define storage variables and constraints
         """
         # Create an object to save the storage capacity (energy & power) and add 2 columns to the results DataFrame
-        storage_capacity[bidding_zone] = {}
         hourly_results[bidding_zone]["net_storage_flow_total_MWh"] = 0
         hourly_results[bidding_zone]["energy_stored_total_MWh"] = 0
         # Add the variables and constraints for all storage technologies
@@ -153,10 +153,8 @@ def run(config, *, output_folder):
             assumptions = config["technologies"]["storage"][storage_technology]
 
             # Create a variable for the energy and power storage capacity
-            storage_capacity[bidding_zone][storage_technology] = {
-                "energy": model.addVar(),
-                "power": model.addVar(),
-            }
+            storage_capacity.loc[bidding_zone, (storage_technology, "energy")] = model.addVar()
+            storage_capacity.loc[bidding_zone, (storage_technology, "power")] = model.addVar()
 
             # Create the hourly state of charge variables
             energy_stored_hourly = model.addVars(hourly_data.index)
@@ -173,8 +171,8 @@ def run(config, *, output_folder):
             for timestamp in hourly_data.index:
                 status.update(f"Adding {technologies.labelize(storage_technology)} storage to {bidding_zone}", timestamp=timestamp)
                 # Unpack the energy and power capacities
-                energy_capacity = storage_capacity[bidding_zone][storage_technology]["energy"]
-                power_capacity = storage_capacity[bidding_zone][storage_technology]["power"]
+                energy_capacity = storage_capacity.loc[bidding_zone, (storage_technology, "energy")]
+                power_capacity = storage_capacity.loc[bidding_zone, (storage_technology, "power")]
 
                 # Get the previous state of charge and one-way efficiency
                 energy_stored_current = energy_stored_hourly[timestamp]
@@ -311,6 +309,7 @@ def run(config, *, output_folder):
     Step 7: Store the results
     """
     os.makedirs(f"{output_folder}/hourly_results")
+    os.makedirs(f"{output_folder}/capacities")
 
     # Store the actual values per bidding zone for the hourly results
     for bidding_zone, hourly_results in hourly_results.items():
@@ -330,11 +329,11 @@ def run(config, *, output_folder):
 
     # Store the actual values for the production capacity
     production_capacity = utils.convert_variables_recursively(production_capacity)
-    utils.write_yaml(f"{output_folder}/production.yaml", production_capacity)
+    production_capacity.to_csv(f"{output_folder}/capacities/production.csv")
 
     # Store the actual values for the storage capacity
     storage_capacity = utils.convert_variables_recursively(storage_capacity)
-    utils.write_yaml(f"{output_folder}/storage.yaml", storage_capacity)
+    storage_capacity.to_csv(f"{output_folder}/capacities/storage.csv")
 
     # Store the config and optimization log
     utils.write_yaml(f"{output_folder}/config.yaml", config)

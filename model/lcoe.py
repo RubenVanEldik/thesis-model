@@ -28,8 +28,8 @@ def _calculate_annualized_storage_costs(storage_technologies, storage_capacity_M
     # Calculate the total annual storage costs
     annualized_costs_storage = 0
     for technology, assumptions in storage_technologies.items():
-        capacity_energy_kWh = storage_capacity_MWh[technology]["energy"] * 1000
-        capacity_power_kW = storage_capacity_MWh[technology]["power"] * 1000
+        capacity_energy_kWh = storage_capacity_MWh[(technology, "energy")] * 1000
+        capacity_power_kW = storage_capacity_MWh[(technology, "power")] * 1000
 
         capex_energy = capacity_energy_kWh * assumptions["energy_capex"]
         capex_power = capacity_power_kW * assumptions["power_capex"]
@@ -60,9 +60,9 @@ def calculate(production_capacity_per_bidding_zone, storage_capacity_per_bidding
     annual_electricity_demand = 0
     demand_column = "production_total_MWh" if unconstrained else "demand_MWh"
 
-    for bidding_zone in production_capacity_per_bidding_zone:
-        annualized_production_costs += _calculate_annualized_production_costs(technologies["production"], production_capacity_per_bidding_zone[bidding_zone])
-        annualized_storage_costs += _calculate_annualized_storage_costs(technologies["storage"], storage_capacity_per_bidding_zone[bidding_zone])
+    for bidding_zone in production_capacity_per_bidding_zone.index:
+        annualized_production_costs += _calculate_annualized_production_costs(technologies["production"], production_capacity_per_bidding_zone.loc[bidding_zone])
+        annualized_storage_costs += _calculate_annualized_storage_costs(technologies["storage"], storage_capacity_per_bidding_zone.loc[bidding_zone])
         annual_electricity_demand += _calculate_annual_demand(demand_per_bidding_zone[bidding_zone][demand_column])
 
     # Calculate and return the LCOE

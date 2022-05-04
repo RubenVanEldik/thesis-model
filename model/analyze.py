@@ -18,7 +18,7 @@ def _get_production_capacity(run_name, *, group=None):
     assert validate.is_aggregation_level(group, required=False)
 
     # Get the production data
-    production_capacity = utils.read_yaml(f"../output/{run_name}/production.yaml")
+    production_capacity = utils.read_csv(f"../output/{run_name}/capacities/production.csv", index_col=0)
 
     # Return all bidding zones individually if not grouped
     if group is None:
@@ -26,22 +26,13 @@ def _get_production_capacity(run_name, *, group=None):
 
     # Return the sum of all bidding zones per country
     if group == "country":
-        production_capacity_per_country = {}
-        for bidding_zone, production_capacity_local in production_capacity.items():
-            country_code = utils.get_country_of_bidding_zone(bidding_zone)
-            if not production_capacity_per_country.get(country_code):
-                production_capacity_per_country[country_code] = {}
-            for technology in production_capacity_local:
-                production_capacity_per_country[country_code][technology] = production_capacity_per_country[country_code].get(technology, 0) + production_capacity_local[technology]
-        return production_capacity_per_country
+        production_capacity["country"] = production_capacity.index.to_series().apply(utils.get_country_of_bidding_zone)
+        grouped_production_capacity = production_capacity.groupby(["country"]).sum()
+        return grouped_production_capacity
 
     # Return the sum of all bidding zones
     if group == "all":
-        total_production_capacity = {}
-        for production_capacity_local in production_capacity.values():
-            for technology in production_capacity_local:
-                total_production_capacity[technology] = total_production_capacity.get(technology, 0) + production_capacity_local[technology]
-        return total_production_capacity
+        return production_capacity.sum()
 
 
 @st.experimental_memo
@@ -53,7 +44,7 @@ def _get_storage_capacity(run_name, *, group=None):
     assert validate.is_aggregation_level(group, required=False)
 
     # Get the storage data
-    storage_capacity = utils.read_yaml(f"../output/{run_name}/storage.yaml")
+    storage_capacity = utils.read_csv(f"../output/{run_name}/capacities/storage.csv", index_col=0, header=[0, 1])
 
     # Return all bidding zones individually if not grouped
     if group is None:
@@ -61,28 +52,13 @@ def _get_storage_capacity(run_name, *, group=None):
 
     # Return the sum of all bidding zones per country
     if group == "country":
-        storage_capacity_per_country = {}
-        for bidding_zone, storage_capacity_local in storage_capacity.items():
-            country_code = utils.get_country_of_bidding_zone(bidding_zone)
-            if not storage_capacity_per_country.get(country_code):
-                storage_capacity_per_country[country_code] = {}
-            for technology in storage_capacity_local:
-                if not storage_capacity_per_country[country_code].get(technology):
-                    storage_capacity_per_country[country_code][technology] = {"energy": 0, "power": 0}
-                storage_capacity_per_country[country_code][technology]["energy"] += storage_capacity_local[technology]["energy"]
-                storage_capacity_per_country[country_code][technology]["power"] += storage_capacity_local[technology]["power"]
-        return storage_capacity_per_country
+        storage_capacity["country"] = storage_capacity.index.to_series().apply(utils.get_country_of_bidding_zone)
+        grouped_storage_capacity = storage_capacity.groupby(["country"]).sum()
+        return grouped_storage_capacity
 
     # Return the sum of all bidding zones
     if group == "all":
-        total_storage_capacity = {}
-        for storage_capacity_local in storage_capacity.values():
-            for technology in storage_capacity_local:
-                if not total_storage_capacity.get(technology):
-                    total_storage_capacity[technology] = {"energy": 0, "power": 0}
-                total_storage_capacity[technology]["energy"] += storage_capacity_local[technology]["energy"]
-                total_storage_capacity[technology]["power"] += storage_capacity_local[technology]["power"]
-        return total_storage_capacity
+        return storage_capacity.sum()
 
 
 @st.experimental_memo
@@ -192,13 +168,14 @@ def statistics(run_name):
     st.header("Capacities")
     st.subheader("Production")
     cols = st.columns(max(len(total_production_capacity), 3))
-    for index, technology in enumerate(total_production_capacity):
+    for index, technology in enumerate(total_production_capacity.index):
         cols[index].metric(technologies.labelize(technology), f"{int(total_production_capacity[technology] / 1000):,}GW")
     st.subheader("Storage")
     cols = st.columns(max(len(total_storage_capacity), 3))
-    for index, technology in enumerate(total_storage_capacity):
-        installed_hours = total_storage_capacity[technology]["energy"] / total_hourly_results.demand_MWh.mean()
-        cols[index].metric(technologies.labelize(technology), f"{installed_hours:.1f}Hr")
+    total_storage_capacity_energy = total_storage_capacity[total_storage_capacity.index.isin(["energy"], level=1)]
+    for index, technology in enumerate(total_storage_capacity_energy.index):
+        installed_hours = total_storage_capacity_energy[technology] / total_hourly_results.demand_MWh.mean()
+        cols[index].metric(technologies.labelize(technology[0]), f"{installed_hours:.1f}Hr")
 
 
 def countries(run_name):
@@ -206,8 +183,7 @@ def countries(run_name):
     Analyze the storage
     """
     production_capacity = _get_production_capacity(run_name, group="country")
-    production_capacity_df = pd.DataFrame(data=production_capacity).transpose()
-    pv_capacity = production_capacity_df.pv
+    pv_capacity = production_capacity.pv
 
     map = chart.Map(pv_capacity / 1000, label="PV capacity (GW)")
     st.pyplot(map.fig)
