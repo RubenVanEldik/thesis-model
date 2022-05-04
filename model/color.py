@@ -1,3 +1,8 @@
+from matplotlib.colors import LinearSegmentedColormap
+
+import validate
+
+
 def gray(value):
     if value == 50:
         return "#FAFAFA"
@@ -68,3 +73,25 @@ def red(value):
     if value == 900:
         return "#7F1D1D"
     return "#737373"  # Gray
+
+
+def colormap(color1, color2=None):
+    """
+    Return a colormap based on one or two colors
+    """
+    assert validate.is_color(color1)
+    assert validate.is_color(color2, required=False)
+
+    # Create a list with colors and a name for the colormap
+    if color2 is None:
+        name = f"model:{color1}"
+        color_list = [eval(color1)(value) for value in range(100, 1000, 100)]
+    else:
+        name = f"model:{color1}-{color2}"
+        color_list1 = [eval(color1)(value) for value in range(900, 0, -100)]
+        color_list2 = [eval(color2)(value) for value in range(100, 1000, 100)]
+        color_list = color_list1 + color_list2
+
+    # Return the colormap
+    colormap = LinearSegmentedColormap.from_list(name, color_list)
+    return colormap
