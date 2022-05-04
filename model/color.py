@@ -24,25 +24,25 @@ def gray(value):
 
 def blue(value):
     if value == 50:
-        return "#F0F9FF"
+        return "#EFF6FF"
     if value == 100:
-        return "#E0F2FE"
+        return "#DBEAFE"
     if value == 200:
-        return "#BAE6FD"
+        return "#BFDBFE"
     if value == 300:
-        return "#7DD3FC"
+        return "#93C5FD"
     if value == 400:
-        return "#38BDF8"
+        return "#60A5FA"
     if value == 500:
-        return "#0EA5E9"
+        return "#3B82F6"
     if value == 600:
-        return "#0284C7"
+        return "#2563EB"
     if value == 700:
-        return "#0369A1"
+        return "#1D4ED8"
     if value == 800:
-        return "#075985"
+        return "#1E40AF"
     if value == 900:
-        return "#0C4A6E"
+        return "#1E3A8A"
     return "#B91C1C"  # Red
 
 
