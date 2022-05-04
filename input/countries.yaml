@@ -102,7 +102,7 @@
   alpha_3: NLD
   name: Netherlands
   zones: [NL00]
-- nuts_2: NO
+- nuts_2: "NO" # Strings are required, otherwise the YAML parser will parse it as a boolean False value
   alpha_3: NOR
   name: Norway
   zones: [NOM1, NON1, NOS0]
