@@ -55,7 +55,7 @@ class Map:
     fig = None
     ax = None
 
-    def __init__(self, data, *, label=None):
+    def __init__(self, data, *, label=None, format_percentage=False):
         # Create the figure
         self.fig, self.ax = plt.subplots(figsize=(7, 5))
         self.ax.axis("off")
@@ -66,7 +66,8 @@ class Map:
         vmin = data.min()
         vmax = data[data < np.Inf].max()
         scalar_mappable = plt.cm.ScalarMappable(cmap=colormap, norm=plt.Normalize(vmin=vmin, vmax=vmax))
-        self.fig.colorbar(scalar_mappable, shrink=0.7, aspect=20, label=label)
+        format = lambda x, pos: f"{x:.0%}" if format_percentage else x
+        self.fig.colorbar(scalar_mappable, shrink=0.7, aspect=20, label=label, format=format)
 
         # Get a list of all included geographic units and all excluded geographic sub-units
         included_geographic_units = []
