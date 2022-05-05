@@ -117,6 +117,15 @@ def set_nested_key(dict, key_string, value):
     here[keys[-1]] = value
 
 
+def format_str(str):
+    """
+    Replace underscores with spaces and capitalize the string
+    """
+    assert validate.is_string(str)
+
+    return str.replace("_", " ").capitalize()
+
+
 def get_country_of_bidding_zone(bidding_zone):
     """
     Find to which country a bidding zone belongs to

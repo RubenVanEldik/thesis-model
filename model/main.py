@@ -176,7 +176,7 @@ if __name__ == "__main__":
         config["date_range"] = select_data_range()
     with st.sidebar.expander("Technologies"):
         config["technologies"] = {}
-        scenario = st.select_slider("Scenario", options=["conservative", "moderate", "advanced"], value="moderate", format_func=lambda option: option.capitalize())
+        scenario = st.select_slider("Scenario", options=["conservative", "moderate", "advanced"], value="moderate", format_func=utils.format_str)
         config["technologies"]["scenario"] = scenario
         config["technologies"] = select_technologies(scenario)
     with st.sidebar.expander("Interconnections"):
@@ -224,7 +224,7 @@ if __name__ == "__main__":
         analysis = "sensitivity"
     else:
         analysis_options = ["statistics", "hourly_results", "countries", "duration_curve"]
-        analysis = st.sidebar.selectbox("Analyses", analysis_options, format_func=lambda option: option.replace("_", " ").capitalize())
+        analysis = st.sidebar.selectbox("Analyses", analysis_options, format_func=utils.format_str)
 
     # Run the analysis if the button has been pressed or the mode is set to analysis
     if mode.button("analysis", label="Analyze run", disabled=not selected_run):

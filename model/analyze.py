@@ -214,13 +214,13 @@ def duration_curve(run_name):
     st.subheader("Axes")
     col1, col2 = st.columns(2)
     ylabel_match = re.search("(.+)_(\w+)$", numerator)
-    ylabel_text = ylabel_match.group(1).replace("_", " ").capitalize()
+    ylabel_text = utils.format_str(ylabel_match.group(1))
     ylabel_unit = ylabel_match.group(2) if denominator is None else "%"
     xlabel = col1.text_input("Label x-axis", value="Time (%)")
     ylabel = col2.text_input("Label y-axis", value=f"{ylabel_text} ({ylabel_unit})")
     axis_scale_options = ["linear", "log", "symlog", "logit"]
-    xscale = col1.selectbox("Scale x-axis", axis_scale_options, format_func=lambda item: item.capitalize())
-    yscale = col2.selectbox("Scale y-axis", axis_scale_options, format_func=lambda item: item.capitalize())
+    xscale = col1.selectbox("Scale x-axis", axis_scale_options, format_func=utils.format_str)
+    yscale = col2.selectbox("Scale y-axis", axis_scale_options, format_func=utils.format_str)
 
     # Set the waterfall parameters
     st.subheader("Options")
