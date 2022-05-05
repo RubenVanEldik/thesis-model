@@ -3,6 +3,8 @@ import gurobipy
 import pandas as pd
 import re
 
+import color
+
 
 def is_bidding_zone(value, *, required=True):
     if value is None:
@@ -43,11 +45,18 @@ def is_climate_zone_dict(value, *, required=True):
     return is_tupledict and has_valid_keys
 
 
-def is_color(value, *, required=True):
+def is_color_name(value, *, required=True):
     if value is None:
         return not required
 
-    return value in ["gray", "blue", "red"]
+    return value in color.list()
+
+
+def is_color_value(value, *, required=True):
+    if value is None:
+        return not required
+
+    return value in [50, 100, 200, 300, 400, 500, 600, 700, 800, 900]
 
 
 def is_config(value, *, required=True):

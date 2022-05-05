@@ -91,7 +91,7 @@ class Map:
         map_df["data"] = map_df.apply(lambda row: data[next(country["nuts_2"] for country in relevant_countries if country["alpha_3"] == row.name)], axis=1)
 
         # Plot the data
-        map_df.plot(column="data", cmap=colormap, linewidth=0.5, ax=self.ax, edgecolor=color.gray(600))
+        map_df.plot(column="data", cmap=colormap, linewidth=0.5, ax=self.ax, edgecolor=color.get("gray", 600))
 
     def save(self, filepath):
         plt.savefig(filepath, dpi=2500, bbox_inches="tight", pad_inches=0.2)
@@ -123,15 +123,15 @@ def waterfall(df, *, is_relative=False, individual_lines=True, range_area=True, 
 
     # Plot the range fill
     if range_area:
-        chart.ax.fill_between(df.index, df.min(axis=1), df.max(axis=1), color=color.blue(100))
+        chart.ax.fill_between(df.index, df.min(axis=1), df.max(axis=1), color=color.get("blue", 100))
     # Plot a line for each column (country)
     if individual_lines:
-        chart.ax.plot(df, color=color.blue(300), linewidth=1)
+        chart.ax.plot(df, color=color.get("blue", 300), linewidth=1)
     # Plot the mean values
-    chart.ax.plot(df.mean(axis=1), color=color.blue(700))
+    chart.ax.plot(df.mean(axis=1), color=color.get("blue", 700))
     # Plot the unity line
     if unity_line:
-        chart.ax.axhline(y=1, color=color.red(600), linewidth=1)
+        chart.ax.axhline(y=1, color=color.get(red, 600), linewidth=1)
 
     # Format the axes to be percentages
     chart.format_xticklabels("{:,.0%}")
