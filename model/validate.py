@@ -3,7 +3,7 @@ import gurobipy
 import pandas as pd
 import re
 
-import color
+import colors
 
 
 def is_bidding_zone(value, *, required=True):
@@ -49,7 +49,7 @@ def is_color_name(value, *, required=True):
     if value is None:
         return not required
 
-    return value in color.list()
+    return value in colors.list()
 
 
 def is_color_value(value, *, required=True):
