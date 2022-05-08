@@ -69,27 +69,9 @@ class Map:
         format = lambda x, pos: f"{x:.0%}" if format_percentage else x
         self.fig.colorbar(scalar_mappable, shrink=0.7, aspect=20, label=label, format=format)
 
-        # Get a list of all included geographic units and all excluded geographic sub-units
-        included_geographic_units = []
-        excluded_geographic_subunits = []
-        countries = utils.read_yaml("../input/countries.yaml")
-        relevant_countries = [country for country in countries if country["nuts_2"] in data.index]
-        for country in relevant_countries:
-            included_geographic_units.extend(country.get("included_geographic_units") or [])
-            excluded_geographic_subunits.extend(country.get("excluded_geographic_subunits") or [])
-
-        # Get a Geopandas DataFrame with the relevant rows
-        map_df = utils.read_shapefile("../input/countries/ne_10m_admin_0_map_subunits.shp")
-        map_df = map_df[map_df.GU_A3.isin(included_geographic_units)]
-        map_df = map_df[~map_df.SU_A3.isin(excluded_geographic_subunits)]
-
-        # Merge the regions for each country and set the country code as the index
-        map_df = map_df.dissolve(by="SOV_A3")
-        map_df = map_df.set_index("ADM0_A3")
-        map_df = map_df[["geometry"]]
-
-        # Map the data to map_df
-        map_df["data"] = map_df.apply(lambda row: data[next(country["nuts_2"] for country in relevant_countries if country["alpha_3"] == row.name)], axis=1)
+        # Get the geopandas DataFrame and map the data to it
+        map_df = utils.get_geometries_of_countries(data.index)
+        map_df["data"] = map_df.index.map(data)
 
         # Plot the data
         map_df.plot(column="data", cmap=colormap, linewidth=0.5, ax=self.ax, edgecolor=colors.get("gray", 600))
