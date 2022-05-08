@@ -146,7 +146,7 @@ def is_hourly_data_row(value, *, required=True):
     if value is None:
         return not required
 
-    is_series = type(value) is pd.core.series.Series
+    is_series = is_series(value)
     includes_demand = any(x.startswith("demand_") for x in value.index)
     includes_pv = any(x.startswith("pv_") for x in value.index)
     includes_onshore = any(x.startswith("onshore_") for x in value.index)
@@ -157,7 +157,7 @@ def is_hourly_results_row(value, *, required=True):
     if value is None:
         return not required
 
-    is_series = type(value) is pd.core.series.Series
+    is_series = is_series(value)
     includes_demand = any(x.startswith("demand_") for x in value.index)
     includes_production = any(x.startswith("production_") for x in value.index)
     includes_net_storage_flow = any(x.startswith("net_storage_flow") for x in value.index)
@@ -243,6 +243,13 @@ def is_sensitivity_config(value, *, required=True):
     has_valid_variables = len(value["variables"]) and all(type(variable) is str for variable in value["variables"])
 
     return is_dict and has_valid_steps and has_valid_variables
+
+
+def is_series(value, *, required=True):
+    if value is None:
+        return not required
+
+    return type(value) is pd.core.series.Series
 
 
 def is_string(value, *, required=True, min_length=0):
