@@ -129,8 +129,10 @@ def statistics(run_name):
     st.header("KPI's")
     col1, col2, col3 = st.columns(3)
     config = utils.read_yaml(f"../output/{run_name}/config.yaml")
-    firm_lcoe = lcoe.calculate(production_capacity, storage_capacity, hourly_results, technologies=config["technologies"])
-    unconstrained_lcoe = lcoe.calculate(production_capacity, storage_capacity, hourly_results, technologies=config["technologies"], unconstrained=True)
+    hourly_demand = utils.merge_dataframes_on_column(hourly_results, "demand_MWh")
+    firm_lcoe = lcoe.calculate(production_capacity, storage_capacity, hourly_demand, technologies=config["technologies"])
+    hourly_production = utils.merge_dataframes_on_column(hourly_results, "production_total_MWh")
+    unconstrained_lcoe = lcoe.calculate(production_capacity, storage_capacity, hourly_production, technologies=config["technologies"])
     col1.metric("LCOE", f"{int(firm_lcoe)}€/MWh")
     firm_kwh_premium = firm_lcoe / unconstrained_lcoe
     col2.metric("Firm kWh premium", f"{firm_kwh_premium:.2f}")
@@ -310,7 +312,8 @@ def sensitivity(run_name):
             hourly_results = _get_hourly_results(f"{run_name}/{step_key}")
             config = utils.read_yaml(f"../output/{run_name}/{step_key}/config.yaml")
 
-            firm_lcoe = lcoe.calculate(production_capacity, storage_capacity, hourly_results, technologies=config["technologies"])
+            hourly_demand = utils.merge_dataframes_on_column(hourly_results, "demand_MWh")
+            firm_lcoe = lcoe.calculate(production_capacity, storage_capacity, hourly_demand, technologies=config["technologies"])
             output_values.loc[step_value, "LCOE"] = firm_lcoe
 
         # Show a line chart with the selected output variables

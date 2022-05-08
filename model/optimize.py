@@ -251,7 +251,8 @@ def run(config, *, output_folder):
     """
     Step 5: Set objective function
     """
-    firm_lcoe = lcoe.calculate(production_capacity, storage_capacity, hourly_results, technologies=config["technologies"])
+    hourly_demand = utils.merge_dataframes_on_column(hourly_results, "demand_MWh")
+    firm_lcoe = lcoe.calculate(production_capacity, storage_capacity, hourly_demand, technologies=config["technologies"])
     model.setObjective(firm_lcoe, gp.GRB.MINIMIZE)
 
     """
