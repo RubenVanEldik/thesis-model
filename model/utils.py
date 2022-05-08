@@ -163,6 +163,7 @@ def find_common_columns(dfs):
     return list(common_columns)
 
 
+@st.experimental_memo
 def format_str(str):
     """
     Replace underscores with spaces and capitalize the string
@@ -172,6 +173,7 @@ def format_str(str):
     return str.replace("_", " ").capitalize()
 
 
+@st.experimental_memo
 def format_column_name(str):
     """
     Properly format any column name
@@ -189,6 +191,7 @@ def format_column_name(str):
     return f"{label} ({unit})"
 
 
+@st.experimental_memo
 def get_country_of_bidding_zone(bidding_zone):
     """
     Find to which country a bidding zone belongs to
