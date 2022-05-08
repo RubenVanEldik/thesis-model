@@ -48,20 +48,21 @@ def assumptions(type, technology, *, scenario):
     return assumptions_scenario
 
 
-def labelize(key):
+def labelize(key, *, capitalize=True):
     """
     Return the label for a specific technology key
     """
     assert validate.is_technology(key)
 
     if key == "pv":
-        return "Solar PV"
+        label = "solar PV"
     if key == "onshore":
-        return "Onshore wind"
+        label = "onshore wind"
     if key == "offshore":
-        return "Offshore wind"
+        label = "offshore wind"
     if key == "lion":
-        return "Lithium-ion"
+        label = "Li-ion"
     if key == "hydrogen":
-        return "Hydrogen"
-    return key
+        label = "hydrogen"
+
+    return (label[0].upper() + label[1:]) if capitalize else label

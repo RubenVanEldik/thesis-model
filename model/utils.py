@@ -4,6 +4,7 @@ import pandas as pd
 import streamlit as st
 import yaml
 
+import technologies
 import validate
 
 
@@ -169,6 +170,23 @@ def format_str(str):
     assert validate.is_string(str)
 
     return str.replace("_", " ").capitalize()
+
+
+def format_column_name(str):
+    """
+    Properly format any column name
+    """
+    assert validate.is_string(str)
+
+    match = re.search("(.+)_(\w+)$", str)
+    label = match.group(1)
+    unit = match.group(2)
+
+    # Replace all underscores with spaces and use the proper technology labels before capitalizing the first letter
+    label = " ".join([(technologies.labelize(label_part, capitalize=False) if validate.is_technology(label_part) else label_part) for label_part in label.split("_")])
+    label = label[0].upper() + label[1:]
+
+    return f"{label} ({unit})"
 
 
 def get_country_of_bidding_zone(bidding_zone):

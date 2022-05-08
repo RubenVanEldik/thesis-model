@@ -121,6 +121,7 @@ def hourly_results(run_name):
     hourly_results = all_hourly_results[country["nuts_2"]]
 
     # Filter the data columns
+    hourly_results.columns = [utils.format_column_name(column_name) for column_name in hourly_results.columns]
     columns = st.multiselect("Columns", hourly_results.columns)
     hourly_results = hourly_results[columns] if columns else hourly_results
 
@@ -207,8 +208,8 @@ def duration_curve(run_name):
     relevant_columns = utils.find_common_columns(all_hourly_results)
     relative = st.checkbox("Relative")
     col1, col2 = st.columns(2)
-    numerator = col1.selectbox("Numerator", relevant_columns)
-    denominator = col2.selectbox("Denominator", relevant_columns) if relative else None
+    numerator = col1.selectbox("Numerator", relevant_columns, format_func=utils.format_column_name)
+    denominator = col2.selectbox("Denominator", relevant_columns, format_func=utils.format_column_name) if relative else None
 
     # Set the label for the y-axis
     st.subheader("Axes")
