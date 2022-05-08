@@ -223,7 +223,7 @@ if __name__ == "__main__":
     if os.path.isfile(f"../output/{selected_run}/sensitivity.yaml"):
         analysis = "sensitivity"
     else:
-        analysis_options = ["statistics", "hourly_results", "countries", "duration_curve"]
+        analysis_options = ["statistics", "hourly_results", "countries", "correlation", "duration_curve"]
         analysis = st.sidebar.selectbox("Analyses", analysis_options, format_func=utils.format_str)
 
     # Run the analysis if the button has been pressed or the mode is set to analysis

@@ -2,6 +2,7 @@ import datetime
 import gurobipy
 import pandas as pd
 import re
+import shapely
 
 import colors
 
@@ -232,6 +233,13 @@ def is_model_year(value, *, required=True):
         return not required
 
     return value == 2025 or value == 2030
+
+
+def is_point(value, *, required=True):
+    if value is None:
+        return not required
+
+    return type(value) is shapely.geometry.point.Point
 
 
 def is_sensitivity_config(value, *, required=True):

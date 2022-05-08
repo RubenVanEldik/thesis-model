@@ -1,6 +1,8 @@
 import gurobipy as gp
 import geopandas as gpd
 import pandas as pd
+import pyproj
+import sklearn
 import streamlit as st
 import re
 import yaml
@@ -108,6 +110,64 @@ def get_geometries_of_countries(country_codes):
 
     # Return a DataFrame with only the 'geometry' column
     return map_df[["geometry"]]
+
+
+@st.experimental_memo
+def calculate_distance(point1, point2):
+    """
+    Return the distance in meters between two points
+    """
+    assert validate.is_point(point1)
+    assert validate.is_point(point2)
+
+    geod = pyproj.Geod(ellps="WGS84")
+    angle1, angle2, distance = geod.inv(point1.x, point1.y, point2.x, point2.y)
+
+    return distance
+
+
+@st.experimental_memo
+def calculate_r_squared(col1, col2):
+    """
+    Calculate the R-squared value for two Series
+    """
+    assert validate.is_series(col1)
+    assert validate.is_series(col2)
+
+    # Initialize the linear regression model
+    model = sklearn.linear_model.LinearRegression()
+
+    # Set the X and y values
+    X = col1.to_frame()
+    y = col2
+
+    # Fit the regression model and calculate the R-squared value
+    model.fit(X, y)
+    r_squared = model.score(X, y)
+
+    # Return the R-squared value
+    return r_squared
+
+
+def calculate_linear_regression_line(col1, col2):
+    """
+    Calculate the X and Y values for a linear regression line
+    """
+    assert validate.is_series(col1)
+    assert validate.is_series(col2)
+
+    # Initialize the linear regression model
+    model = sklearn.linear_model.LinearRegression()
+
+    # Set the X and y values
+    X = col1.to_frame()
+    y = col2
+
+    # Fit the regression model and calculate the R-squared value
+    model.fit(X, y)
+
+    # Return the R-squared value
+    return X, model.predict(X)
 
 
 def get_nested_key(dict, key_string):
