@@ -204,7 +204,7 @@ def duration_curve(run_name):
     st.subheader("Columns")
     first_country = next(iter(all_hourly_results))
     columns = all_hourly_results[first_country].columns
-    relevant_columns = [column for column in columns if not re.search("^net_export_[0-9A-Z]{4}_MWh$", column)]
+    relevant_columns = utils.find_common_columns(all_hourly_results)
     relative = st.checkbox("Relative")
     col1, col2 = st.columns(2)
     numerator = col1.selectbox("Numerator", relevant_columns)

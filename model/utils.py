@@ -117,6 +117,22 @@ def set_nested_key(dict, key_string, value):
     here[keys[-1]] = value
 
 
+def find_common_columns(dfs):
+    """
+    Return a list of the columns that appear in all DataFrames
+    """
+    assert validate.is_dataframe_dict(dfs)
+
+    common_columns = None
+    for df in dfs.values():
+        if common_columns is None:
+            common_columns = df.columns
+        else:
+            common_columns = common_columns & df.columns
+
+    return list(common_columns)
+
+
 def format_str(str):
     """
     Replace underscores with spaces and capitalize the string
