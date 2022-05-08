@@ -114,6 +114,8 @@ def hourly_results(run_name):
     """
     assert validate.is_string(run_name)
 
+    st.title("🕰️ Hourly results")
+
     # Get hourly results for a country
     all_hourly_results = _get_hourly_results(run_name, group="country")
     config = utils.read_yaml(f"../output/{run_name}/config.yaml")
@@ -144,6 +146,8 @@ def statistics(run_name):
     Show the key indicators for a run
     """
     assert validate.is_string(run_name)
+
+    st.title("📊 Statistics")
 
     # Get both the grouped and ungrouped results
     hourly_results = _get_hourly_results(run_name)
@@ -183,6 +187,10 @@ def countries(run_name):
     """
     Analyze the storage
     """
+    assert validate.is_string(run_name)
+
+    st.title("🎌 Countries")
+
     production_capacity = _get_production_capacity(run_name, group="country")
     pv_capacity = production_capacity.pv
 
@@ -196,7 +204,7 @@ def duration_curve(run_name):
     """
     assert validate.is_string(run_name)
 
-    st.title("Duration curve")
+    st.title("⌛ Duration curve")
 
     # Get the storage capacity and hourly results
     all_hourly_results = _get_hourly_results(run_name, group="country")
