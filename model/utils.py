@@ -284,7 +284,6 @@ def get_interconnections(bidding_zone, *, config, type, direction="export"):
     return interconnections[relevant_interconnections]
 
 
-@st.experimental_memo(show_spinner=False)
 def merge_dataframes_on_column(dfs, column, *, sorted=False):
     """
     Create one DataFrame from a dictionary of DataFrames by selecting only one column per DataFrame
