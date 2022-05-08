@@ -125,20 +125,22 @@ def hourly_results(run_name):
     # Filter the data columns
     hourly_results.columns = [utils.format_column_name(column_name) for column_name in hourly_results.columns]
     columns = st.multiselect("Columns", hourly_results.columns)
-    hourly_results = hourly_results[columns] if columns else hourly_results
+    hourly_results = hourly_results[columns]
 
-    # Filter the data temporarily
-    start_data = hourly_results.index.min().to_pydatetime()
-    end_data = hourly_results.index.max().to_pydatetime()
-    data_range = st.slider("Date range", value=(start_data, end_data), min_value=start_data, max_value=end_data)
-    hourly_results = hourly_results.loc[data_range[0] : data_range[1]]
+    # Show the chart and DataFrame if any columns are selected
+    if columns:
+        # Filter the data temporarily
+        start_data = hourly_results.index.min().to_pydatetime()
+        end_data = hourly_results.index.max().to_pydatetime()
+        data_range = st.slider("Date range", value=(start_data, end_data), min_value=start_data, max_value=end_data)
+        hourly_results = hourly_results.loc[data_range[0] : data_range[1]]
 
-    # Show the line chart
-    st.line_chart(hourly_results)
+        # Show the line chart
+        st.line_chart(hourly_results)
 
-    # Show the table in an expander
-    with st.expander("Raw data"):
-        st.write(hourly_results)
+        # Show the table in an expander
+        with st.expander("Raw data"):
+            st.dataframe(hourly_results)
 
 
 def statistics(run_name):
