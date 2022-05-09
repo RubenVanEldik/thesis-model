@@ -37,7 +37,7 @@ def read_hourly_data(filepath, *, start=None, end=None):
     return hourly_data[start:end]
 
 
-@st.experimental_memo
+@st.experimental_memo(show_spinner=False)
 def read_yaml(filepath):
     """
     Returns the content of a .yaml file as python list or dictionary
@@ -72,7 +72,7 @@ def store_text(filepath, text):
         f.write(text)
 
 
-@st.experimental_memo
+@st.experimental_memo(show_spinner=False)
 def read_shapefile(filepath):
     """
     Returns the content of a .shp file as a geopandas DataFrame
@@ -112,7 +112,7 @@ def get_geometries_of_countries(country_codes):
     return map_df[["geometry"]]
 
 
-@st.experimental_memo
+@st.experimental_memo(show_spinner=False)
 def calculate_distance(point1, point2):
     """
     Return the distance in meters between two points
@@ -126,7 +126,7 @@ def calculate_distance(point1, point2):
     return distance
 
 
-@st.experimental_memo
+@st.experimental_memo(show_spinner=False)
 def calculate_r_squared(col1, col2):
     """
     Calculate the R-squared value for two Series
@@ -224,7 +224,7 @@ def find_common_columns(dfs):
     return list(common_columns)
 
 
-@st.experimental_memo
+@st.experimental_memo(show_spinner=False)
 def format_str(str):
     """
     Replace underscores with spaces and capitalize the string
@@ -234,7 +234,7 @@ def format_str(str):
     return str.replace("_", " ").capitalize()
 
 
-@st.experimental_memo
+@st.experimental_memo(show_spinner=False)
 def format_column_name(str):
     """
     Properly format any column name
@@ -252,7 +252,7 @@ def format_column_name(str):
     return f"{label} ({unit})"
 
 
-@st.experimental_memo
+@st.experimental_memo(show_spinner=False)
 def get_country_of_bidding_zone(bidding_zone):
     """
     Find to which country a bidding zone belongs to
