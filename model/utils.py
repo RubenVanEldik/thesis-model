@@ -2,7 +2,7 @@ import gurobipy as gp
 import geopandas as gpd
 import pandas as pd
 import pyproj
-import sklearn
+from sklearn.linear_model import LinearRegression
 import streamlit as st
 import re
 import yaml
@@ -135,7 +135,7 @@ def calculate_r_squared(col1, col2):
     assert validate.is_series(col2)
 
     # Initialize the linear regression model
-    model = sklearn.linear_model.LinearRegression()
+    model = LinearRegression()
 
     # Set the X and y values
     X = col1.to_frame()
@@ -157,7 +157,7 @@ def calculate_linear_regression_line(col1, col2):
     assert validate.is_series(col2)
 
     # Initialize the linear regression model
-    model = sklearn.linear_model.LinearRegression()
+    model = LinearRegression()
 
     # Set the X and y values
     X = col1.to_frame()
