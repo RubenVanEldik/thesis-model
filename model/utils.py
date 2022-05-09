@@ -138,8 +138,8 @@ def calculate_r_squared(col1, col2):
     model = LinearRegression()
 
     # Set the X and y values
-    X = col1.to_frame()
-    y = col2
+    X = col1.to_frame().dropna()
+    y = col2.dropna()
 
     # Fit the regression model and calculate the R-squared value
     model.fit(X, y)
