@@ -128,7 +128,7 @@ def run(config, *, output_folder):
         """
         hourly_results[bidding_zone]["production_total_MWh"] = 0
         for production_technology in config["technologies"]["production"]:
-            status.update(f"Adding {technologies.labelize(production_technology)} production to {bidding_zone}")
+            status.update(f"Adding {technologies.labelize(production_technology, capitalize=False)} production to {bidding_zone}")
             climate_zones = [column for column in hourly_data.columns if column.startswith(f"{production_technology}_")]
             capacity = model.addVars(climate_zones)
             capacity_sum = gp.quicksum(capacity.values())
@@ -169,7 +169,7 @@ def run(config, *, output_folder):
             # Loop over all hours
             previous_timestamp = None
             for timestamp in hourly_data.index:
-                status.update(f"Adding {technologies.labelize(storage_technology)} storage to {bidding_zone}", timestamp=timestamp)
+                status.update(f"Adding {technologies.labelize(storage_technology, capitalize=False)} storage to {bidding_zone}", timestamp=timestamp)
                 # Unpack the energy and power capacities
                 energy_capacity = storage_capacity.loc[bidding_zone, (storage_technology, "energy")]
                 power_capacity = storage_capacity.loc[bidding_zone, (storage_technology, "power")]
