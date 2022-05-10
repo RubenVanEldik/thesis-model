@@ -61,7 +61,7 @@ def write_yaml(filepath, data):
         return yaml.dump(data, f, Dumper=yaml.Dumper)
 
 
-def store_text(filepath, text):
+def write_text(filepath, text):
     """
     Store a string as .txt file
     """

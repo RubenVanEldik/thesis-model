@@ -338,7 +338,7 @@ def run(config, *, output_folder):
 
     # Store the config and optimization log
     utils.write_yaml(f"{output_folder}/config.yaml", config)
-    utils.store_text(f"{output_folder}/log.txt", "".join(log_messages))
+    utils.write_text(f"{output_folder}/log.txt", "".join(log_messages))
 
 
 def run_sensitivity(config, sensitivity_config):
