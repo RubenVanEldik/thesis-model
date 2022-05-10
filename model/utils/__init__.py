@@ -5,6 +5,7 @@ from .convert_variables_recursively import convert_variables_recursively
 from .find_common_columns import find_common_columns
 from .format_column_name import format_column_name
 from .format_str import format_str
+from .get_bidding_zones_for_countries import get_bidding_zones_for_countries
 from .get_country_of_bidding_zone import get_country_of_bidding_zone
 from .get_geometries_of_countries import get_geometries_of_countries
 from .get_hourly_results import get_hourly_results

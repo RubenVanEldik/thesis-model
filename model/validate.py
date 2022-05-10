@@ -77,6 +77,26 @@ def is_config(value, *, required=True):
     return has_valid_model_year and has_valid_countries and has_valid_date_range and has_valid_time_limit and has_valid_method
 
 
+def is_country_code(value, *, required=True, type):
+    if value is None:
+        return not required
+
+    if type == "nuts_2":
+        return bool(re.search("^[A-Z]{2}$", value))
+    if type == "alpha_3":
+        return bool(re.search("^[A-Z]{3}$", value))
+    return False
+
+
+def is_country_code_list(value, *, required=True, type):
+    if value is None:
+        return not required
+
+    is_list = is_list_like(value)
+    has_valid_items = all(is_country_code(code, type=type) for code in value)
+    return is_list and has_valid_items
+
+
 def is_country_obj(value, *, required=True):
     if value is None:
         return not required
