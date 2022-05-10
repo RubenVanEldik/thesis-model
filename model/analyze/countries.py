@@ -1,7 +1,9 @@
+import pandas as pd
 import re
 import streamlit as st
 
 import chart
+import stats
 import technologies
 import utils
 import validate
@@ -16,11 +18,21 @@ def _select_data(run_name, *, name):
 
     # Geth the source of the data
     col1, col2, col3 = st.columns(3)
-    data_source_options = ["Hourly results", "Production capacity", "Storage capacity (energy)", "Storage capacity (power)"]
+    data_source_options = ["Statistics", "Hourly results", "Production capacity", "Storage capacity (energy)", "Storage capacity (power)"]
     data_source = col1.selectbox(name.capitalize(), data_source_options)
 
     # Specify the aggregation options in the general scope
     aggregation_options = ["sum", "min", "max", "mean", "median", "mode", "std"]
+
+    if data_source == "Statistics":
+        # Get the type of statistic
+        statistic_type_options = ["firm_lcoe", "unconstrained_lcoe", "premium", "relative_curtailment"]
+        statistic_type = col2.selectbox("Type", statistic_type_options, format_func=utils.format_str, key=name)
+        statistic_method = getattr(stats, statistic_type)
+
+        # Calculate the statistics for each country and convert them into a Series
+        countries = utils.read_yaml(f"../output/{run_name}/config.yaml")["countries"]
+        return pd.Series(dict([(country["nuts_2"], statistic_method(run_name, countries=[country["nuts_2"]])) for country in countries]))
 
     if data_source == "Hourly results":
         # Get the hourly results
