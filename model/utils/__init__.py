@@ -7,8 +7,11 @@ from .format_column_name import format_column_name
 from .format_str import format_str
 from .get_country_of_bidding_zone import get_country_of_bidding_zone
 from .get_geometries_of_countries import get_geometries_of_countries
+from .get_hourly_results import get_hourly_results
 from .get_interconnections import get_interconnections
 from .get_nested_key import get_nested_key
+from .get_production_capacity import get_production_capacity
+from .get_storage_capacity import get_storage_capacity
 from .merge_dataframes_on_column import merge_dataframes_on_column
 from .read_csv import read_csv
 from .read_hourly_data import read_hourly_data

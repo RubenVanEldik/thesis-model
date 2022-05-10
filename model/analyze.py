@@ -8,105 +8,7 @@ import lcoe
 import technologies
 import validate
 import utils
-
-
-@st.experimental_memo
-def _get_production_capacity(run_name, *, group=None):
-    """
-    Return the (grouped) production capacity
-    """
-    assert validate.is_string(run_name)
-    assert validate.is_aggregation_level(group, required=False)
-
-    # Get the production data
-    production_capacity = utils.read_csv(f"../output/{run_name}/capacities/production.csv", index_col=0)
-
-    # Return all bidding zones individually if not grouped
-    if group is None:
-        return production_capacity
-
-    # Return the sum of all bidding zones per country
-    if group == "country":
-        production_capacity["country"] = production_capacity.index.to_series().apply(utils.get_country_of_bidding_zone)
-        grouped_production_capacity = production_capacity.groupby(["country"]).sum()
-        return grouped_production_capacity
-
-    # Return the sum of all bidding zones
-    if group == "all":
-        return production_capacity.sum()
-
-
-@st.experimental_memo
-def _get_storage_capacity(run_name, *, group=None):
-    """
-    Return the (grouped) storage capacity
-    """
-    assert validate.is_string(run_name)
-    assert validate.is_aggregation_level(group, required=False)
-
-    # Get the storage data
-    storage_capacity = utils.read_csv(f"../output/{run_name}/capacities/storage.csv", index_col=0, header=[0, 1])
-
-    # Return all bidding zones individually if not grouped
-    if group is None:
-        return storage_capacity
-
-    # Return the sum of all bidding zones per country
-    if group == "country":
-        storage_capacity["country"] = storage_capacity.index.to_series().apply(utils.get_country_of_bidding_zone)
-        grouped_storage_capacity = storage_capacity.groupby(["country"]).sum()
-        return grouped_storage_capacity
-
-    # Return the sum of all bidding zones
-    if group == "all":
-        return storage_capacity.sum()
-
-
-@st.experimental_memo
-def _get_hourly_results(run_name, *, group=None):
-    """
-    Return the (grouped) production capacity
-    """
-    assert validate.is_string(run_name)
-    assert validate.is_aggregation_level(group, required=False)
-
-    # Get the config
-    config = utils.read_yaml(f"../output/{run_name}/config.yaml")
-
-    # Get the hourly data for each bidding zone
-    hourly_results = {}
-    for country in config["countries"]:
-        for bidding_zone in country["zones"]:
-            filepath = f"../output/{run_name}/hourly_results/{bidding_zone}.csv"
-            hourly_results[bidding_zone] = utils.read_hourly_data(filepath)
-
-            if hourly_results[bidding_zone].isnull().values.any():
-                st.warning(f"Bidding zone {bidding_zone} contains NaN values")
-
-    # Return all bidding zones individually if not grouped
-    if group is None:
-        return hourly_results
-
-    # Return the sum of all bidding zones per country
-    if group == "country":
-        hourly_results_per_country = {}
-        for bidding_zone, hourly_results_local in hourly_results.items():
-            country_code = utils.get_country_of_bidding_zone(bidding_zone)
-            if hourly_results_per_country.get(country_code) is None:
-                hourly_results_per_country[country_code] = hourly_results_local
-            else:
-                hourly_results_per_country[country_code] += hourly_results_local
-        return hourly_results_per_country
-
-    # Return the sum of all bidding zones
-    if group == "all":
-        total_hourly_results = None
-        for hourly_results_local in hourly_results.values():
-            if total_hourly_results is None:
-                total_hourly_results = hourly_results_local.copy(deep=True)
-            else:
-                total_hourly_results += hourly_results_local
-        return total_hourly_results
+import stats
 
 
 def statistics(run_name):
@@ -117,40 +19,26 @@ def statistics(run_name):
 
     st.title("📊 Statistics")
 
-    # Get both the grouped and ungrouped results
-    hourly_results = _get_hourly_results(run_name)
-    total_hourly_results = _get_hourly_results(run_name, group="all")
-    production_capacity = _get_production_capacity(run_name)
-    total_production_capacity = _get_production_capacity(run_name, group="all")
-    storage_capacity = _get_storage_capacity(run_name)
-    total_storage_capacity = _get_storage_capacity(run_name, group="all")
-
     # Show the KPI's
-    st.header("KPI's")
-    col1, col2, col3 = st.columns(3)
-    config = utils.read_yaml(f"../output/{run_name}/config.yaml")
-    hourly_demand = utils.merge_dataframes_on_column(hourly_results, "demand_MWh")
-    firm_lcoe = lcoe.calculate(production_capacity, storage_capacity, hourly_demand, technologies=config["technologies"])
-    hourly_production = utils.merge_dataframes_on_column(hourly_results, "production_total_MWh")
-    unconstrained_lcoe = lcoe.calculate(production_capacity, storage_capacity, hourly_production, technologies=config["technologies"])
-    col1.metric("LCOE", f"{int(firm_lcoe)}€/MWh")
-    firm_kwh_premium = firm_lcoe / unconstrained_lcoe
-    col2.metric("Firm kWh premium", f"{firm_kwh_premium:.2f}")
-    relative_curtailment = total_hourly_results.curtailed_MWh.sum() / total_hourly_results.production_total_MWh.sum()
-    col3.metric("Curtailment", f"{relative_curtailment:.1%}")
+    with st.expander("KPI's", expanded=True):
+        col1, col2, col3 = st.columns(3)
+        col1.metric("LCOE", f"{int(stats.firm_lcoe(run_name))}€/MWh")
+        col2.metric("Firm kWh premium", f"{stats.firm_lcoe(run_name) / stats.unconstrained_lcoe(run_name):.2f}")
+        col3.metric("Curtailment", f"{stats.relative_curtailment(run_name):.1%}")
 
     # Show the capacities
-    st.header("Capacities")
-    st.subheader("Production")
-    cols = st.columns(max(len(total_production_capacity), 3))
-    for index, technology in enumerate(total_production_capacity.index):
-        cols[index].metric(technologies.labelize(technology), f"{int(total_production_capacity[technology] / 1000):,}GW")
-    st.subheader("Storage")
-    cols = st.columns(max(len(total_storage_capacity), 3))
-    total_storage_capacity_energy = total_storage_capacity[total_storage_capacity.index.isin(["energy"], level=1)]
-    for index, technology in enumerate(total_storage_capacity_energy.index):
-        installed_hours = total_storage_capacity_energy[technology] / total_hourly_results.demand_MWh.mean()
-        cols[index].metric(technologies.labelize(technology[0]), f"{installed_hours:.1f}Hr")
+    with st.expander("Production capacity"):
+        production_capacity = stats.production_capacity(run_name)
+        cols = st.columns(max(len(production_capacity), 3))
+        for index, technology in enumerate(production_capacity):
+            cols[index].metric(technologies.labelize(technology), f"{int(production_capacity[technology] / 1000):,}GW")
+
+    with st.expander("Storage capacity"):
+        storage_capacity = stats.storage_capacity(run_name, type="energy")
+        cols = st.columns(max(len(storage_capacity), 3))
+        for index, technology in enumerate(storage_capacity):
+            technology_label = technologies.labelize(technology)
+            cols[index].metric(f"{technology_label} energy", f"{storage_capacity[technology] / 10**6:.2f}TWh")
 
 
 def hourly_results(run_name):
@@ -162,7 +50,7 @@ def hourly_results(run_name):
     st.title("🕰️ Hourly results")
 
     # Get hourly results for a country
-    all_hourly_results = _get_hourly_results(run_name, group="country")
+    all_hourly_results = utils.get_hourly_results(run_name, group="country")
     config = utils.read_yaml(f"../output/{run_name}/config.yaml")
     country = st.selectbox("Country", config["countries"], format_func=lambda country: country["name"])
     hourly_results = all_hourly_results[country["nuts_2"]]
@@ -196,7 +84,7 @@ def countries(run_name):
 
     st.title("🎌 Countries")
 
-    production_capacity = _get_production_capacity(run_name, group="country")
+    production_capacity = utils.get_production_capacity(run_name, group="country")
     pv_capacity = production_capacity.pv
 
     map = chart.Map(pv_capacity / 1000, label="PV capacity (GW)")
@@ -212,7 +100,7 @@ def correlation(run_name):
     st.title("📉 Correlation")
 
     # Get the hourly results and merge them on a single column
-    all_hourly_results = _get_hourly_results(run_name, group="country")
+    all_hourly_results = utils.get_hourly_results(run_name, group="country")
     relevant_columns = utils.find_common_columns(all_hourly_results)
     column_name = st.selectbox("Column", relevant_columns, format_func=utils.format_column_name)
     hourly_results = utils.merge_dataframes_on_column(all_hourly_results, column_name)
@@ -248,7 +136,7 @@ def duration_curve(run_name):
     st.title("⌛ Duration curve")
 
     # Get the storage capacity and hourly results
-    all_hourly_results = _get_hourly_results(run_name, group="country")
+    all_hourly_results = utils.get_hourly_results(run_name, group="country")
 
     # Select a column as numerator and denominator
     st.subheader("Columns")
@@ -307,9 +195,9 @@ def sensitivity(run_name):
 
         # Loop over each step in the sensitivity analysis
         for step_key, step_value in sensitivity_steps.items():
-            production_capacity = _get_production_capacity(f"{run_name}/{step_key}")
-            storage_capacity = _get_storage_capacity(f"{run_name}/{step_key}")
-            hourly_results = _get_hourly_results(f"{run_name}/{step_key}")
+            production_capacity = utils.get_production_capacity(f"{run_name}/{step_key}")
+            storage_capacity = utils.get_storage_capacity(f"{run_name}/{step_key}")
+            hourly_results = utils.get_hourly_results(f"{run_name}/{step_key}")
             config = utils.read_yaml(f"../output/{run_name}/{step_key}/config.yaml")
 
             hourly_demand = utils.merge_dataframes_on_column(hourly_results, "demand_MWh")
