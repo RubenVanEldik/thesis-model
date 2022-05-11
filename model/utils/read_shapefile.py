@@ -12,4 +12,4 @@ def read_shapefile(filepath):
     assert validate.is_filepath(filepath, suffix=".shp")
 
     # Read and return the file
-    return gpd.read_file("../input/countries/ne_10m_admin_0_map_subunits.shp")
+    return gpd.read_file("./input/countries/ne_10m_admin_0_map_subunits.shp")

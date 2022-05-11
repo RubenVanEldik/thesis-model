@@ -12,7 +12,7 @@ def technology_types(type):
     assert validate.is_technology_type(type)
 
     # Import the assumptions
-    assumptions = utils.read_yaml(f"../input/technologies/{type}.yaml")
+    assumptions = utils.read_yaml(f"./input/technologies/{type}.yaml")
 
     # Return the keys of all technologies
     return assumptions.keys()
@@ -27,7 +27,7 @@ def assumptions(type, technology, *, scenario):
     assert validate.is_technology_scenario(scenario)
 
     # Import the assumptions
-    assumptions = utils.read_yaml(f"../input/technologies/{type}.yaml")
+    assumptions = utils.read_yaml(f"./input/technologies/{type}.yaml")
     assumptions = assumptions[technology]
 
     # Merge the general and scenario specific assumptions

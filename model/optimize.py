@@ -112,7 +112,7 @@ def run(config, *, output_folder):
         Step 3A: Import the hourly data
         """
         status.update(f"Importing data for {bidding_zone}")
-        filepath = f"../input/bidding_zones/{config['model_year']}/{bidding_zone}.csv"
+        filepath = f"./input/bidding_zones/{config['model_year']}/{bidding_zone}.csv"
         start_date = config["date_range"]["start"]
         end_date = config["date_range"]["end"]
         hourly_data = utils.read_hourly_data(filepath, start=start_date, end=end_date)
@@ -348,7 +348,7 @@ def run_sensitivity(config, sensitivity_config):
     assert validate.is_config(config)
     assert validate.is_sensitivity_config(sensitivity_config)
 
-    output_folder = f"../output/{config['name']}"
+    output_folder = f"./output/{config['name']}"
 
     # Loop over each sensitivity analysis step
     for step_key, step_value in sensitivity_config["steps"].items():

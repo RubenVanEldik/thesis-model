@@ -12,7 +12,7 @@ def get(color, value):
     assert validate.is_color_name(color)
     assert validate.is_color_value(value)
 
-    colors = utils.read_csv("./colors.csv", index_col=0)
+    colors = utils.read_csv("./model/colors.csv", index_col=0)
     return colors.loc[value, color]
 
 
@@ -20,7 +20,7 @@ def list():
     """
     Return a list of all available colors
     """
-    colors = utils.read_csv("./colors.csv", index_col=0)
+    colors = utils.read_csv("./model/colors.csv", index_col=0)
     return colors.columns.tolist()
 
 

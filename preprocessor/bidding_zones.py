@@ -7,7 +7,7 @@ def get_bidding_zones():
     """
     Returns all bidding zones using the demand Excel file for 2030
     """
-    xl = pd.ExcelFile(f"../input/eraa/Demand Data/Demand_TimeSeries_2030_NationalEstimates.xlsx")
+    xl = pd.ExcelFile(f"./input/eraa/Demand Data/Demand_TimeSeries_2030_NationalEstimates.xlsx")
     return xl.sheet_names
 
 
@@ -118,20 +118,20 @@ if __name__ == "__main__":
         for zone in bidding_zones:
             print(f"Importing all data for {zone} for {year} ({datetime.now()})")
             # Import demand data
-            filepath_demand = f"../input/eraa/Demand Data/Demand_TimeSeries_{year}_NationalEstimates.xlsx"
+            filepath_demand = f"./input/eraa/Demand Data/Demand_TimeSeries_{year}_NationalEstimates.xlsx"
             data = import_data(None, filepath_demand, bidding_zone=zone, column_name="demand_MWh",)
 
             # Import PV data
-            filepath_pv = f"../input/eraa/Climate Data/PECD_LFSolarPV_{year}_edition 2021.3.xlsx"
+            filepath_pv = f"./input/eraa/Climate Data/PECD_LFSolarPV_{year}_edition 2021.3.xlsx"
             data = import_data(data, filepath_pv, bidding_zone=zone, column_name="pv_{zone}_cf",)
 
             # Import onshore wind data
-            filepath_onshore = f"../input/eraa/Climate Data/PECD_Onshore_{year}_edition 2021.3.xlsx"
+            filepath_onshore = f"./input/eraa/Climate Data/PECD_Onshore_{year}_edition 2021.3.xlsx"
             data = import_data(data, filepath_onshore, bidding_zone=zone, column_name="onshore_{zone}_cf",)
 
             # Import offshore wind data
-            filepath_offshore = f"../input/eraa/Climate Data/PECD_Offshore_{year}_edition 2021.3.xlsx"
+            filepath_offshore = f"./input/eraa/Climate Data/PECD_Offshore_{year}_edition 2021.3.xlsx"
             data = import_data(data, filepath_offshore, bidding_zone=zone, column_name="offshore_{zone}_cf",)
 
             # Store the data in a CSV file
-            data.to_csv(f"../input/bidding_zones/{year}/{zone}.csv")
+            data.to_csv(f"./input/bidding_zones/{year}/{zone}.csv")

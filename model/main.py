@@ -44,7 +44,7 @@ def get_previous_runs():
     """
     Get the names of all previous runs
     """
-    output_folder = "../output"
+    output_folder = "./output"
     files_and_directories = os.listdir(output_folder)
     directories = [item for item in files_and_directories if os.path.isdir(os.path.join(output_folder, item))]
     return sorted(directories, reverse=True)
@@ -73,7 +73,7 @@ def select_countries():
     """
     Let the user select one or multiple countries to include in the model
     """
-    countries = utils.read_yaml(os.path.join("../input", "countries.yaml"))
+    countries = utils.read_yaml("./input/countries.yaml")
 
     # Let the user select the country
     country_codes = [country["nuts_2"] for country in countries]
@@ -164,7 +164,7 @@ def select_thread_count():
 
 if __name__ == "__main__":
     mode = ModelMode()
-    st.sidebar.image("./logo.png", width=None)
+    st.sidebar.image("./model/logo.png", width=None)
 
     # Settings for a new run
     st.sidebar.title("Run model")
@@ -213,14 +213,14 @@ if __name__ == "__main__":
         elif sensitivity_enabled:
             optimize.run_sensitivity(config, sensitivity_config)
         else:
-            optimize.run(config, output_folder=f"../output/{config['name']}")
+            optimize.run(config, output_folder=f"./output/{config['name']}")
         mode.set(None)  # Set the mode to None so the URL params are updated
 
     # Settings for the analysis
     st.sidebar.title("Analyze previous run")
     previous_runs = get_previous_runs()
     selected_run = st.sidebar.selectbox("Previous runs", previous_runs)
-    if os.path.isfile(f"../output/{selected_run}/sensitivity.yaml"):
+    if os.path.isfile(f"./output/{selected_run}/sensitivity.yaml"):
         analysis = "sensitivity"
     else:
         analysis_options = ["statistics", "hourly_results", "countries", "correlation", "duration_curve"]

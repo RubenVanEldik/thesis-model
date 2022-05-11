@@ -14,7 +14,7 @@ def get_production_capacity(run_name, *, group=None, countries=None):
     assert validate.is_country_code_list(countries, type="nuts_2", required=False)
 
     # Get the production data
-    production_capacity = utils.read_csv(f"../output/{run_name}/capacities/production.csv", index_col=0)
+    production_capacity = utils.read_csv(f"./output/{run_name}/capacities/production.csv", index_col=0)
     if countries:
         bidding_zones = utils.get_bidding_zones_for_countries(countries)
         production_capacity = production_capacity[production_capacity.index.isin(bidding_zones)]

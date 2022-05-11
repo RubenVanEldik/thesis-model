@@ -15,14 +15,14 @@ def get_hourly_results(run_name, *, group=None, countries=None):
 
     # If no countries are specified, set them to all countries modelled in this run
     if not countries:
-        config = utils.read_yaml(f"../output/{run_name}/config.yaml")
+        config = utils.read_yaml(f"./output/{run_name}/config.yaml")
         countries = [country["nuts_2"] for country in config["countries"]]
 
     # Get the hourly data for each bidding zone
     hourly_results = {}
     bidding_zones = utils.get_bidding_zones_for_countries(countries)
     for bidding_zone in bidding_zones:
-        filepath = f"../output/{run_name}/hourly_results/{bidding_zone}.csv"
+        filepath = f"./output/{run_name}/hourly_results/{bidding_zone}.csv"
         hourly_results[bidding_zone] = utils.read_hourly_data(filepath)
 
         if hourly_results[bidding_zone].isnull().values.any():

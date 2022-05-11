@@ -14,7 +14,7 @@ def sensitivity(run_name):
 
     st.title("Sensitivity analysis")
 
-    sensitivity_config = utils.read_yaml(f"../output/{run_name}/sensitivity.yaml")
+    sensitivity_config = utils.read_yaml(f"./output/{run_name}/sensitivity.yaml")
     output_variable_options = ["LCOE"]
     output_variables = st.multiselect("Output variable", output_variable_options)
     if output_variables:
@@ -26,7 +26,7 @@ def sensitivity(run_name):
             production_capacity = utils.get_production_capacity(f"{run_name}/{step_key}")
             storage_capacity = utils.get_storage_capacity(f"{run_name}/{step_key}")
             hourly_results = utils.get_hourly_results(f"{run_name}/{step_key}")
-            config = utils.read_yaml(f"../output/{run_name}/{step_key}/config.yaml")
+            config = utils.read_yaml(f"./output/{run_name}/{step_key}/config.yaml")
 
             hourly_demand = utils.merge_dataframes_on_column(hourly_results, "demand_MWh")
             firm_lcoe = lcoe.calculate(production_capacity, storage_capacity, hourly_demand, technologies=config["technologies"])

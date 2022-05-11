@@ -17,7 +17,7 @@ def firm_lcoe(run_name, *, countries=None):
     storage_capacity = utils.get_storage_capacity(run_name, countries=countries)
     hourly_results = utils.get_hourly_results(run_name, countries=countries)
     hourly_demand = utils.merge_dataframes_on_column(hourly_results, "demand_MWh")
-    technologies = utils.read_yaml(f"../output/{run_name}/config.yaml")["technologies"]
+    technologies = utils.read_yaml(f"./output/{run_name}/config.yaml")["technologies"]
 
     # Return the LCOE
     return lcoe.calculate(production_capacity, storage_capacity, hourly_demand, technologies=technologies)
@@ -35,7 +35,7 @@ def unconstrained_lcoe(run_name, *, countries=None):
     storage_capacity = utils.get_storage_capacity(run_name, countries=countries)
     hourly_results = utils.get_hourly_results(run_name, countries=countries)
     hourly_demand = utils.merge_dataframes_on_column(hourly_results, "production_total_MWh")
-    technologies = utils.read_yaml(f"../output/{run_name}/config.yaml")["technologies"]
+    technologies = utils.read_yaml(f"./output/{run_name}/config.yaml")["technologies"]
 
     # Return the LCOE
     return lcoe.calculate(production_capacity, storage_capacity, hourly_demand, technologies=technologies)

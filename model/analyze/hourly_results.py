@@ -14,7 +14,7 @@ def hourly_results(run_name):
 
     # Get hourly results for a country
     all_hourly_results = utils.get_hourly_results(run_name, group="country")
-    config = utils.read_yaml(f"../output/{run_name}/config.yaml")
+    config = utils.read_yaml(f"./output/{run_name}/config.yaml")
     country = st.selectbox("Country", config["countries"], format_func=lambda country: country["name"])
     hourly_results = all_hourly_results[country["nuts_2"]]
 

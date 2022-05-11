@@ -11,7 +11,7 @@ def get_interconnections(bidding_zone, *, config, type, direction="export"):
     assert validate.is_interconnection_type(type)
     assert validate.is_interconnection_direction(direction)
 
-    filepath = f"../input/interconnections/{config['model_year']}/{type}.csv"
+    filepath = f"./input/interconnections/{config['model_year']}/{type}.csv"
     interconnections = utils.read_csv(filepath, parse_dates=True, index_col=0, header=[0, 1])
 
     relevant_interconnections = []

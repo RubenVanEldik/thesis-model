@@ -12,7 +12,7 @@ def get_bidding_zones_for_countries(country_codes):
     assert validate.is_country_code_list(country_codes, type="nuts_2")
 
     # Get the countries
-    countries = utils.read_yaml("../input/countries.yaml")
+    countries = utils.read_yaml("./input/countries.yaml")
 
     # Add the bidding zones for each country to the bidding_zones list
     bidding_zones = []
