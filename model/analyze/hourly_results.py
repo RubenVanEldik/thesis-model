@@ -25,6 +25,11 @@ def hourly_results(run_name):
 
     # Show the chart and DataFrame if any columns are selected
     if columns:
+        # Calculate the rolling average
+        rolling_average_options = {1: "Off", 24: "Daily", 24 * 7: "Weekly", 24 * 28: "Monthly", 24 * 365: "Yearly"}
+        window = st.selectbox("Rolling average", rolling_average_options.keys(), index=2, format_func=lambda key: rolling_average_options[key])
+        hourly_results = hourly_results.rolling(window=window).mean()
+
         # Filter the data temporarily
         start_data = hourly_results.index.min().to_pydatetime()
         end_data = hourly_results.index.max().to_pydatetime()
