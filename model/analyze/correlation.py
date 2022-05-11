@@ -40,8 +40,9 @@ def correlation(run_name):
 
     # Add a regression line if the checkbox is checked
     if st.checkbox("Show regression line"):
-        trendline_x, trendline_y = utils.calculate_linear_regression_line(correlations.distance, correlations.r_squared)
-        correlation_plot.ax.plot(trendline_x, trendline_y, color=colors.get("gray", 600))
+        degree = st.slider("Degrees", min_value=1, value=2, max_value=5)
+        trendline_x, trendline_y = utils.calculate_regression_line(correlations.distance, correlations.r_squared, degree=degree)
+        correlation_plot.ax.plot(trendline_x, trendline_y, color=colors.get("gray", 500))
 
     # Show the plot
     st.pyplot(correlation_plot.fig)

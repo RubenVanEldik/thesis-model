@@ -1,5 +1,5 @@
 from .calculate_distance import calculate_distance
-from .calculate_linear_regression_line import calculate_linear_regression_line
+from .calculate_regression_line import calculate_regression_line
 from .calculate_r_squared import calculate_r_squared
 from .convert_variables_recursively import convert_variables_recursively
 from .find_common_columns import find_common_columns
