@@ -31,6 +31,12 @@ class Chart:
         self.ax.set_xscale(xscale)
         self.ax.set_yscale(yscale)
 
+    def set_x_limits(self, x_min, x_max):
+        self.ax.set_xlim([x_min, x_max])
+
+    def set_y_limits(self, y_min, y_max):
+        self.ax.set_ylim([y_min, y_max])
+
     def format_xticklabels(self, label):
         ticks_loc = self.ax.get_xticks().tolist()
         self.ax.xaxis.set_major_locator(mticker.FixedLocator(ticks_loc))

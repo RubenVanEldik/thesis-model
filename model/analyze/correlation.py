@@ -34,8 +34,12 @@ def correlation(run_name):
 
     # Create a scatter plot
     correlation_plot = chart.Chart(xlabel="Distance (km)", ylabel="Coefficient of determination")
+    correlation_plot.set_y_limits(0, 1)
+    correlation_plot.format_yticklabels("{:,.0%}")
     correlation_plot.ax.scatter(correlations.distance, correlations.r_squared, color=colors.get("blue", 600), alpha=0.5)
-    if st.checkbox("Show linear regression line"):
+
+    # Add a regression line if the checkbox is checked
+    if st.checkbox("Show regression line"):
         trendline_x, trendline_y = utils.calculate_linear_regression_line(correlations.distance, correlations.r_squared)
         correlation_plot.ax.plot(trendline_x, trendline_y, color=colors.get("gray", 600))
 
