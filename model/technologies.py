@@ -53,6 +53,7 @@ def labelize(key, *, capitalize=True):
     Return the label for a specific technology key
     """
     assert validate.is_technology(key)
+    assert validate.is_bool(capitalize)
 
     if key == "pv":
         label = "solar PV"
