@@ -204,6 +204,15 @@ def is_filepath(value, *, required=True, suffix=None):
     return is_valid_path and has_valid_suffix
 
 
+def is_float(value, *, required=True, min_value=None, max_value=None):
+    if value is None:
+        return not required
+
+    is_float = type(value) is float
+    valid_float = (min_value is None or value >= min_value) and (max_value is None or value <= max_value)
+    return is_float and valid_float
+
+
 def is_func(value, *, required=True):
     if value is None:
         return not required
@@ -253,6 +262,13 @@ def is_model_year(value, *, required=True):
         return not required
 
     return value == 2025 or value == 2030
+
+
+def is_number(value, *, required=True, min_value=None, max_value=None):
+    if value is None:
+        return not required
+
+    return is_float(value, min_value=min_value, max_value=max_value) or is_integer(value, min_value=min_value, max_value=max_value)
 
 
 def is_point(value, *, required=True):
