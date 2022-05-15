@@ -2,6 +2,7 @@ import re
 import streamlit as st
 
 import chart
+import colors
 import utils
 import validate
 
@@ -52,6 +53,37 @@ def duration_curve(run_name):
         denominator_df = utils.merge_dataframes_on_column(all_hourly_results, denominator, sorted=True)
         waterfall_df = waterfall_df / denominator_df.max()
 
-    # Create the plot
-    plot = chart.waterfall(waterfall_df, is_relative=bool(denominator), xlabel=xlabel, ylabel=ylabel, xscale=xscale, yscale=yscale, individual_lines=individual_lines, range_area=range_area, ignore_zeroes=ignore_zeroes, unity_line=unity_line)
-    st.pyplot(plot)
+    # Create the chart
+    waterfall_plot = chart.Chart(xlabel=xlabel, ylabel=ylabel, xscale=xscale, yscale=yscale)
+
+    # Create an index ranging from 0 to 1
+    num_rows = waterfall_df.shape[0]
+    waterfall_df["index"] = [i / num_rows for i in range(num_rows)]
+    waterfall_df = waterfall_df.set_index("index")
+
+    # Remove all rows where all values are zero
+    if ignore_zeroes:
+        last_non_zero_row = waterfall_df[waterfall_df.max(axis=1) != 0].iloc[-1].name
+        waterfall_df = waterfall_df[:last_non_zero_row]
+
+    # Plot the range fill
+    if range_area:
+        waterfall_plot.ax.fill_between(waterfall_df.index, waterfall_df.min(axis=1), waterfall_df.max(axis=1), color=colors.get("blue", 100))
+
+    # Plot a line for each column (country)
+    if individual_lines:
+        waterfall_plot.ax.plot(waterfall_df, color=colors.get("blue", 300), linewidth=1)
+
+    # Plot the mean values
+    waterfall_plot.ax.plot(waterfall_df.mean(axis=1), color=colors.get("blue", 700))
+
+    # Plot the unity line
+    if unity_line:
+        waterfall_plot.ax.axhline(y=1, color=colors.get(red, 600), linewidth=1)
+
+    # Format the axes to be percentages
+    waterfall_plot.format_xticklabels("{:,.0%}")
+    waterfall_plot.format_yticklabels("{:,.0%}" if denominator else "{:,.0f}")
+
+    # Plot the figure
+    st.pyplot(waterfall_plot.fig)
