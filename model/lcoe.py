@@ -3,12 +3,16 @@ import streamlit as st
 
 import utils
 import technologies
+import validate
 
 
 def _calculate_annualized_production_costs(production_technologies, production_capacity_MW):
     """
     Calculate the annualized production costs
     """
+    assert validate.is_dict(production_technologies)
+    assert validate.is_series(production_capacity_MW)
+
     # Calculate the total annual production costs
     annualized_costs_production = 0
     for technology, assumptions in production_technologies.items():
@@ -25,6 +29,9 @@ def _calculate_annualized_storage_costs(storage_technologies, storage_capacity_M
     """
     Calculate the annualized storage costs
     """
+    assert validate.is_dict(storage_technologies)
+    assert validate.is_series(storage_capacity_MWh)
+
     # Calculate the total annual storage costs
     annualized_costs_storage = 0
     for technology, assumptions in storage_technologies.items():
@@ -45,6 +52,8 @@ def _calculate_annual_demand(demand_MWh):
     """
     Calculate the annual electricity demand
     """
+    assert validate.is_series(demand_MWh)
+
     demand_start_date = demand_MWh.index.min()
     demand_end_date = demand_MWh.index.max()
     share_of_year_modelled = (demand_end_date - demand_start_date) / pd.Timedelta(365, "days")
@@ -55,6 +64,11 @@ def calculate(production_capacity_per_bidding_zone, storage_capacity_per_bidding
     """
     Calculate the average LCOE for all bidding zones
     """
+    assert validate.is_dataframe(production_capacity_per_bidding_zone, column_validator=validate.is_technology)
+    assert validate.is_dataframe(storage_capacity_per_bidding_zone)
+    assert validate.is_dataframe(demand_per_bidding_zone, column_validator=validate.is_bidding_zone)
+    assert validate.is_config(config)
+
     annualized_production_costs = 0
     annualized_storage_costs = 0
     annual_electricity_demand = 0

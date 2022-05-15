@@ -116,9 +116,12 @@ def is_country_obj_list(value, *, required=True):
     return is_list and has_items and has_valid_items
 
 
-def is_dataframe(value, *, required=True):
+def is_dataframe(value, *, required=True, column_validator=None):
     if value is None:
         return not required
+
+    if column_validator and not all(column_validator(column_name) for column_name in value.columns):
+        return False
 
     return isinstance(value, pd.DataFrame)
 
@@ -145,6 +148,13 @@ def is_datetime(value, *, required=True):
         return not required
 
     return type(value) is datetime.datetime
+
+
+def is_dict(value, *, required=True):
+    if value is None:
+        return not required
+
+    return type(value) is dict
 
 
 def is_dict_or_list(value, *, required=True):
