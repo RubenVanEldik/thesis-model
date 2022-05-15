@@ -76,7 +76,7 @@ def run(config, *, output_folder):
     """
     Create and run the model
     """
-    assert validate.is_config(config)
+    assert validate.is_config(config, new_config=True)
 
     """
     Step 1: Create the model and set the parameters
@@ -345,7 +345,7 @@ def run_sensitivity(config, sensitivity_config):
     """
     Run the model for each step in the sensitivity analysis
     """
-    assert validate.is_config(config)
+    assert validate.is_config(config, new_config=True)
     assert validate.is_sensitivity_config(sensitivity_config)
 
     output_folder = f"./output/{config['name']}"

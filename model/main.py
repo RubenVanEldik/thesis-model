@@ -205,7 +205,7 @@ if __name__ == "__main__":
         config["optimization"]["thread_count"] = select_thread_count()
 
     # Run the model if the button has been pressed
-    invalid_config = not validate.is_config(config)
+    invalid_config = not validate.is_config(config, new_config=True)
     invalid_sensitivity_config = sensitivity_enabled and not validate.is_sensitivity_config(sensitivity_config)
     if mode.button("optimization", label="Run model", only_on_click=True, disabled=invalid_config or invalid_sensitivity_config):
         if config["name"] in get_previous_runs():

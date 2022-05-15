@@ -60,7 +60,7 @@ def is_color_value(value, *, required=True):
     return value in [50, 100, 200, 300, 400, 500, 600, 700, 800, 900]
 
 
-def is_config(value, *, required=True):
+def is_config(value, *, required=True, new_config=False):
     if value is None:
         return not required
 
@@ -70,7 +70,7 @@ def is_config(value, *, required=True):
     has_valid_model_year = is_model_year(value["model_year"])
     has_valid_countries = is_country_obj_list(value["countries"])
     has_valid_date_range = is_date_range(value["date_range"])
-    has_valid_time_limit = is_datetime(value["optimization"]["time_limit"]) and value["optimization"]["time_limit"] > datetime.datetime.now()
+    has_valid_time_limit = is_datetime(value["optimization"]["time_limit"]) and (not new_config or value["optimization"]["time_limit"] > datetime.datetime.now())
     has_valid_method = is_integer(value["optimization"]["method"], min_value=-1, max_value=6)
     has_valid_thread_count = is_integer(value["optimization"]["thread_count"], min_value=1)
 
