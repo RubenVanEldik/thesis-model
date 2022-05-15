@@ -11,6 +11,7 @@ def calculate_regression_line(col1, col2, *, degree):
     """
     assert validate.is_series(col1)
     assert validate.is_series(col2)
+    assert validate.is_integer(degree)
 
     # Set the X and y values
     X = col1.to_frame()
