@@ -29,7 +29,7 @@ def sensitivity(run_name):
             config = utils.read_yaml(f"./output/{run_name}/{step_key}/config.yaml")
 
             hourly_demand = utils.merge_dataframes_on_column(hourly_results, "demand_MWh")
-            firm_lcoe = lcoe.calculate(production_capacity, storage_capacity, hourly_demand, technologies=config["technologies"])
+            firm_lcoe = lcoe.calculate(production_capacity, storage_capacity, hourly_demand, config=config)
             output_values.loc[step_value, "LCOE"] = firm_lcoe
 
         # Show a line chart with the selected output variables
