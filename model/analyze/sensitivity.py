@@ -1,7 +1,7 @@
 import pandas as pd
 import streamlit as st
 
-import lcoe
+import stats
 import utils
 import validate
 
@@ -14,23 +14,19 @@ def sensitivity(run_name):
 
     st.title("Sensitivity analysis")
 
+    # Get the sensitivity analysis
     sensitivity_config = utils.read_yaml(f"./output/{run_name}/sensitivity.yaml")
-    output_variable_options = ["LCOE"]
-    output_variables = st.multiselect("Output variable", output_variable_options)
-    if output_variables:
-        sensitivity_steps = sensitivity_config["steps"]
-        output_values = pd.DataFrame(index=sensitivity_steps.values(), columns=output_variable_options)
 
-        # Loop over each step in the sensitivity analysis
-        for step_key, step_value in sensitivity_steps.items():
-            production_capacity = utils.get_production_capacity(f"{run_name}/{step_key}")
-            storage_capacity = utils.get_storage_capacity(f"{run_name}/{step_key}")
-            hourly_results = utils.get_hourly_results(f"{run_name}/{step_key}")
-            config = utils.read_yaml(f"./output/{run_name}/{step_key}/config.yaml")
+    # Select a output variable to run the sensitivity analysis on
+    statistic_options = ["firm_lcoe", "unconstrained_lcoe", "premium", "relative_curtailment", "production_capacity", "storage_capacity"]
+    statistic_name = st.selectbox("Output variable", statistic_options, format_func=utils.format_str)
 
-            hourly_demand = utils.merge_dataframes_on_column(hourly_results, "demand_MWh")
-            firm_lcoe = lcoe.calculate(production_capacity, storage_capacity, hourly_demand, config=config)
-            output_values.loc[step_value, "LCOE"] = firm_lcoe
+    if statistic_name:
+        # Create a DataFrame with the sensitivity steps as rows
+        data = pd.Series(data=sensitivity_config["steps"], name="input").to_frame()
 
-        # Show a line chart with the selected output variables
-        st.line_chart(output_values[output_variables])
+        # Calculate the output for each sensitivity step
+        data["output"] = data.apply(lambda row: getattr(stats, statistic_name)(f"{run_name}/{row.name}"), axis=1)
+
+        # Show a line chart with the output
+        st.line_chart(data.output)
