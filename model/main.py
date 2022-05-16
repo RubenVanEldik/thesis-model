@@ -164,7 +164,7 @@ def select_thread_count():
 
 if __name__ == "__main__":
     mode = ModelMode()
-    st.sidebar.image("./model/logo.png", width=None)
+    st.sidebar.image("./model/images/logo.png", width=None)
 
     # Settings for a new run
     st.sidebar.title("Run model")
