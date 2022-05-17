@@ -1,24 +1,8 @@
-import pandas as pd
-import streamlit as st
-
 import utils
 import validate
 
 
-def technology_types(type):
-    """
-    Return a list of all technology types
-    """
-    assert validate.is_technology_type(type)
-
-    # Import the assumptions
-    assumptions = utils.read_yaml(f"./input/technologies/{type}.yaml")
-
-    # Return the keys of all technologies
-    return assumptions.keys()
-
-
-def assumptions(type, technology, *, scenario):
+def get_technology_assumptions(type, technology, *, scenario):
     """
     Return the assumptions dictionary for a specific technology
     """
@@ -46,24 +30,3 @@ def assumptions(type, technology, *, scenario):
 
     # Return the assumptions for a specific scenario
     return assumptions_scenario
-
-
-def labelize(key, *, capitalize=True):
-    """
-    Return the label for a specific technology key
-    """
-    assert validate.is_technology(key)
-    assert validate.is_bool(capitalize)
-
-    if key == "pv":
-        label = "solar PV"
-    if key == "onshore":
-        label = "onshore wind"
-    if key == "offshore":
-        label = "offshore wind"
-    if key == "lion":
-        label = "Li-ion"
-    if key == "hydrogen":
-        label = "hydrogen"
-
-    return (label[0].upper() + label[1:]) if capitalize else label

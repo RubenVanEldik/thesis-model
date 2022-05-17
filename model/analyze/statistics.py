@@ -1,7 +1,6 @@
 import streamlit as st
 
 import stats
-import technologies
 import utils
 import validate
 
@@ -46,11 +45,11 @@ def statistics(run_name):
         production_capacity = stats.production_capacity(run_name, countries=selected_country_codes)
         cols = st.columns(max(len(production_capacity), 3))
         for index, technology in enumerate(production_capacity):
-            cols[index].metric(technologies.labelize(technology), f"{int(production_capacity[technology] / 1000):,}GW")
+            cols[index].metric(utils.labelize_technology(technology), f"{int(production_capacity[technology] / 1000):,}GW")
 
     with st.expander("Storage capacity"):
         storage_capacity = stats.storage_capacity(run_name, type="energy", countries=selected_country_codes)
         cols = st.columns(max(len(storage_capacity), 3))
         for index, technology in enumerate(storage_capacity):
-            technology_label = technologies.labelize(technology)
+            technology_label = utils.labelize_technology(technology)
             cols[index].metric(f"{technology_label} energy", f"{storage_capacity[technology] / 10**6:.2f}TWh")

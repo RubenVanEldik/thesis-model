@@ -5,7 +5,6 @@ import streamlit as st
 
 import analyze
 import optimize
-import technologies
 import utils
 import validate
 import re
@@ -107,16 +106,18 @@ def select_technologies(scenario):
     # Add the checked production technologies
     col1.subheader("Production")
     production_technologies = {}
-    for technology in technologies.technology_types("production"):
-        if col1.checkbox(technologies.labelize(technology), value=True):
-            production_technologies[technology] = technologies.assumptions("production", technology, scenario=scenario)
+    production_technology_options = utils.read_yaml("./input/technologies/production.yaml").keys()
+    for technology in production_technology_options:
+        if col1.checkbox(utils.labelize_technology(technology), value=True):
+            production_technologies[technology] = utils.get_technology_assumptions("production", technology, scenario=scenario)
 
     # Add the checked storagetechnologies
     col2.subheader("Storage")
     storage_technologies = {}
-    for technology in technologies.technology_types("storage"):
-        if col2.checkbox(technologies.labelize(technology), value=True):
-            storage_technologies[technology] = technologies.assumptions("storage", technology, scenario=scenario)
+    storage_technologies_options = utils.read_yaml("./input/technologies/storage.yaml").keys()
+    for technology in storage_technologies_options:
+        if col2.checkbox(utils.labelize_technology(technology), value=True):
+            storage_technologies[technology] = utils.get_technology_assumptions("storage", technology, scenario=scenario)
 
     # Return the checked production and storage technologies
     return {"production": production_technologies, "storage": storage_technologies}
@@ -128,14 +129,14 @@ def get_sensitivity_options(config):
     options["interconnections.efficiency.hvac"] = "HVAC efficiency"
     options["interconnections.efficiency.hvdc"] = "HVDC efficiency"
     for production_technology in config["technologies"]["production"]:
-        production_technology_label = technologies.labelize(production_technology)
+        production_technology_label = utils.labelize_technology(production_technology)
         options[f"technologies.production.{production_technology}.economic_lifetime"] = f"{production_technology_label} - Economic lifetime"
         options[f"technologies.production.{production_technology}.capex"] = f"{production_technology_label} - CAPEX"
         options[f"technologies.production.{production_technology}.fixed_om"] = f"{production_technology_label} - Fixed O&M"
         options[f"technologies.production.{production_technology}.variable_om"] = f"{production_technology_label} - Variable O&M"
         options[f"technologies.production.{production_technology}.wacc"] = f"{production_technology_label} - WACC"
     for storage_technology in config["technologies"]["storage"]:
-        storage_technology_label = technologies.labelize(storage_technology)
+        storage_technology_label = utils.labelize_technology(storage_technology)
         options[f"technologies.storage.{storage_technology}.economic_lifetime"] = f"{storage_technology_label} - Economic lifetime"
         options[f"technologies.storage.{storage_technology}.energy_capex"] = f"{storage_technology_label} - Energy CAPEX"
         options[f"technologies.storage.{storage_technology}.power_capex"] = f"{storage_technology_label} - Power CAPEX"

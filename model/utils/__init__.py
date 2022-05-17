@@ -14,6 +14,8 @@ from .get_interconnections import get_interconnections
 from .get_nested_key import get_nested_key
 from .get_production_capacity import get_production_capacity
 from .get_storage_capacity import get_storage_capacity
+from .get_technology_assumptions import get_technology_assumptions
+from .labelize_technology import labelize_technology
 from .merge_dataframes_on_column import merge_dataframes_on_column
 from .read_csv import read_csv
 from .read_hourly_data import read_hourly_data

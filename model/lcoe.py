@@ -2,7 +2,6 @@ import pandas as pd
 import streamlit as st
 
 import utils
-import technologies
 import validate
 
 

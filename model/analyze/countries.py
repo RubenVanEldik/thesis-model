@@ -4,7 +4,6 @@ import streamlit as st
 
 import chart
 import stats
-import technologies
 import utils
 import validate
 
@@ -55,7 +54,7 @@ def _select_data(run_name, *, name):
         production_capacity = utils.get_production_capacity(run_name, group="country")
 
         # Filter the production capacity on only the selected columns
-        production_types = col2.multiselect("Type", production_capacity.columns, format_func=technologies.labelize, key=name)
+        production_types = col2.multiselect("Type", production_capacity.columns, format_func=utils.labelize_technology, key=name)
         production_capacity = production_capacity[production_types]
 
         # Select the aggregation type
@@ -79,7 +78,7 @@ def _select_data(run_name, *, name):
         storage_capacity.columns = relevant_columns
 
         # Filter the storage capacity on only the selected columns
-        storage_types = col2.multiselect("Type", relevant_columns, format_func=technologies.labelize, key=name)
+        storage_types = col2.multiselect("Type", relevant_columns, format_func=utils.labelize_technology, key=name)
         storage_capacity = storage_capacity[storage_types]
 
         # Select the aggregation type
