@@ -1,4 +1,5 @@
 from .calculate_distance import calculate_distance
+from .calculate_lcoe import calculate_lcoe
 from .calculate_regression_line import calculate_regression_line
 from .calculate_r_squared import calculate_r_squared
 from .convert_variables_recursively import convert_variables_recursively

@@ -6,7 +6,6 @@ import streamlit as st
 from datetime import datetime, timedelta
 from pandarallel import pandarallel
 
-import lcoe
 import utils
 import validate
 
@@ -251,7 +250,7 @@ def run(config, *, output_folder):
     Step 5: Set objective function
     """
     hourly_demand = utils.merge_dataframes_on_column(hourly_results, "demand_MWh")
-    firm_lcoe = lcoe.calculate(production_capacity, storage_capacity, hourly_demand, config=config)
+    firm_lcoe = utils.calculate_lcoe(production_capacity, storage_capacity, hourly_demand, config=config)
     model.setObjective(firm_lcoe, gp.GRB.MINIMIZE)
 
     """

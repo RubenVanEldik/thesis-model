@@ -1,6 +1,5 @@
 import streamlit as st
 
-import lcoe
 import utils
 import validate
 
@@ -20,7 +19,7 @@ def firm_lcoe(run_name, *, countries=None):
     config = utils.read_yaml(f"./output/{run_name}/config.yaml")
 
     # Return the LCOE
-    return lcoe.calculate(production_capacity, storage_capacity, hourly_demand, config=config)
+    return utils.calculate_lcoe(production_capacity, storage_capacity, hourly_demand, config=config)
 
 
 def unconstrained_lcoe(run_name, *, countries=None):
@@ -38,7 +37,7 @@ def unconstrained_lcoe(run_name, *, countries=None):
     config = utils.read_yaml(f"./output/{run_name}/config.yaml")
 
     # Return the LCOE
-    return lcoe.calculate(production_capacity, storage_capacity, hourly_demand, config=config)
+    return utils.calculate_lcoe(production_capacity, storage_capacity, hourly_demand, config=config)
 
 
 def premium(run_name, *, countries=None):

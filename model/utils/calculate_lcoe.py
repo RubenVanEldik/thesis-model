@@ -59,7 +59,7 @@ def _calculate_annual_demand(demand_MWh):
     return demand_MWh.sum() / share_of_year_modelled
 
 
-def calculate(production_capacity_per_bidding_zone, storage_capacity_per_bidding_zone, demand_per_bidding_zone, *, config):
+def calculate_lcoe(production_capacity_per_bidding_zone, storage_capacity_per_bidding_zone, demand_per_bidding_zone, *, config):
     """
     Calculate the average LCOE for all bidding zones
     """
