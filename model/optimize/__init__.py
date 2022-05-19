@@ -9,65 +9,11 @@ from pandarallel import pandarallel
 import utils
 import validate
 
+from .calculate_time_energy_stored import calculate_time_energy_stored
+from .status import Status
+
 # Initialize pandarallel
 pandarallel.initialize()
-
-
-class Status:
-    def __init__(self):
-        self.status = st.empty()
-        self.text = None
-
-    def update(self, text, *, type="info", timestamp=None):
-        # Update the status if there is no timestamp, or the text is different, or its the first timestamp of the month
-        if timestamp is None:
-            getattr(self.status, type)(text)
-            self.text = text
-        elif self.text != text or (timestamp.is_month_start and timestamp.hour == 0):
-            getattr(self.status, type)(f"{text} ({timestamp.strftime('%B %Y')})")
-            self.text = text
-
-
-def _calculate_time_energy_stored(row, *, storage_technology, hourly_results):
-    """
-    Calculate how long the energy that is released in a particular row has been stored for
-    """
-    timestamp_current = row.name
-    timestamp_previous = timestamp_current - pd.Timedelta(hours=1)
-
-    # Return 0 if its the first timestamp
-    if timestamp_previous not in hourly_results.index:
-        return 0
-
-    # Calculate the energy stored in the current and previous timestamp
-    energy_stored_current = row[f"energy_stored_{storage_technology}_MWh"]
-    energy_stored_previous = hourly_results[f"energy_stored_{storage_technology}_MWh"].loc[timestamp_previous]
-    energy_delta = energy_stored_current - energy_stored_previous
-
-    # Return 0 if the battery hasn't released energy
-    if energy_delta >= 0:
-        return 0
-
-    # Set the weighted time and energy stored and loop over all timestamps that lie in the past
-    weighted_time = 0
-    energy_stored_min = energy_stored_previous
-    reversed_history = hourly_results.loc[timestamp_previous::-1]
-    for timestamp, energy_stored in reversed_history[f"energy_stored_{storage_technology}_MWh"].iteritems():
-        # Continue if the energy stored is not less than the minimum stored energy already encountered
-        if energy_stored >= energy_stored_min:
-            continue
-
-        # Add the weighted time difference to to the time and update the minimum energy stored variable
-        hour_delta = (timestamp_current - timestamp).total_seconds() / 3600
-        weighted_time += hour_delta * ((energy_stored_min - max(energy_stored, energy_stored_current)) / -energy_delta)
-        energy_stored_min = energy_stored
-
-        # Stop the for loop if all energy released has been accounted for
-        if energy_stored <= energy_stored_current:
-            break
-
-    # Return the weighted average of time the energy was stored
-    return weighted_time
 
 
 def run(config, *, output_folder):
@@ -319,7 +265,7 @@ def run(config, *, output_folder):
 
         # Calculate the time of energy stored per storage technology per hour
         for storage_technology in config["technologies"]["storage"]:
-            time_stored_H = hourly_results.parallel_apply(_calculate_time_energy_stored, storage_technology=storage_technology, hourly_results=hourly_results, axis=1)
+            time_stored_H = hourly_results.parallel_apply(calculate_time_energy_stored, storage_technology=storage_technology, hourly_results=hourly_results, axis=1)
             column_index = hourly_results.columns.get_loc(f"energy_stored_{storage_technology}_MWh") + 1
             hourly_results.insert(column_index, f"time_stored_{storage_technology}_H", time_stored_H)
 
