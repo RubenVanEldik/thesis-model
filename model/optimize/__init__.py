@@ -3,12 +3,13 @@ import os
 import pandas as pd
 import gurobipy as gp
 import streamlit as st
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 import utils
 import validate
 
 from .calculate_time_energy_stored import calculate_time_energy_stored
+from .intialize_model import intialize_model
 from .status import Status
 
 
@@ -22,11 +23,7 @@ def run(config, *, output_folder):
     Step 1: Create the model and set the parameters
     """
     status = Status()
-    model = gp.Model(config["name"])
-    model.setParam("OutputFlag", 0)
-    model.setParam("Threads", config["optimization"]["thread_count"])
-    model.setParam("Method", config["optimization"]["method"])
-    model.setParam("TimeLimit", (config["optimization"]["time_limit"] - datetime.now()).total_seconds())
+    model = intialize_model(config)
 
     """
     Step 2: Create a bidding zone list and set the progress bar
