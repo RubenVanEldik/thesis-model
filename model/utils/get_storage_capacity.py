@@ -13,8 +13,13 @@ def get_storage_capacity(run_name, *, group=None, countries=None):
     assert validate.is_aggregation_level(group, required=False)
     assert validate.is_country_code_list(countries, type="nuts_2", required=False)
 
-    # Get the storage data
-    storage_capacity = utils.read_csv(f"./output/{run_name}/capacities/storage.csv", index_col=0, header=[0, 1])
+    # Try to get the storage data, if there is no storage utils.read_csv will throw an Index error
+    try:
+        storage_capacity = utils.read_csv(f"./output/{run_name}/capacities/storage.csv", index_col=0, header=[0, 1])
+    except IndexError:
+        return None
+
+    # Filter the storage capacity on country if a list of countries was given
     if countries:
         bidding_zones = utils.get_bidding_zones_for_countries(countries)
         storage_capacity = storage_capacity[storage_capacity.index.isin(bidding_zones)]

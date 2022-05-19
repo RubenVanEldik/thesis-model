@@ -64,7 +64,7 @@ def calculate_lcoe(production_capacity_per_bidding_zone, storage_capacity_per_bi
     Calculate the average LCOE for all bidding zones
     """
     assert validate.is_dataframe(production_capacity_per_bidding_zone, column_validator=validate.is_technology)
-    assert validate.is_dataframe(storage_capacity_per_bidding_zone)
+    assert validate.is_dataframe(storage_capacity_per_bidding_zone, required=False)
     assert validate.is_dataframe(demand_per_bidding_zone, column_validator=validate.is_bidding_zone)
     assert validate.is_config(config)
 
@@ -73,8 +73,14 @@ def calculate_lcoe(production_capacity_per_bidding_zone, storage_capacity_per_bi
     annual_electricity_demand = 0
 
     for bidding_zone in production_capacity_per_bidding_zone.index:
+        # Add the annualized production costs
         annualized_production_costs += _calculate_annualized_production_costs(config["technologies"]["production"], production_capacity_per_bidding_zone.loc[bidding_zone])
-        annualized_storage_costs += _calculate_annualized_storage_costs(config["technologies"]["storage"], storage_capacity_per_bidding_zone.loc[bidding_zone])
+
+        # Add the annualized storage costs if there is any storage
+        if storage_capacity_per_bidding_zone is not None:
+            annualized_storage_costs += _calculate_annualized_storage_costs(config["technologies"]["storage"], storage_capacity_per_bidding_zone.loc[bidding_zone])
+
+        # Add the annual electricity demand
         annual_electricity_demand += _calculate_annual_demand(demand_per_bidding_zone[bidding_zone])
 
     # Calculate and return the LCOE

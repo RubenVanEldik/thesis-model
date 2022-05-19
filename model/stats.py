@@ -86,6 +86,11 @@ def storage_capacity(run_name, *, type, countries=None):
     assert validate.is_country_code_list(countries, type="nuts_2", required=False)
 
     storage_capacity = utils.get_storage_capacity(run_name, group="all", countries=countries)
+
+    # Return an empty dictionary if there is no storage
+    if not storage_capacity:
+        return {}
+
     storage_capacity = storage_capacity[storage_capacity.index.get_level_values(1) == type]
     storage_capacity = storage_capacity.droplevel(1)
     return storage_capacity.to_dict()
