@@ -4,16 +4,12 @@ import pandas as pd
 import gurobipy as gp
 import streamlit as st
 from datetime import datetime, timedelta
-from pandarallel import pandarallel
 
 import utils
 import validate
 
 from .calculate_time_energy_stored import calculate_time_energy_stored
 from .status import Status
-
-# Initialize pandarallel
-pandarallel.initialize()
 
 
 def run(config, *, output_folder):
