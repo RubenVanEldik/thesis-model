@@ -28,7 +28,7 @@ class Status:
             self.text = text
 
 
-def calculate_time_energy_stored(row, *, storage_technology, hourly_results):
+def _calculate_time_energy_stored(row, *, storage_technology, hourly_results):
     """
     Calculate how long the energy that is released in a particular row has been stored for
     """
@@ -319,7 +319,7 @@ def run(config, *, output_folder):
 
         # Calculate the time of energy stored per storage technology per hour
         for storage_technology in config["technologies"]["storage"]:
-            time_stored_H = hourly_results.parallel_apply(calculate_time_energy_stored, storage_technology=storage_technology, hourly_results=hourly_results, axis=1)
+            time_stored_H = hourly_results.parallel_apply(_calculate_time_energy_stored, storage_technology=storage_technology, hourly_results=hourly_results, axis=1)
             column_index = hourly_results.columns.get_loc(f"energy_stored_{storage_technology}_MWh") + 1
             hourly_results.insert(column_index, f"time_stored_{storage_technology}_H", time_stored_H)
 
