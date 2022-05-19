@@ -80,7 +80,7 @@ def run(config, *, output_folder):
     Step 1: Create the model and set the parameters
     """
     status = Status()
-    model = gp.Model("Name")
+    model = gp.Model(config["name"])
     model.setParam("OutputFlag", 0)
     model.setParam("Threads", config["optimization"]["thread_count"])
     model.setParam("Method", config["optimization"]["method"])
