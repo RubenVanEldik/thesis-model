@@ -37,6 +37,7 @@ def run(config, *, output_folder):
     Step 3: Initialize each bidding zone
     """
     # Create dictionaries to store all the data per bidding zone
+    hourly_data = {}
     hourly_results = {}
     production_capacity_columns = config["technologies"]["production"]
     production_capacity = pd.DataFrame(0, index=bidding_zones, columns=production_capacity_columns)
@@ -52,8 +53,8 @@ def run(config, *, output_folder):
         filepath = f"./input/bidding_zones/{config['model_year']}/{bidding_zone}.csv"
         start_date = config["date_range"]["start"]
         end_date = config["date_range"]["end"]
-        hourly_data = utils.read_hourly_data(filepath, start=start_date, end=end_date)
-        hourly_results[bidding_zone] = hourly_data.loc[:, ["demand_MWh"]]
+        hourly_data[bidding_zone] = utils.read_hourly_data(filepath, start=start_date, end=end_date)
+        hourly_results[bidding_zone] = hourly_data[bidding_zone].loc[:, ["demand_MWh"]]
 
         # Create empty DataFrames for the interconnections, if they don't exist yet
         if not len(interconnections):
@@ -66,7 +67,7 @@ def run(config, *, output_folder):
         hourly_results[bidding_zone]["production_total_MWh"] = 0
         for production_technology in config["technologies"]["production"]:
             status.update(f"Adding {utils.labelize_technology(production_technology, capitalize=False)} production to {bidding_zone}")
-            climate_zones = [column for column in hourly_data.columns if column.startswith(f"{production_technology}_")]
+            climate_zones = [column for column in hourly_data[bidding_zone].columns if column.startswith(f"{production_technology}_")]
             capacity = model.addVars(climate_zones)
             capacity_sum = gp.quicksum(capacity.values())
             production_capacity.loc[bidding_zone, production_technology] = capacity_sum
@@ -75,7 +76,7 @@ def run(config, *, output_folder):
                 return sum(row[climate_zone] * capacity for climate_zone, capacity in capacities.items())
 
             column_name = f"production_{production_technology}_MWh"
-            hourly_results[bidding_zone][column_name] = hourly_data.apply(calculate_hourly_production, args=(capacity,), axis=1)
+            hourly_results[bidding_zone][column_name] = hourly_data[bidding_zone].apply(calculate_hourly_production, args=(capacity,), axis=1)
             hourly_results[bidding_zone]["production_total_MWh"] += hourly_results[bidding_zone][column_name]
 
         """
@@ -94,18 +95,18 @@ def run(config, *, output_folder):
             storage_capacity.loc[bidding_zone, (storage_technology, "power")] = model.addVar()
 
             # Create the hourly state of charge variables
-            energy_stored_hourly = model.addVars(hourly_data.index)
+            energy_stored_hourly = model.addVars(hourly_data[bidding_zone].index)
 
             # Create the hourly inflow and outflow variables
-            inflow = model.addVars(hourly_data.index)
-            outflow = model.addVars(hourly_data.index)
+            inflow = model.addVars(hourly_data[bidding_zone].index)
+            outflow = model.addVars(hourly_data[bidding_zone].index)
 
             hourly_results[bidding_zone][f"net_storage_flow_{storage_technology}_MWh"] = 0
             hourly_results[bidding_zone][f"energy_stored_{storage_technology}_MWh"] = 0
 
             # Loop over all hours
             previous_timestamp = None
-            for timestamp in hourly_data.index:
+            for timestamp in hourly_data[bidding_zone].index:
                 status.update(f"Adding {utils.labelize_technology(storage_technology, capitalize=False)} storage to {bidding_zone}", timestamp=timestamp)
                 # Unpack the energy and power capacities
                 energy_capacity = storage_capacity.loc[bidding_zone, (storage_technology, "energy")]
