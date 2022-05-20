@@ -164,15 +164,15 @@ def run(config, *, output_folder):
     for bidding_zone in bidding_zones:
         status.update(f"Adding demand constraints to {bidding_zone}")
         # Add a column for the hourly export to each country
-        for type in interconnections:
-            relevant_interconnections = [interconnection for interconnection in interconnections[type] if bidding_zone in interconnection]
+        for interconnection_type in interconnections:
+            relevant_interconnections = [interconnection for interconnection in interconnections[interconnection_type] if bidding_zone in interconnection]
             for interconnection in relevant_interconnections:
-                direction = 1 if interconnection[0] == bidding_zone else -config["interconnections"]["efficiency"][type]
+                direction = 1 if interconnection[0] == bidding_zone else -config["interconnections"]["efficiency"][interconnection_type]
                 other_bidding_zone = interconnection[1 if interconnection[0] == bidding_zone else 0]
                 column_name = f"net_export_{other_bidding_zone}_MWh"
                 if column_name not in hourly_results:
                     hourly_results[bidding_zone][column_name] = 0
-                hourly_results[bidding_zone][column_name] += direction * interconnections[type][interconnection]
+                hourly_results[bidding_zone][column_name] += direction * interconnections[interconnection_type][interconnection]
 
         # Add a column for the total hourly export
         hourly_results[bidding_zone]["net_export_MWh"] = 0
