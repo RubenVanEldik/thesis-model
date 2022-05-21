@@ -199,12 +199,6 @@ def run(config, *, output_folder):
     # Set the status message and create
     status.update("Optimizing")
 
-    # Create three columns for statistics
-    col1, col2, col3 = st.columns(3)
-    stat1 = col1.empty()
-    stat2 = col2.empty()
-    stat3 = col3.empty()
-
     # Create the optimization log expander
     with st.expander("Optimization log"):
         log_messages = []
@@ -214,22 +208,9 @@ def run(config, *, output_folder):
         """
         Show the intermediate results
         """
-        if where == gp.GRB.Callback.BARRIER:
-            iteration = model.cbGet(gp.GRB.Callback.BARRIER_ITRCNT)
-            objective_value = model.cbGet(gp.GRB.Callback.BARRIER_PRIMOBJ)
-            infeasibility = model.cbGet(gp.GRB.Callback.BARRIER_PRIMINF)
-            stat1.metric("Iteration (barrier)", f"{iteration:,}")
-            stat2.metric("Objective", f"{int(objective_value)}€/MWh")
-            stat3.metric("Infeasibility", f"{infeasibility:.2E}")
-        if where == gp.GRB.Callback.SIMPLEX and model.cbGet(gp.GRB.Callback.SPX_ITRCNT) % 1000 == 0:
-            iteration = model.cbGet(int(gp.GRB.Callback.SPX_ITRCNT))
-            objective_value = model.cbGet(gp.GRB.Callback.SPX_OBJVAL)
-            infeasibility = model.cbGet(gp.GRB.Callback.SPX_PRIMINF)
-            stat1.metric("Iteration (simplex)", f"{int(iteration):,}")
-            stat2.metric("Objective", f"{int(objective_value)}€/MWh")
-            stat3.metric("Infeasibility", f"{infeasibility:.2E}")
         if where == gp.GRB.Callback.MESSAGE:
-            log_messages.append(model.cbGet(gp.GRB.Callback.MSG_STRING))
+            log_message = model.cbGet(gp.GRB.Callback.MSG_STRING)
+            log_messages.append(log_message)
             info.code("".join(log_messages))
 
     # Run the model
