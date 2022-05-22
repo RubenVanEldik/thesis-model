@@ -8,7 +8,7 @@ def convert_variables_recursively(data):
     """
     Store a dictionary or list as .yaml file
     """
-    if type(data) is dict:
+    if type(data) is dict or type(data) is gp.tupledict:
         for key, value in data.items():
             data[key] = convert_variables_recursively(value)
         return data
