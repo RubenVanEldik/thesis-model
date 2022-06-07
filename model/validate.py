@@ -209,7 +209,7 @@ def is_filepath(value, *, required=True, suffix=None):
     if value is None:
         return not required
 
-    is_valid_path = bool(re.search("([0-9a-zA-Z_\.]+)+\.[a-z]", value))
+    is_valid_path = bool(re.search("^([0-9a-zA-Z_\./]+)+\.[a-z]+$", value))
     has_valid_suffix = not suffix or bool(re.search(f"{suffix}$", value))
     return is_valid_path and has_valid_suffix
 
