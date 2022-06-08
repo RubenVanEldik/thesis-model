@@ -28,9 +28,7 @@ def run(config, *, output_folder):
     """
     Step 2: Create a bidding zone list and set the progress bar
     """
-    bidding_zones = []
-    for country in config["countries"]:
-        bidding_zones += country["zones"]
+    bidding_zones = [bidding_zone for country in config["countries"] for bidding_zone in country["zones"]]
     progress = st.progress(0)
 
     """
