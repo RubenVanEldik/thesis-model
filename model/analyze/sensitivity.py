@@ -19,7 +19,7 @@ def sensitivity(run_name):
 
     # Select a output variable to run the sensitivity analysis on
     statistic_options = ["firm_lcoe", "unconstrained_lcoe", "premium", "relative_curtailment", "production_capacity", "storage_capacity"]
-    statistic_name = st.selectbox("Output variable", statistic_options, format_func=utils.format_str)
+    statistic_name = st.sidebar.selectbox("Output variable", statistic_options, format_func=utils.format_str)
 
     if statistic_name:
         # Create a DataFrame with the sensitivity steps as rows

@@ -16,4 +16,5 @@ else:
     analysis = st.sidebar.radio("Type of analysis", analysis_options, format_func=utils.format_str)
 
 # Run the analysis
+st.sidebar.header("Options")
 getattr(analyze, analysis)(selected_run)

@@ -16,7 +16,7 @@ def _select_data(run_name, *, name):
     assert validate.is_string(name)
 
     # Geth the source of the data
-    col1, col2, col3 = st.columns(3)
+    col1, col2 = st.sidebar.columns(2)
     data_source_options = ["Statistics", "Hourly results", "Production capacity", "Storage capacity (energy)", "Storage capacity (power)"]
     data_source = col1.selectbox(name.capitalize(), data_source_options)
 
@@ -42,9 +42,8 @@ def _select_data(run_name, *, name):
         column_name = col2.selectbox("Column", relevant_columns, format_func=utils.format_column_name, key=name)
         hourly_results = utils.merge_dataframes_on_column(all_hourly_results, column_name)
 
-        # Select the aggregation type and aggregate the hourly results
-        aggregation_type = col3.selectbox("Aggregation", aggregation_options, index=3, format_func=utils.format_str, key=name)
-        hourly_results_aggregated = getattr(hourly_results, aggregation_type)()
+        # Aggregate the hourly results
+        hourly_results_aggregated = hourly_results.mean()
 
         # Return the aggregated data and formatted column name
         return hourly_results_aggregated
@@ -57,12 +56,9 @@ def _select_data(run_name, *, name):
         production_types = col2.multiselect("Type", production_capacity.columns, format_func=utils.labelize_technology, key=name)
         production_capacity = production_capacity[production_types]
 
-        # Select the aggregation type
-        aggregation_type = col3.selectbox("Aggregation", aggregation_options, format_func=utils.format_str, disabled=not production_types, key=name)
-
         # Aggregate and return the production capacities
         if production_types:
-            production_capacity_aggregated = getattr(production_capacity, aggregation_type)(axis=1)
+            production_capacity_aggregated = production_capacity.mean(axis=1)
             return production_capacity_aggregated
 
     storage_capacity_match = re.search("Storage capacity \((.+)\)$", data_source)
@@ -81,12 +77,9 @@ def _select_data(run_name, *, name):
         storage_types = col2.multiselect("Type", relevant_columns, format_func=utils.labelize_technology, key=name)
         storage_capacity = storage_capacity[storage_types]
 
-        # Select the aggregation type
-        aggregation_type = col3.selectbox("Aggregation", aggregation_options, format_func=utils.format_str, disabled=not storage_types, key=name)
-
         # Aggregate and return the storage capacities
         if storage_types:
-            storage_capacity_aggregated = getattr(storage_capacity, aggregation_type)(axis=1)
+            storage_capacity_aggregated = storage_capacity.mean(axis=1)
             return storage_capacity_aggregated
 
 
@@ -98,9 +91,8 @@ def countries(run_name):
 
     st.title("🎌 Countries")
 
-    st.subheader("Columns")
     # Check if the data should be relative and get the numerator data
-    relative = st.checkbox("Relative")
+    relative = st.sidebar.checkbox("Relative")
     numerator = _select_data(run_name, name="numerator")
 
     # Set 'data' to the numerator, else get de denominator and divide the numerator with it
@@ -116,11 +108,8 @@ def countries(run_name):
 
     # Only show the map if the data has been selected
     if data is not None:
-        st.subheader("Colorbar")
-        col1, col2 = st.columns(2)
-
         # Get the label for the color bar
-        label = col1.text_input("Label")
+        label = st.sidebar.text_input("Label")
 
         # If data is still a DataFrame, convert the single column DataFrame to a series (only applicable when the 'mode' aggregator has been used)
         if validate.is_dataframe(data):
@@ -129,7 +118,7 @@ def countries(run_name):
         # Get the units for the color bar
         units = {10 ** -9: "Billionth", 10 ** -6: "Millionth", 10 ** -3: "Thousandth", 1: "One", 10 ** 3: "Thousand", 10 ** 6: "Million", 10 ** 9: "Billion"}
         default_unit = next(unit for unit in units.keys() if (data.abs().max() < unit * 1000))
-        unit = col2.select_slider("Format units", units.keys(), value=default_unit, format_func=lambda key: units[key])
+        unit = st.sidebar.select_slider("Format units", units.keys(), value=default_unit, format_func=lambda key: units[key])
 
         # Create and show the map
         map = chart.Map(data / unit, label=label)

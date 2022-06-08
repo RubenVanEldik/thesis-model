@@ -18,7 +18,7 @@ def correlation(run_name):
     # Get the hourly results and merge them on a single column
     all_hourly_results = utils.get_hourly_results(run_name, group="country")
     relevant_columns = utils.find_common_columns(all_hourly_results)
-    column_name = st.selectbox("Column", relevant_columns, format_func=utils.format_column_name)
+    column_name = st.sidebar.selectbox("Column", relevant_columns, format_func=utils.format_column_name)
     hourly_results = utils.merge_dataframes_on_column(all_hourly_results, column_name)
 
     # Get the geometries and centroids for all countries
@@ -39,8 +39,8 @@ def correlation(run_name):
     correlation_plot.ax.scatter(correlations.distance, correlations.r_squared, color=colors.get("blue", 600), alpha=0.5)
 
     # Add a regression line if the checkbox is checked
-    if st.checkbox("Show regression line"):
-        degree = st.slider("Degrees", min_value=1, value=2, max_value=5)
+    if st.sidebar.checkbox("Show regression line"):
+        degree = st.sidebar.slider("Degrees", min_value=1, value=2, max_value=5)
         trendline_x, trendline_y = utils.calculate_regression_line(correlations.distance, correlations.r_squared, degree=degree)
         correlation_plot.ax.plot(trendline_x, trendline_y, color=colors.get("gray", 500))
 
