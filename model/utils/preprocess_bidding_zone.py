@@ -2,32 +2,28 @@ from datetime import datetime
 import pandas as pd
 
 import utils
+import validate
 
 
-def get_bidding_zones():
-    """
-    Returns all bidding zones using the demand Excel file for 2030
-    """
-    xl = pd.ExcelFile(f"./input/eraa/Demand Data/Demand_TimeSeries_2030_NationalEstimates.xlsx")
-    return xl.sheet_names
-
-
-def get_relevant_sheet_names(filepath, zone):
+def _get_relevant_sheet_names(filepath, bidding_zone):
     """
     Returns the relevant Excel sheets for a specific bidding zone
     """
+    assert validate.is_filepath(filepath)
+    assert validate.is_bidding_zone(bidding_zone)
 
-    def sheet_belongs_to_zone(sheet, zone):
+    def sheet_belongs_to_zone(sheet, bidding_zone):
         """
         Check if a specific sheet belongs to a bidding zone
         """
         # Return True if its an exact match
-        if sheet == zone:
+        if sheet == bidding_zone:
             return True
 
         # If the country has only 1 bidding zone, just check the first two letters
-        if len([z for z in bidding_zones if z.startswith(zone[:2])]) < 2:
-            return sheet.startswith(zone[:2])
+        countries = utils.read_yaml("./input/countries.yaml")
+        if len([z for country in countries for z in country["zones"] if z.startswith(bidding_zone[:2])]) < 2:
+            return sheet.startswith(bidding_zone[:2])
 
         exceptions = {
             "DKKF": None,
@@ -59,29 +55,34 @@ def get_relevant_sheet_names(filepath, zone):
             "UK05": "UK00",
         }
 
-        # Check if the zone is part of the exception list
+        # Check if the bidding zone is part of the exception list
         if exceptions.get(sheet) is not None:
-            return exceptions.get(sheet) == zone
+            return exceptions.get(sheet) == bidding_zone
 
         # Return false if its not an exact match, the country has multiple bidding zones and its not an exception
         return False
 
     # Return a sorted list of all relevant sheet names
-    relevant_sheet_names = [sheet_name for sheet_name in pd.ExcelFile(filepath).sheet_names if sheet_belongs_to_zone(sheet_name, zone)]
+    relevant_sheet_names = [sheet_name for sheet_name in pd.ExcelFile(filepath).sheet_names if sheet_belongs_to_zone(sheet_name, bidding_zone)]
     relevant_sheet_names.sort()
     return relevant_sheet_names
 
 
-def import_data(data, filepath, *, bidding_zone, column_name=None):
+def _import_data(data, filepath, *, bidding_zone, column_name=None):
     """
     Find and add all the relevant columns from a specific Excel file to the data DataFrame
     """
-    relevant_zones = get_relevant_sheet_names(filepath, bidding_zone)
+    assert validate.is_dataframe(data, required=False)
+    assert validate.is_filepath(filepath)
+    assert validate.is_bidding_zone(bidding_zone)
+    assert validate.is_string(column_name)
+
+    relevant_zones = _get_relevant_sheet_names(filepath, bidding_zone)
     for zone in relevant_zones:
         # Import the Excel sheet for a zone
         usecols_func = lambda col: col in ["Date", "Hour"] or isinstance(col, int)
         sheet = pd.read_excel(filepath, sheet_name=zone, index_col=[0, 1], skiprows=10, usecols=usecols_func)
-        formatted_column_name = column_name.replace("{zone}", zone[2:])
+        formatted_column_name = column_name.replace("{bidding_zone}", zone[2:])
 
         # Transform the sheet DataFrame to a Series with appropriate index
         new_column = pd.Series([], dtype="float64")
@@ -111,28 +112,28 @@ def import_data(data, filepath, *, bidding_zone, column_name=None):
     return data
 
 
-if __name__ == "__main__":
-    bidding_zones = get_bidding_zones()
+def preprocess_bidding_zone(bidding_zone, year):
+    """
+    Merge all data for a specific bidding zone and save it as a CSV file
+    """
+    assert validate.is_bidding_zone(bidding_zone)
+    assert validate.is_model_year(year)
 
-    # Loop over all bidding zones for both 2025 and 2030
-    for year in [2025, 2030]:
-        for zone in bidding_zones:
-            print(f"Importing all data for {zone} for {year} ({datetime.now()})")
-            # Import demand data
-            filepath_demand = f"./input/eraa/Demand Data/Demand_TimeSeries_{year}_NationalEstimates.xlsx"
-            data = import_data(None, filepath_demand, bidding_zone=zone, column_name="demand_MWh",)
+    # Import demand data
+    filepath_demand = f"./input/eraa/Demand Data/Demand_TimeSeries_{year}_NationalEstimates.xlsx"
+    data = _import_data(None, filepath_demand, bidding_zone=bidding_zone, column_name="demand_MWh",)
 
-            # Import PV data
-            filepath_pv = f"./input/eraa/Climate Data/PECD_LFSolarPV_{year}_edition 2021.3.xlsx"
-            data = import_data(data, filepath_pv, bidding_zone=zone, column_name="pv_{zone}_cf",)
+    # Import PV data
+    filepath_pv = f"./input/eraa/Climate Data/PECD_LFSolarPV_{year}_edition 2021.3.xlsx"
+    data = _import_data(data, filepath_pv, bidding_zone=bidding_zone, column_name="pv_{bidding_zone}_cf",)
 
-            # Import onshore wind data
-            filepath_onshore = f"./input/eraa/Climate Data/PECD_Onshore_{year}_edition 2021.3.xlsx"
-            data = import_data(data, filepath_onshore, bidding_zone=zone, column_name="onshore_{zone}_cf",)
+    # Import onshore wind data
+    filepath_onshore = f"./input/eraa/Climate Data/PECD_Onshore_{year}_edition 2021.3.xlsx"
+    data = _import_data(data, filepath_onshore, bidding_zone=bidding_zone, column_name="onshore_{bidding_zone}_cf",)
 
-            # Import offshore wind data
-            filepath_offshore = f"./input/eraa/Climate Data/PECD_Offshore_{year}_edition 2021.3.xlsx"
-            data = import_data(data, filepath_offshore, bidding_zone=zone, column_name="offshore_{zone}_cf",)
+    # Import offshore wind data
+    filepath_offshore = f"./input/eraa/Climate Data/PECD_Offshore_{year}_edition 2021.3.xlsx"
+    data = _import_data(data, filepath_offshore, bidding_zone=bidding_zone, column_name="offshore_{bidding_zone}_cf",)
 
-            # Store the data in a CSV file
-            data.to_csv(f"./input/bidding_zones/{year}/{zone}.csv")
+    # Store the data in a CSV file
+    data.to_csv(f"./input/bidding_zones/{year}/{bidding_zone}.csv")

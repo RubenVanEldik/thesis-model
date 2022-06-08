@@ -11,7 +11,7 @@ def is_bidding_zone(value, *, required=True):
     if value is None:
         return not required
 
-    return bool(re.search("^[A-Z]{2}[0-9A-Z]{2}$", value))
+    return bool(re.search("^[A-Z]{2}[0-9a-zA-Z]{2}$", value))
 
 
 def is_bidding_zone_list(value, *, required=True):
@@ -166,6 +166,14 @@ def is_dict_or_list(value, *, required=True):
     return is_list or is_dict
 
 
+def is_directory_path(value, *, required=True):
+    if value is None:
+        return not required
+
+    is_valid_path = bool(re.search("^[0-9a-zA-Z_/\.\(\) ]+$", value))
+    return is_valid_path
+
+
 def is_aggregation_level(value, *, required=True):
     if value is None:
         return not required
@@ -209,9 +217,19 @@ def is_filepath(value, *, required=True, suffix=None):
     if value is None:
         return not required
 
-    is_valid_path = bool(re.search("^([0-9a-zA-Z_\./]+)+\.[a-z]+$", value))
+    is_valid_path = bool(re.search("^[0-9a-zA-Z_\./\(\) ]+\.[a-z]+$", value))
     has_valid_suffix = not suffix or bool(re.search(f"{suffix}$", value))
     return is_valid_path and has_valid_suffix
+
+
+def is_filepath_list(value, *, required=True, suffix=None):
+    if value is None:
+        return not required
+
+    is_list = is_list_like(value)
+    has_valid_items = all(is_filepath(filepath, suffix=suffix) for filepath in value)
+
+    return is_list and has_valid_items
 
 
 def is_float(value, *, required=True, min_value=None, max_value=None):
@@ -230,11 +248,21 @@ def is_func(value, *, required=True):
     return callable(value)
 
 
+def is_interconnection_tuple(value, *, required=True):
+    if value is None:
+        return not required
+
+    if type(value) is not tuple or len(value) != 2:
+        return False
+
+    return is_bidding_zone(value[0]) and is_bidding_zone(value[1])
+
+
 def is_interconnection_type(value, *, required=True):
     if value is None:
         return not required
 
-    return value in ["hvac", "hvdc"]
+    return value in ["hvac", "hvdc", "limits"]
 
 
 def is_interconnection_direction(value, *, required=True):
@@ -337,6 +365,14 @@ def is_technology_type(value, *, required=True):
         return not required
 
     return value in ["production", "storage"]
+
+
+def is_url(value, *, required=True):
+    if value is None:
+        return not required
+
+    url_regex = '^(ftp|https?):\/\/[^ "]+\.\w{2,}'
+    return bool(re.search(url_regex, value))
 
 
 def is_variable(value, *, required=True):
