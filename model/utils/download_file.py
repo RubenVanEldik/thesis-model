@@ -23,6 +23,11 @@ def download_file(url, filename, *, unzip=False, chunk_size=50 * 1024, show_prog
     # Create the request
     r = requests.get(url, stream=True)
 
+    # Show an error and return the function if the status code is not 200
+    if r.status_code != 200:
+        st.error(f"Error requesting {url}")
+        return
+
     # Create the file and start downloading
     with open(filename_zip if unzip else filename, "wb") as f:
         size_total = int(r.headers["Content-length"])
