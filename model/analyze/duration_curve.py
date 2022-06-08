@@ -24,9 +24,13 @@ def duration_curve(run_name):
     columns = all_hourly_results[first_country].columns
     relevant_columns = utils.find_common_columns(all_hourly_results)
     relative = st.sidebar.checkbox("Relative")
-    col1, col2 = st.sidebar.columns(2)
-    numerator = col1.selectbox("Numerator", relevant_columns, format_func=utils.format_column_name)
-    denominator = col2.selectbox("Denominator", relevant_columns, format_func=utils.format_column_name) if relative else None
+    if relative:
+        col1, col2 = st.sidebar.columns(2)
+        numerator = col1.selectbox("Numerator", relevant_columns, format_func=utils.format_column_name)
+        denominator = col2.selectbox("Denominator", relevant_columns, format_func=utils.format_column_name)
+    else:
+        numerator = st.sidebar.selectbox("Column", relevant_columns, format_func=utils.format_column_name)
+        denominator = None
 
     # Set the label for the y-axis
     st.sidebar.subheader("Axes")
