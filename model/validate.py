@@ -71,6 +71,8 @@ def is_config(value, *, required=True, new_config=False):
     if type(value) is not dict:
         return False
 
+    if not is_directory_path(value["name"]):
+        return False
     if not is_model_year(value["model_year"]):
         return False
     if not is_country_obj_list(value["countries"]):
