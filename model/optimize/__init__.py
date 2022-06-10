@@ -52,7 +52,7 @@ def run(config, *, output_folder):
         start_date = config["date_range"]["start"]
         end_date = config["date_range"]["end"]
         hourly_data[bidding_zone] = utils.read_hourly_data(filepath, start=start_date, end=end_date)
-        hourly_results[bidding_zone] = hourly_data[bidding_zone].loc[:, ["demand_MWh"]]
+        hourly_results[bidding_zone] = hourly_data[bidding_zone].loc[:, ["demand_MW"]]
 
         # Create empty DataFrames for the interconnections, if they don't exist yet
         if not len(interconnections):
@@ -62,7 +62,7 @@ def run(config, *, output_folder):
         """
         Step 3B: Define production capacity variables
         """
-        hourly_results[bidding_zone]["production_total_MWh"] = 0
+        hourly_results[bidding_zone]["production_total_MW"] = 0
         for production_technology in config["technologies"]["production"]:
             status.update(f"Adding {utils.labelize_technology(production_technology, capitalize=False)} production to {bidding_zone}")
             climate_zones = [column for column in hourly_data[bidding_zone].columns if column.startswith(f"{production_technology}_")]
@@ -73,15 +73,15 @@ def run(config, *, output_folder):
             def calculate_hourly_production(row, capacities):
                 return sum(row[climate_zone] * capacity for climate_zone, capacity in capacities.items())
 
-            column_name = f"production_{production_technology}_MWh"
+            column_name = f"production_{production_technology}_MW"
             hourly_results[bidding_zone][column_name] = hourly_data[bidding_zone].apply(calculate_hourly_production, args=(capacity,), axis=1)
-            hourly_results[bidding_zone]["production_total_MWh"] += hourly_results[bidding_zone][column_name]
+            hourly_results[bidding_zone]["production_total_MW"] += hourly_results[bidding_zone][column_name]
 
         """
         Step 3C: Define storage variables and constraints
         """
         # Create an object to save the storage capacity (energy & power) and add 2 columns to the results DataFrame
-        hourly_results[bidding_zone]["net_storage_flow_total_MWh"] = 0
+        hourly_results[bidding_zone]["net_storage_flow_total_MW"] = 0
         hourly_results[bidding_zone]["energy_stored_total_MWh"] = 0
         # Add the variables and constraints for all storage technologies
         for storage_technology in config["technologies"]["storage"]:
@@ -99,8 +99,8 @@ def run(config, *, output_folder):
             inflow = model.addVars(hourly_data[bidding_zone].index)
             outflow = model.addVars(hourly_data[bidding_zone].index)
 
-            hourly_results[bidding_zone][f"net_storage_flow_{storage_technology}_MWh"] = 0
-            hourly_results[bidding_zone][f"energy_stored_{storage_technology}_MWh"] = 0
+            hourly_results[bidding_zone][f"net_storage_flow_{storage_technology}_MW"] = 0
+            hourly_results[bidding_zone][f"energy_stored_{storage_technology}_MW"] = 0
 
             # Loop over all hours
             previous_timestamp = None
@@ -128,9 +128,9 @@ def run(config, *, output_folder):
 
                 # Add the net flow to the total net storage
                 net_flow = inflow[timestamp] - outflow[timestamp]
-                hourly_results[bidding_zone].loc[timestamp, f"net_storage_flow_{storage_technology}_MWh"] = net_flow
+                hourly_results[bidding_zone].loc[timestamp, f"net_storage_flow_{storage_technology}_MW"] = net_flow
                 hourly_results[bidding_zone].loc[timestamp, f"energy_stored_{storage_technology}_MWh"] = energy_stored_current
-                hourly_results[bidding_zone].loc[timestamp, "net_storage_flow_total_MWh"] += net_flow
+                hourly_results[bidding_zone].loc[timestamp, "net_storage_flow_total_MW"] += net_flow
                 hourly_results[bidding_zone].loc[timestamp, "energy_stored_total_MWh"] += energy_stored_current
 
                 # Update the previous_timestamp
@@ -167,19 +167,19 @@ def run(config, *, output_folder):
             for interconnection in relevant_interconnections:
                 direction = 1 if interconnection[0] == bidding_zone else -config["interconnections"]["efficiency"][interconnection_type]
                 other_bidding_zone = interconnection[1 if interconnection[0] == bidding_zone else 0]
-                column_name = f"net_export_{other_bidding_zone}_MWh"
+                column_name = f"net_export_{other_bidding_zone}_MW"
                 if column_name not in hourly_results:
                     hourly_results[bidding_zone][column_name] = 0
                 hourly_results[bidding_zone][column_name] += direction * interconnections[interconnection_type][interconnection]
 
         # Add a column for the total hourly export
-        hourly_results[bidding_zone]["net_export_MWh"] = 0
+        hourly_results[bidding_zone]["net_export_MW"] = 0
         for column_name in hourly_results[bidding_zone]:
-            if column_name.startswith("net_export_") and column_name != "net_export_MWh":
-                hourly_results[bidding_zone]["net_export_MWh"] += hourly_results[bidding_zone][column_name]
+            if column_name.startswith("net_export_") and column_name != "net_export_MW":
+                hourly_results[bidding_zone]["net_export_MW"] += hourly_results[bidding_zone][column_name]
 
         # Add the demand constraint
-        hourly_results[bidding_zone].apply(lambda row: model.addConstr(row.production_total_MWh - row.net_storage_flow_total_MWh - row.net_export_MWh >= row.demand_MWh), axis=1)
+        hourly_results[bidding_zone].apply(lambda row: model.addConstr(row.production_total_MW - row.net_storage_flow_total_MW - row.net_export_MW >= row.demand_MW), axis=1)
 
     # Remove the progress bar
     progress.empty()
@@ -187,7 +187,7 @@ def run(config, *, output_folder):
     """
     Step 5: Set objective function
     """
-    hourly_demand = utils.merge_dataframes_on_column(hourly_results, "demand_MWh")
+    hourly_demand = utils.merge_dataframes_on_column(hourly_results, "demand_MW")
     firm_lcoe = utils.calculate_lcoe(production_capacity, storage_capacity, hourly_demand, config=config)
     model.setObjective(firm_lcoe, gp.GRB.MINIMIZE)
 
@@ -252,13 +252,13 @@ def run(config, *, output_folder):
     for bidding_zone, hourly_results in hourly_results.items():
         hourly_results = utils.convert_variables_recursively(hourly_results)
         # Calculate the curtailed energy per hour
-        curtailed_MWh = hourly_results.production_total_MWh - hourly_results.demand_MWh - hourly_results.net_storage_flow_total_MWh - hourly_results.net_export_MWh
-        hourly_results.insert(hourly_results.columns.get_loc("production_total_MWh"), "curtailed_MWh", curtailed_MWh)
+        curtailed_MW = hourly_results.production_total_MW - hourly_results.demand_MW - hourly_results.net_storage_flow_total_MW - hourly_results.net_export_MW
+        hourly_results.insert(hourly_results.columns.get_loc("production_total_MW"), "curtailed_MW", curtailed_MW)
 
         # Calculate the time of energy stored per storage technology per hour
         for storage_technology in config["technologies"]["storage"]:
             time_stored_H = hourly_results.apply(calculate_time_energy_stored, storage_technology=storage_technology, hourly_results=hourly_results, axis=1)
-            column_index = hourly_results.columns.get_loc(f"energy_stored_{storage_technology}_MWh") + 1
+            column_index = hourly_results.columns.get_loc(f"energy_stored_{storage_technology}_MW") + 1
             hourly_results.insert(column_index, f"time_stored_{storage_technology}_H", time_stored_H)
 
         # Store the hourly results to a CSV file

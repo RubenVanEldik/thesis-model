@@ -47,16 +47,16 @@ def _calculate_annualized_storage_costs(storage_technologies, storage_capacity_M
     return annualized_costs_storage
 
 
-def _calculate_annual_demand(demand_MWh):
+def _calculate_annual_demand(demand_MW):
     """
     Calculate the annual electricity demand
     """
-    assert validate.is_series(demand_MWh)
+    assert validate.is_series(demand_MW)
 
-    demand_start_date = demand_MWh.index.min()
-    demand_end_date = demand_MWh.index.max()
+    demand_start_date = demand_MW.index.min()
+    demand_end_date = demand_MW.index.max()
     share_of_year_modelled = (demand_end_date - demand_start_date) / pd.Timedelta(365, "days")
-    return demand_MWh.sum() / share_of_year_modelled
+    return demand_MW.sum() / share_of_year_modelled
 
 
 def calculate_lcoe(production_capacity_per_bidding_zone, storage_capacity_per_bidding_zone, demand_per_bidding_zone, *, config):

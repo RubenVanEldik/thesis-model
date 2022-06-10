@@ -51,7 +51,7 @@ def _validate_and_import_bidding_zone_data():
                 if not validate.is_dataframe(data):
                     is_valid_file = False
 
-                if not "demand_MWh" in data.columns or len(data.columns) < 2:
+                if not "demand_MW" in data.columns or len(data.columns) < 2:
                     is_valid_file = False
 
                 # Check if the DataFrame has any missing timestamps

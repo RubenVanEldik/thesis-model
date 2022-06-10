@@ -121,7 +121,7 @@ def preprocess_bidding_zone(bidding_zone, year):
 
     # Import demand data
     filepath_demand = f"./input/eraa/Demand Data/Demand_TimeSeries_{year}_NationalEstimates.xlsx"
-    data = _import_data(None, filepath_demand, bidding_zone=bidding_zone, column_name="demand_MWh",)
+    data = _import_data(None, filepath_demand, bidding_zone=bidding_zone, column_name="demand_MW",)
 
     # Import PV data
     filepath_pv = f"./input/eraa/Climate Data/PECD_LFSolarPV_{year}_edition 2021.3.xlsx"
