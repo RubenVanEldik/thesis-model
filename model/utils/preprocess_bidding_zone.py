@@ -22,7 +22,7 @@ def _get_relevant_sheet_names(filepath, bidding_zone):
 
         # If the country has only 1 bidding zone, just check the first two letters
         countries = utils.read_yaml("./input/countries.yaml")
-        if len([z for country in countries for z in country["zones"] if z.startswith(bidding_zone[:2])]) < 2:
+        if len([z for country in countries for z in country["bidding_zones"] if z.startswith(bidding_zone[:2])]) < 2:
             return sheet.startswith(bidding_zone[:2])
 
         exceptions = {

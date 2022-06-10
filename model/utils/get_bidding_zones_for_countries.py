@@ -18,6 +18,6 @@ def get_bidding_zones_for_countries(country_codes):
     bidding_zones = []
     for country_code in country_codes:
         country = next(country for country in countries if country["nuts_2"] == country_code)
-        bidding_zones += country["zones"]
+        bidding_zones += country["bidding_zones"]
 
     return bidding_zones

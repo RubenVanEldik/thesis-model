@@ -16,7 +16,7 @@ def get_interconnections(bidding_zone, *, config, type, direction="export"):
 
     relevant_interconnections = []
     for country in config["countries"]:
-        for zone in country["zones"]:
+        for zone in country["bidding_zones"]:
             interconnection = (bidding_zone, zone) if direction == "export" else (zone, bidding_zone)
             if interconnection in interconnections:
                 relevant_interconnections.append(interconnection)

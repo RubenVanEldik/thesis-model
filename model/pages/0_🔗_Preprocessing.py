@@ -34,7 +34,7 @@ def _validate_and_import_bidding_zone_data():
     """
     # Get a list with all bidding zones
     countries = utils.read_yaml("./input/countries.yaml")
-    bidding_zones = [bidding_zone for country in countries for bidding_zone in country["zones"]]
+    bidding_zones = [bidding_zone for country in countries for bidding_zone in country["bidding_zones"]]
 
     # Initialize a progress bar
     bidding_zone_progress = st.progress(0.0)

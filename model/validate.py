@@ -102,7 +102,7 @@ def is_country_obj(value, *, required=True):
         return not required
 
     is_dict = type(value) is dict
-    has_required_keys = bool(value["name"] and value["zones"])
+    has_required_keys = bool(value["name"] and value["bidding_zones"])
     return is_dict and has_required_keys
 
 
