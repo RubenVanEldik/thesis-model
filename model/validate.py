@@ -77,6 +77,8 @@ def is_config(value, *, required=True, new_config=False):
         return False
     if not is_date_range(value["date_range"]):
         return False
+    if not is_resolution(value["resolution"]):
+        return False
     if not is_datetime(value["optimization"]["time_limit"]):
         return False
     if new_config and value["optimization"]["time_limit"] < datetime.datetime.now():
@@ -350,6 +352,20 @@ def is_point(value, *, required=True):
         return not required
 
     return type(value) is shapely.geometry.point.Point
+
+
+def is_resolution(value, *, required=True):
+    if value is None:
+        return not required
+
+    if not is_string(value):
+        return False
+
+    try:
+        pd.tseries.frequencies.to_offset(value)
+        return True
+    except ValueError:
+        return False
 
 
 def is_sensitivity_config(value, *, required=True):

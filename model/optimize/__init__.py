@@ -51,7 +51,12 @@ def run(config, *, output_folder):
         filepath = f"./input/bidding_zones/{config['model_year']}/{bidding_zone}.csv"
         start_date = config["date_range"]["start"]
         end_date = config["date_range"]["end"]
-        hourly_data[bidding_zone] = utils.read_hourly_data(filepath, start=start_date, end=end_date)
+        resolution = config["resolution"]
+        # Get the hourly data and resample to the required resolution
+        hourly_data[bidding_zone] = utils.read_hourly_data(filepath, start=start_date, end=end_date).resample(resolution).mean()
+        # Remove the leap days from the dataset that could introduced by the resample method
+        hourly_data[bidding_zone] = hourly_data[bidding_zone][~((hourly_data[bidding_zone].index.month == 2) & (hourly_data[bidding_zone].index.day == 29))]
+        # Create an hourly_results DataFrame with the demand_MW column
         hourly_results[bidding_zone] = hourly_data[bidding_zone].loc[:, ["demand_MW"]]
 
         # Create empty DataFrames for the interconnections, if they don't exist yet
@@ -87,6 +92,7 @@ def run(config, *, output_folder):
         for storage_technology in config["technologies"]["storage"]:
             # Get the specific storage assumptions
             assumptions = config["technologies"]["storage"][storage_technology]
+            timestep_hours = pd.Timedelta(config["resolution"]).total_seconds() / 3600
 
             # Create a variable for the energy and power storage capacity
             storage_capacity.loc[bidding_zone, (storage_technology, "energy")] = model.addVar()
@@ -116,7 +122,7 @@ def run(config, *, output_folder):
                 efficiency = assumptions["roundtrip_efficiency"] ** 0.5
 
                 # Add the state of charge constraints
-                model.addConstr(energy_stored_current == energy_stored_previous + (inflow[timestamp] * efficiency - outflow[timestamp] / efficiency))
+                model.addConstr(energy_stored_current == energy_stored_previous + (inflow[timestamp] * efficiency - outflow[timestamp] / efficiency) * timestep_hours)
 
                 # Add the energy capacity constraints (can't be added when the flow variables are defined because it's a gurobipy.Var)
                 model.addConstr(energy_stored_hourly[timestamp] >= assumptions["soc_min"] * energy_capacity)
