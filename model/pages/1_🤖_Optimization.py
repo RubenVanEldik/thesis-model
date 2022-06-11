@@ -4,7 +4,7 @@ import os
 import re
 import streamlit as st
 
-import optimize
+import optimization
 import utils
 import validate
 
@@ -150,6 +150,6 @@ if st.sidebar.button("Run model", disabled=invalid_config or invalid_sensitivity
     if config["name"] in utils.get_previous_runs():
         st.error(f"There is already a run called '{config['name']}'")
     elif sensitivity_enabled:
-        optimize.run_sensitivity(config, sensitivity_config)
+        optimization.run_sensitivity(config, sensitivity_config)
     else:
-        optimize.run(config, output_folder=f"./output/{config['name']}")
+        optimization.run(config, output_folder=f"./output/{config['name']}")
