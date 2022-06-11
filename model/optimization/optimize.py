@@ -16,6 +16,8 @@ def optimize(config, *, status, resolution, output_folder):
     Create and run the model
     """
     assert validate.is_config(config, new_config=True)
+    assert validate.is_resolution(resolution)
+    assert validate.is_directory_path(output_folder)
 
     """
     Step 1: Create the model and set the parameters
