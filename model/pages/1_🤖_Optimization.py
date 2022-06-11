@@ -51,9 +51,6 @@ with st.sidebar.expander("Scope"):
     if len(date_range) == 2:
         config["date_range"] = {"start": date_range[0], "end": date_range[1]}
 
-    resolutions = {"1H": "1 hour", "2H": "2 hours", "4H": "4 hours", "6H": "6 hours", "12H": "12 hours", "1D": "1 day", "2D": "2 days", "1W": "1 week"}
-    config["resolution"] = st.selectbox("Resolution", resolutions.keys(), format_func=lambda key: resolutions[key])
-
 # Set the technology options
 with st.sidebar.expander("Technologies"):
     config["technologies"] = {}
@@ -126,6 +123,10 @@ with st.sidebar.expander("Sensitivity analysis"):
 # Set the optimization parameters
 with st.sidebar.expander("Optimization parameters"):
     config["optimization"] = {}
+
+    # Select the resolution steps
+    resolutions = ["1H", "2H", "4H", "6H", "12H", "1D", "2D", "1W"]
+    config["resolution_stages"] = st.multiselect("Resolution stages", resolutions, default=["1H"], format_func=utils.format_resolution)
 
     # Select the optimization method
     method_options = {-1: "Automatic", 0: "Primal simplex", 1: "Dual simplex", 2: "Barrier", 3: "Concurrent", 4: "Deterministic concurrent", 5: "Deterministic concurrent simplex"}

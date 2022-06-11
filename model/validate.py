@@ -79,7 +79,7 @@ def is_config(value, *, required=True, new_config=False):
         return False
     if not is_date_range(value["date_range"]):
         return False
-    if not is_resolution(value["resolution"]):
+    if not is_resolution_stages(value["resolution_stages"]):
         return False
     if not is_datetime(value["optimization"]["time_limit"]):
         return False
@@ -368,6 +368,16 @@ def is_resolution(value, *, required=True):
         return True
     except ValueError:
         return False
+
+
+def is_resolution_stages(value, *, required=True):
+    if value is None:
+        return not required
+
+    if type(value) is not list or len(value) == 0:
+        return False
+
+    return all(is_resolution(resolution) for resolution in value)
 
 
 def is_sensitivity_config(value, *, required=True):

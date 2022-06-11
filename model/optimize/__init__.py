@@ -13,7 +13,7 @@ from .intialize_model import intialize_model
 from .status import Status
 
 
-def run(config, *, output_folder):
+def optimize(config, *, status, resolution, output_folder):
     """
     Create and run the model
     """
@@ -22,7 +22,6 @@ def run(config, *, output_folder):
     """
     Step 1: Create the model and set the parameters
     """
-    status = Status()
     model = intialize_model(config)
 
     """
@@ -51,7 +50,6 @@ def run(config, *, output_folder):
         filepath = f"./input/bidding_zones/{config['model_year']}/{bidding_zone}.csv"
         start_date = config["date_range"]["start"]
         end_date = config["date_range"]["end"]
-        resolution = config["resolution"]
         # Get the hourly data and resample to the required resolution
         hourly_data[bidding_zone] = utils.read_hourly_data(filepath, start=start_date, end=end_date).resample(resolution).mean()
         # Remove the leap days from the dataset that could introduced by the resample method
@@ -92,7 +90,7 @@ def run(config, *, output_folder):
         for storage_technology in config["technologies"]["storage"]:
             # Get the specific storage assumptions
             assumptions = config["technologies"]["storage"][storage_technology]
-            timestep_hours = pd.Timedelta(config["resolution"]).total_seconds() / 3600
+            timestep_hours = pd.Timedelta(resolution).total_seconds() / 3600
 
             # Create a variable for the energy and power storage capacity
             storage_capacity.loc[bidding_zone, (storage_technology, "energy")] = model.addVar()
@@ -203,14 +201,14 @@ def run(config, *, output_folder):
     # Set the status message and create
     status.update("Optimizing")
 
-    # Create three columns for statistics
-    col1, col2, col3 = st.columns(3)
-    stat1 = col1.empty()
-    stat2 = col2.empty()
-    stat3 = col3.empty()
-
     # Create the optimization log expander
-    with st.expander("Optimization log"):
+    with st.expander(f"{utils.format_resolution(resolution)} resolution"):
+        # Create three columns for statistics
+        col1, col2, col3 = st.columns(3)
+        stat1 = col1.empty()
+        stat2 = col2.empty()
+        stat3 = col3.empty()
+
         log_messages = []
         info = st.empty()
 
@@ -283,6 +281,12 @@ def run(config, *, output_folder):
     utils.write_text(f"{output_folder}/log.txt", "".join(log_messages))
 
 
+def run(config, *, status=Status(), output_folder):
+    sorted_resolution_stages = sorted(config["resolution_stages"], key=lambda resolution: pd.Timedelta(resolution).total_seconds(), reverse=True)
+    for resolution in sorted_resolution_stages:
+        optimize(config, resolution=resolution, status=status, output_folder=f"{output_folder}/{resolution}")
+
+
 def run_sensitivity(config, sensitivity_config):
     """
     Run the model for each step in the sensitivity analysis
@@ -290,10 +294,12 @@ def run_sensitivity(config, sensitivity_config):
     assert validate.is_config(config, new_config=True)
     assert validate.is_sensitivity_config(sensitivity_config)
 
+    status = Status()
     output_folder = f"./output/{config['name']}"
 
     # Loop over each sensitivity analysis step
     for step_key, step_value in sensitivity_config["steps"].items():
+        st.subheader(f"Sensitivity run {list(sensitivity_config['steps'].keys()).index(step_key) + 1}/{len(sensitivity_config['steps'])}")
         step_config = deepcopy(config)
 
         # Update each config variable that is part of the sensitivity analysis
@@ -302,7 +308,7 @@ def run_sensitivity(config, sensitivity_config):
             utils.set_nested_key(step_config, variable_key, variable_value * step_value)
 
         # Run the optimization
-        run(step_config, output_folder=f"{output_folder}/{step_key}")
+        run(step_config, status=status, output_folder=f"{output_folder}/{step_key}")
 
     # Store the sensitivity config file
     utils.write_yaml(f"{output_folder}/sensitivity.yaml", sensitivity_config)

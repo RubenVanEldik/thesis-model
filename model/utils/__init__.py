@@ -7,6 +7,7 @@ from .create_datetime_index import create_datetime_index
 from .download_file import download_file
 from .find_common_columns import find_common_columns
 from .format_column_name import format_column_name
+from .format_resolution import format_resolution
 from .format_str import format_str
 from .get_bidding_zones_for_countries import get_bidding_zones_for_countries
 from .get_country_of_bidding_zone import get_country_of_bidding_zone

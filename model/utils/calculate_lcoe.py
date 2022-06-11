@@ -47,17 +47,16 @@ def _calculate_annualized_storage_costs(storage_technologies, storage_capacity_M
     return annualized_costs_storage
 
 
-def _calculate_annual_demand(demand_MW, resolution):
+def _calculate_annual_demand(demand_MW):
     """
     Calculate the annual electricity demand
     """
     assert validate.is_series(demand_MW)
-    assert validate.is_resolution(resolution)
 
     demand_start_date = demand_MW.index.min()
     demand_end_date = demand_MW.index.max()
     share_of_year_modelled = (demand_end_date - demand_start_date) / pd.Timedelta(365, "days")
-    timestep_hours = pd.Timedelta(resolution).total_seconds() / 3600
+    timestep_hours = (demand_MW.index[1] - demand_MW.index[0]).total_seconds() / 3600
     return demand_MW.sum() * timestep_hours / share_of_year_modelled
 
 
@@ -83,7 +82,7 @@ def calculate_lcoe(production_capacity_per_bidding_zone, storage_capacity_per_bi
             annualized_storage_costs += _calculate_annualized_storage_costs(config["technologies"]["storage"], storage_capacity_per_bidding_zone.loc[bidding_zone])
 
         # Add the annual electricity demand
-        annual_electricity_demand += _calculate_annual_demand(demand_per_bidding_zone[bidding_zone], config["resolution"])
+        annual_electricity_demand += _calculate_annual_demand(demand_per_bidding_zone[bidding_zone])
 
     # Calculate and return the LCOE
     lcoe_dollar = (annualized_production_costs + annualized_storage_costs) / annual_electricity_demand
