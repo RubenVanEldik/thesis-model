@@ -10,12 +10,12 @@ def _calculate_annualized_production_costs(production_technologies, production_c
     Calculate the annualized production costs
     """
     assert validate.is_dict(production_technologies)
-    assert validate.is_series(production_capacity_MW)
+    assert validate.is_dataframe(production_capacity_MW, column_validator=validate.is_technology)
 
     # Calculate the total annual production costs
     annualized_costs_production = 0
     for technology, assumptions in production_technologies.items():
-        capacity_kW = production_capacity_MW[technology] * 1000
+        capacity_kW = production_capacity_MW[technology].sum() * 1000
         capex = capacity_kW * assumptions["capex"]
         fixed_om = capacity_kW * assumptions["fixed_om"]
         crf = assumptions["crf"]
@@ -29,13 +29,13 @@ def _calculate_annualized_storage_costs(storage_technologies, storage_capacity_M
     Calculate the annualized storage costs
     """
     assert validate.is_dict(storage_technologies)
-    assert validate.is_series(storage_capacity_MWh)
+    assert validate.is_dataframe(storage_capacity_MWh)
 
     # Calculate the total annual storage costs
     annualized_costs_storage = 0
     for technology, assumptions in storage_technologies.items():
-        capacity_energy_kWh = storage_capacity_MWh[(technology, "energy")] * 1000
-        capacity_power_kW = storage_capacity_MWh[(technology, "power")] * 1000
+        capacity_energy_kWh = storage_capacity_MWh.loc[technology, "energy"] * 1000
+        capacity_power_kW = storage_capacity_MWh.loc[technology, "power"] * 1000
 
         capex_energy = capacity_energy_kWh * assumptions["energy_capex"]
         capex_power = capacity_power_kW * assumptions["power_capex"]
@@ -60,12 +60,12 @@ def _calculate_annual_demand(demand_MW):
     return demand_MW.sum() * timestep_hours / share_of_year_modelled
 
 
-def calculate_lcoe(production_capacity_per_bidding_zone, storage_capacity_per_bidding_zone, demand_per_bidding_zone, *, config):
+def calculate_lcoe(production_capacities, storage_capacities, demand_per_bidding_zone, *, config):
     """
     Calculate the average LCOE for all bidding zones
     """
-    assert validate.is_dataframe(production_capacity_per_bidding_zone, column_validator=validate.is_technology)
-    assert validate.is_dataframe(storage_capacity_per_bidding_zone, required=False)
+    assert validate.is_bidding_zone_dict(production_capacities)
+    assert validate.is_bidding_zone_dict(storage_capacities, required=False)
     assert validate.is_dataframe(demand_per_bidding_zone, column_validator=validate.is_bidding_zone)
     assert validate.is_config(config)
 
@@ -73,13 +73,13 @@ def calculate_lcoe(production_capacity_per_bidding_zone, storage_capacity_per_bi
     annualized_storage_costs = 0
     annual_electricity_demand = 0
 
-    for bidding_zone in production_capacity_per_bidding_zone.index:
+    for bidding_zone in demand_per_bidding_zone.columns:
         # Add the annualized production costs
-        annualized_production_costs += _calculate_annualized_production_costs(config["technologies"]["production"], production_capacity_per_bidding_zone.loc[bidding_zone])
+        annualized_production_costs += _calculate_annualized_production_costs(config["technologies"]["production"], production_capacities[bidding_zone])
 
         # Add the annualized storage costs if there is any storage
-        if storage_capacity_per_bidding_zone is not None:
-            annualized_storage_costs += _calculate_annualized_storage_costs(config["technologies"]["storage"], storage_capacity_per_bidding_zone.loc[bidding_zone])
+        if storage_capacities is not None:
+            annualized_storage_costs += _calculate_annualized_storage_costs(config["technologies"]["storage"], storage_capacities[bidding_zone])
 
         # Add the annual electricity demand
         annual_electricity_demand += _calculate_annual_demand(demand_per_bidding_zone[bidding_zone])

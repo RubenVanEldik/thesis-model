@@ -1,7 +1,8 @@
 from datetime import timedelta
+import gurobipy as gp
 import os
 import pandas as pd
-import gurobipy as gp
+import re
 import streamlit as st
 
 import utils
@@ -36,10 +37,8 @@ def optimize(config, *, status, resolution, output_folder):
     # Create dictionaries to store all the data per bidding zone
     hourly_data = {}
     hourly_results = {}
-    production_capacity_columns = config["technologies"]["production"]
-    production_capacity = pd.DataFrame(0, index=bidding_zones, columns=production_capacity_columns)
-    storage_capacity_columns = pd.MultiIndex.from_product([config["technologies"]["storage"], ["energy", "power"]])
-    storage_capacity = pd.DataFrame(0, index=bidding_zones, columns=storage_capacity_columns)
+    production_capacity = {}
+    storage_capacity = {}
     interconnections = {}
 
     for index, bidding_zone in enumerate(bidding_zones):
@@ -57,6 +56,9 @@ def optimize(config, *, status, resolution, output_folder):
         # Create an hourly_results DataFrame with the demand_MW column
         hourly_results[bidding_zone] = hourly_data[bidding_zone].loc[:, ["demand_MW"]]
 
+        # Create a DataFrame for the production capacities
+        production_capacity[bidding_zone] = pd.DataFrame(columns=config["technologies"]["production"].keys())
+
         # Create empty DataFrames for the interconnections, if they don't exist yet
         if not len(interconnections):
             interconnections["hvac"] = pd.DataFrame(index=hourly_results[bidding_zone].index)
@@ -68,24 +70,34 @@ def optimize(config, *, status, resolution, output_folder):
         hourly_results[bidding_zone]["production_total_MW"] = 0
         for production_technology in config["technologies"]["production"]:
             status.update(f"Adding {utils.labelize_technology(production_technology, capitalize=False)} production to {bidding_zone}")
-            climate_zones = [column for column in hourly_data[bidding_zone].columns if column.startswith(f"{production_technology}_")]
-            capacity = model.addVars(climate_zones)
-            capacity_sum = gp.quicksum(capacity.values())
-            production_capacity.loc[bidding_zone, production_technology] = capacity_sum
 
-            def calculate_hourly_production(row, capacities):
-                return sum(row[climate_zone] * capacity for climate_zone, capacity in capacities.items())
+            # Create a capacity variable for each climate zone
+            climate_zones = [re.match(f"{production_technology}_(.+)_cf", column).group(1) for column in hourly_data[bidding_zone].columns if column.startswith(f"{production_technology}_")]
+            capacities = model.addVars(climate_zones)
 
-            column_name = f"production_{production_technology}_MW"
-            hourly_results[bidding_zone][column_name] = hourly_data[bidding_zone].apply(calculate_hourly_production, args=(capacity,), axis=1)
-            hourly_results[bidding_zone]["production_total_MW"] += hourly_results[bidding_zone][column_name]
+            # Add the capacities to the production_capacity DataFrame
+            for climate_zone in capacities:
+                production_capacity[bidding_zone].loc[climate_zone, production_technology] = capacities[climate_zone]
+
+            # Calculate the hourly production for a specific technology
+            def calculate_hourly_production(row, production_technology, capacities):
+                return sum(row[f"{production_technology}_{climate_zone}_cf"] * capacity for climate_zone, capacity in capacities.items())
+
+            # Calculate the hourly production and add it to the hourly_results DataFrame
+            hourly_production = hourly_data[bidding_zone].apply(calculate_hourly_production, args=(production_technology, capacities), axis=1)
+            hourly_results[bidding_zone][f"production_{production_technology}_MW"] = hourly_production
+            hourly_results[bidding_zone]["production_total_MW"] += hourly_production
 
         """
         Step 3C: Define storage variables and constraints
         """
+        # Create a DataFrame for the storage capacity in this bidding zone
+        storage_capacity[bidding_zone] = pd.DataFrame(0, index=config["technologies"]["storage"], columns=["energy", "power"])
+
         # Create an object to save the storage capacity (energy & power) and add 2 columns to the results DataFrame
         hourly_results[bidding_zone]["net_storage_flow_total_MW"] = 0
         hourly_results[bidding_zone]["energy_stored_total_MWh"] = 0
+
         # Add the variables and constraints for all storage technologies
         for storage_technology in config["technologies"]["storage"]:
             # Get the specific storage assumptions
@@ -93,8 +105,7 @@ def optimize(config, *, status, resolution, output_folder):
             timestep_hours = pd.Timedelta(resolution).total_seconds() / 3600
 
             # Create a variable for the energy and power storage capacity
-            storage_capacity.loc[bidding_zone, (storage_technology, "energy")] = model.addVar()
-            storage_capacity.loc[bidding_zone, (storage_technology, "power")] = model.addVar()
+            storage_capacity[bidding_zone].loc[storage_technology] = model.addVar(), model.addVar()
 
             # Create the hourly state of charge variables
             energy_stored_hourly = model.addVars(hourly_data[bidding_zone].index)
@@ -111,8 +122,8 @@ def optimize(config, *, status, resolution, output_folder):
             for timestamp in hourly_data[bidding_zone].index:
                 status.update(f"Adding {utils.labelize_technology(storage_technology, capitalize=False)} storage to {bidding_zone}", timestamp=timestamp)
                 # Unpack the energy and power capacities
-                energy_capacity = storage_capacity.loc[bidding_zone, (storage_technology, "energy")]
-                power_capacity = storage_capacity.loc[bidding_zone, (storage_technology, "power")]
+                energy_capacity = storage_capacity[bidding_zone].loc[storage_technology, "energy"]
+                power_capacity = storage_capacity[bidding_zone].loc[storage_technology, "power"]
 
                 # Get the previous state of charge and one-way efficiency
                 energy_stored_current = energy_stored_hourly[timestamp]
@@ -249,32 +260,34 @@ def optimize(config, *, status, resolution, output_folder):
     """
     Step 7: Store the results
     """
-    os.makedirs(f"{output_folder}/hourly_results")
-    os.makedirs(f"{output_folder}/capacities")
-
     # Store the actual values per bidding zone for the hourly results
-    for bidding_zone, hourly_results in hourly_results.items():
-        hourly_results = utils.convert_variables_recursively(hourly_results)
+    for bidding_zone in bidding_zones:
+        # Make the directory for the bidding zone
+        os.makedirs(f"{output_folder}/results/{bidding_zone}")
+
+        # Convert the hourly results variables
+        hourly_results_bidding_zone = utils.convert_variables_recursively(hourly_results[bidding_zone])
+
         # Calculate the curtailed energy per hour
-        curtailed_MW = hourly_results.production_total_MW - hourly_results.demand_MW - hourly_results.net_storage_flow_total_MW - hourly_results.net_export_MW
-        hourly_results.insert(hourly_results.columns.get_loc("production_total_MW"), "curtailed_MW", curtailed_MW)
+        curtailed_MW = hourly_results_bidding_zone.production_total_MW - hourly_results_bidding_zone.demand_MW - hourly_results_bidding_zone.net_storage_flow_total_MW - hourly_results_bidding_zone.net_export_MW
+        hourly_results_bidding_zone.insert(hourly_results_bidding_zone.columns.get_loc("production_total_MW"), "curtailed_MW", curtailed_MW)
 
         # Calculate the time of energy stored per storage technology per hour
         for storage_technology in config["technologies"]["storage"]:
-            time_stored_H = hourly_results.apply(calculate_time_energy_stored, storage_technology=storage_technology, hourly_results=hourly_results, axis=1)
-            column_index = hourly_results.columns.get_loc(f"energy_stored_{storage_technology}_MW") + 1
-            hourly_results.insert(column_index, f"time_stored_{storage_technology}_H", time_stored_H)
+            time_stored_H = hourly_results_bidding_zone.apply(calculate_time_energy_stored, storage_technology=storage_technology, hourly_results=hourly_results_bidding_zone, axis=1)
+            column_index = hourly_results_bidding_zone.columns.get_loc(f"energy_stored_{storage_technology}_MW") + 1
+            hourly_results_bidding_zone.insert(column_index, f"time_stored_{storage_technology}_H", time_stored_H)
 
         # Store the hourly results to a CSV file
-        hourly_results.to_csv(f"{output_folder}/hourly_results/{bidding_zone}.csv")
+        hourly_results_bidding_zone.to_csv(f"{output_folder}/results/{bidding_zone}/hourly_results.csv")
 
-    # Store the actual values for the production capacity
-    production_capacity = utils.convert_variables_recursively(production_capacity)
-    production_capacity.to_csv(f"{output_folder}/capacities/production.csv")
+        # Convert and store the production capacity
+        production_capacity_bidding_zone = utils.convert_variables_recursively(production_capacity[bidding_zone])
+        production_capacity_bidding_zone.to_csv(f"{output_folder}/results/{bidding_zone}/production.csv")
 
-    # Store the actual values for the storage capacity
-    storage_capacity = utils.convert_variables_recursively(storage_capacity)
-    storage_capacity.to_csv(f"{output_folder}/capacities/storage.csv")
+        # Convert and store the storage capacity
+        storage_capacity_bidding_zone = utils.convert_variables_recursively(storage_capacity[bidding_zone])
+        storage_capacity_bidding_zone.to_csv(f"{output_folder}/results/{bidding_zone}/storage.csv")
 
     # Store the config and optimization log
     utils.write_yaml(f"{output_folder}/config.yaml", config)
