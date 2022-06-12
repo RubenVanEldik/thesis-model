@@ -38,16 +38,14 @@ def is_climate_zone(value, *, required=True):
     return bool(re.search("^[a-z]+_[0-9A-Z]{2,3}_cf$", value))
 
 
-def is_climate_zone_dict(value, *, required=True):
+def is_bidding_zone_dict(value, *, required=True):
     if value is None:
         return not required
 
-    if not isinstance(value, gurobipy.tupledict):
-        return False
-    if not all(is_climate_zone(x) for x in value.keys()):
+    if not type(value) is dict and not isinstance(value, gurobipy.tupledict):
         return False
 
-    return is_tupledict and has_valid_keys
+    return all(is_bidding_zone(x) for x in value.keys())
 
 
 def is_color_name(value, *, required=True):
