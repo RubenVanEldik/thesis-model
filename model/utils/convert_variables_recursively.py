@@ -16,6 +16,8 @@ def convert_variables_recursively(data):
         return [convert_variables_recursively(value) for value in data]
     elif type(data) is pd.core.frame.DataFrame:
         return data.applymap(convert_variables_recursively)
+    elif type(data) is pd.core.series.Series:
+        return data.apply(convert_variables_recursively)
     elif type(data) is gp.Var:
         return data.X
     elif type(data) in [gp.LinExpr, gp.QuadExpr]:
