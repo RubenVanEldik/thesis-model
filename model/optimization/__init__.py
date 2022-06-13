@@ -19,6 +19,9 @@ def run(config, *, status=Status(), output_folder):
         optimize(config, resolution=resolution, status=status, output_folder=full_output_folder, previous_output_folder=previous_output_folder)
         previous_output_folder = full_output_folder
 
+    # Store the config as a .YAML file
+    utils.write_yaml(f"{output_folder}/config.yaml", config)
+
 
 def run_sensitivity(config, sensitivity_config):
     """

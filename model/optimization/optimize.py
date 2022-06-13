@@ -321,6 +321,5 @@ def optimize(config, *, status, resolution, output_folder, previous_output_folde
         storage_capacity_bidding_zone = utils.convert_variables_recursively(storage_capacity[bidding_zone])
         storage_capacity_bidding_zone.to_csv(f"{output_folder}/storage/{bidding_zone}.csv")
 
-    # Store the config and optimization log
-    utils.write_yaml(f"{output_folder}/config.yaml", config)
+    # Store the optimization log
     utils.write_text(f"{output_folder}/log.txt", "".join(log_messages))
