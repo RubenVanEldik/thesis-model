@@ -1,3 +1,4 @@
+import pandas as pd
 import streamlit as st
 
 import utils
@@ -5,35 +6,47 @@ import validate
 
 
 @st.experimental_memo
-def get_storage_capacity(run_name, *, group=None, countries=None):
+def get_storage_capacity(run_name, resolution, *, group=None, countries=None):
     """
     Return the (grouped) storage capacity
     """
     assert validate.is_string(run_name)
+    assert validate.is_resolution(resolution)
     assert validate.is_aggregation_level(group, required=False)
     assert validate.is_country_code_list(countries, type="nuts_2", required=False)
 
-    # Try to get the storage data, if there is no storage utils.read_csv will throw an Index error
-    try:
-        storage_capacity = utils.read_csv(f"./output/{run_name}/capacities/storage.csv", index_col=0, header=[0, 1])
-    except IndexError:
-        return None
+    # If no countries are specified, set them to all countries modelled in this run
+    if not countries:
+        config = utils.read_yaml(f"./output/{run_name}/config.yaml")
+        countries = [country["nuts_2"] for country in config["countries"]]
 
-    # Filter the storage capacity on country if a list of countries was given
-    if countries:
-        bidding_zones = utils.get_bidding_zones_for_countries(countries)
-        storage_capacity = storage_capacity[storage_capacity.index.isin(bidding_zones)]
+    # Get the storage capacity for each bidding zone
+    storage_capacity = {}
+    for bidding_zone in utils.get_bidding_zones_for_countries(countries):
+        filepath = f"./output/{run_name}/{resolution}/storage/{bidding_zone}.csv"
+        storage_capacity[bidding_zone] = utils.read_csv(filepath, index_col=0)
 
-    # Return all bidding zones individually if not grouped
+    # Return a dictionary with the storage capacity per bidding zone DataFrame if not grouped
     if group is None:
         return storage_capacity
 
-    # Return the sum of all bidding zones per country
+    # Return a dictionary with the storage capacity per country DataFrame
     if group == "country":
-        storage_capacity["country"] = storage_capacity.index.to_series().apply(utils.get_country_of_bidding_zone)
-        grouped_storage_capacity = storage_capacity.groupby(["country"]).sum()
-        return grouped_storage_capacity
+        storage_capacity_per_country = {}
+        for bidding_zone, storage_capacity_local in storage_capacity.items():
+            country_code = utils.get_country_of_bidding_zone(bidding_zone)
+            if country_code not in storage_capacity_per_country:
+                storage_capacity_per_country[country_code] = storage_capacity_local.copy(deep=True)
+            else:
+                storage_capacity_per_country[country_code] += storage_capacity_local
+        return storage_capacity_per_country
 
-    # Return the sum of all bidding zones
+    # Return a DataFrame with the total storage capacity per technology
     if group == "all":
-        return storage_capacity.sum()
+        total_storage_capacity = None
+        for bidding_zone, storage_capacity_local in storage_capacity.items():
+            if total_storage_capacity is None:
+                total_storage_capacity = storage_capacity_local.copy(deep=True)
+            else:
+                total_storage_capacity += storage_capacity_local
+        return total_storage_capacity

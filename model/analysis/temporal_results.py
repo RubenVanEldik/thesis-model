@@ -4,16 +4,17 @@ import utils
 import validate
 
 
-def temporal_results(run_name):
+def temporal_results(run_name, resolution):
     """
     Show the temporal results in a chart and table
     """
     assert validate.is_string(run_name)
+    assert validate.is_resolution(resolution)
 
     st.title("🕰️ Temporal results")
 
     # Get temporal results for a country
-    all_temporal_results = utils.get_temporal_results(run_name, group="country")
+    all_temporal_results = utils.get_temporal_results(run_name, resolution, group="country")
     config = utils.read_yaml(f"./output/{run_name}/config.yaml")
     country = st.sidebar.selectbox("Country", config["countries"], format_func=lambda country: country["name"])
     temporal_results = all_temporal_results[country["nuts_2"]]

@@ -12,9 +12,7 @@ from .status import Status
 def run(config, *, status=Status(), output_folder):
     previous_output_folder = None
 
-    resolution_stages = config["time_discretization"]["resolution_stages"]
-    sorted_resolution_stages = sorted(resolution_stages, key=lambda resolution: pd.Timedelta(resolution).total_seconds(), reverse=True)
-    for resolution in sorted_resolution_stages:
+    for resolution in utils.get_sorted_resolution_stages(config):
         full_output_folder = f"{output_folder}/{resolution}"
         optimize(config, resolution=resolution, status=status, output_folder=full_output_folder, previous_output_folder=previous_output_folder)
         previous_output_folder = full_output_folder

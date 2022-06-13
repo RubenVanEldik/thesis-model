@@ -8,20 +8,18 @@ import utils
 import validate
 
 
-def _select_data(run_name, *, name):
+def _select_data(run_name, resolution, *, name):
     """
     Select the source of the data and the specific columns and aggregation type
     """
     assert validate.is_string(run_name)
+    assert validate.is_resolution(resolution)
     assert validate.is_string(name)
 
     # Geth the source of the data
     col1, col2 = st.sidebar.columns(2)
     data_source_options = ["Statistics", "Temporal results", "Production capacity", "Storage capacity (energy)", "Storage capacity (power)"]
     data_source = col1.selectbox(name.capitalize(), data_source_options)
-
-    # Specify the aggregation options in the general scope
-    aggregation_options = ["sum", "min", "max", "mean", "median", "mode", "std"]
 
     if data_source == "Statistics":
         # Get the type of statistic
@@ -31,75 +29,71 @@ def _select_data(run_name, *, name):
 
         # Calculate the statistics for each country and convert them into a Series
         countries = utils.read_yaml(f"./output/{run_name}/config.yaml")["countries"]
-        return pd.Series(dict([(country["nuts_2"], statistic_method(run_name, countries=[country["nuts_2"]])) for country in countries]))
+        return pd.Series(dict([(country["nuts_2"], statistic_method(run_name, resolution, countries=[country["nuts_2"]])) for country in countries]))
 
     if data_source == "Temporal results":
         # Get the temporal results
-        all_temporal_results = utils.get_temporal_results(run_name, group="country")
+        all_temporal_results = utils.get_temporal_results(run_name, resolution, group="country")
 
         # Merge the DataFrames on a specific column
         relevant_columns = utils.find_common_columns(all_temporal_results)
         column_name = col2.selectbox("Column", relevant_columns, format_func=utils.format_column_name, key=name)
         temporal_results = utils.merge_dataframes_on_column(all_temporal_results, column_name)
 
-        # Aggregate the temporal results
-        temporal_results_aggregated = temporal_results.mean()
-
-        # Return the aggregated data and formatted column name
-        return temporal_results_aggregated
+        # Average values of the selected temporal column
+        return temporal_results.mean()
 
     if data_source == "Production capacity":
         # Get the production capacity
-        production_capacity = utils.get_production_capacity(run_name, group="country")
+        production_capacity = utils.get_production_capacity(run_name, resolution, group="country")
 
-        # Filter the production capacity on only the selected columns
-        production_types = col2.multiselect("Type", production_capacity.columns, format_func=utils.labelize_technology, key=name)
-        production_capacity = production_capacity[production_types]
+        # Get the specific technologies
+        selected_production_types = col2.multiselect("Type", production_capacity.columns, format_func=utils.labelize_technology, key=name)
 
-        # Aggregate and return the production capacities
-        if production_types:
-            production_capacity_aggregated = production_capacity.mean(axis=1)
-            return production_capacity_aggregated
+        # Return the sum the capacities of all selected technologies
+        if selected_production_types:
+            return production_capacity[selected_production_types].sum(axis=1)
 
     storage_capacity_match = re.search("Storage capacity \((.+)\)$", data_source)
     if storage_capacity_match:
-        # Get the storage capacity
         energy_or_power = storage_capacity_match.group(1)
-        storage_capacity = utils.get_storage_capacity(run_name, group="country")
 
-        # Filter the columns on either 'energy' or 'power' and remove the energy/power label
-        relevant_columns = [column for column in storage_capacity.columns if column[1] == energy_or_power]
-        storage_capacity = storage_capacity[relevant_columns]
-        relevant_columns = [column[0] for column in relevant_columns]
-        storage_capacity.columns = relevant_columns
+        # Get the storage capacity
+        storage_capacity = utils.get_storage_capacity(run_name, resolution, group="country")
 
-        # Filter the storage capacity on only the selected columns
-        storage_types = col2.multiselect("Type", relevant_columns, format_func=utils.labelize_technology, key=name)
-        storage_capacity = storage_capacity[storage_types]
+        # Create a DataFrame with all storage (energy or power) capacities
+        storage_capacity_aggregated = None
+        for country_code in storage_capacity:
+            if storage_capacity_aggregated is None:
+                storage_capacity_aggregated = pd.DataFrame(columns=storage_capacity[country_code].index)
+            storage_capacity_aggregated.loc[country_code] = storage_capacity[country_code][energy_or_power]
 
-        # Aggregate and return the storage capacities
-        if storage_types:
-            storage_capacity_aggregated = storage_capacity.mean(axis=1)
-            return storage_capacity_aggregated
+        # Get the specific technologies
+        selected_storage_types = col2.multiselect("Type", storage_capacity_aggregated.columns, format_func=utils.labelize_technology, key=name)
+
+        # Return the sum the capacities of all selected technologies
+        if selected_storage_types:
+            return storage_capacity_aggregated[selected_storage_types].sum(axis=1)
 
 
-def countries(run_name):
+def countries(run_name, resolution):
     """
     Show a choropleth map for all countries modeled in a run
     """
     assert validate.is_string(run_name)
+    assert validate.is_resolution(resolution)
 
     st.title("🎌 Countries")
 
     # Check if the data should be relative and get the numerator data
     relative = st.sidebar.checkbox("Relative")
-    numerator = _select_data(run_name, name="numerator")
+    numerator = _select_data(run_name, resolution, name="numerator")
 
     # Set 'data' to the numerator, else get de denominator and divide the numerator with it
     if not relative:
         data = numerator
     else:
-        denominator = _select_data(run_name, name="denominator")
+        denominator = _select_data(run_name, resolution, name="denominator")
 
         if numerator is not None and denominator is not None:
             data = numerator / denominator

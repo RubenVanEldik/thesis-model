@@ -7,16 +7,17 @@ import utils
 import validate
 
 
-def correlation(run_name):
+def correlation(run_name, resolution):
     """
     Plot the correlation between the distance between of two countries and the value of a specific column
     """
     assert validate.is_string(run_name)
+    assert validate.is_resolution(resolution)
 
     st.title("📉 Correlation")
 
     # Get the temporal results and merge them on a single column
-    all_temporal_results = utils.get_temporal_results(run_name, group="country")
+    all_temporal_results = utils.get_temporal_results(run_name, resolution, group="country")
     relevant_columns = utils.find_common_columns(all_temporal_results)
     column_name = st.sidebar.selectbox("Column", relevant_columns, format_func=utils.format_column_name)
     temporal_results = utils.merge_dataframes_on_column(all_temporal_results, column_name)

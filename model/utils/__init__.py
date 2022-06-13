@@ -17,6 +17,7 @@ from .get_interconnections import get_interconnections
 from .get_nested_key import get_nested_key
 from .get_previous_runs import get_previous_runs
 from .get_production_capacity import get_production_capacity
+from .get_sorted_resolution_stages import get_sorted_resolution_stages
 from .get_storage_capacity import get_storage_capacity
 from .get_technology_assumptions import get_technology_assumptions
 from .labelize_technology import labelize_technology

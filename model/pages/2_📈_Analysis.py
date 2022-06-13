@@ -8,6 +8,11 @@ import utils
 previous_runs = utils.get_previous_runs()
 selected_run = st.sidebar.selectbox("Previous runs", previous_runs)
 
+# Select the resolution to show the data of
+config = utils.read_yaml(f"./output/{selected_run}/config.yaml")
+sorted_resolution_stages = utils.get_sorted_resolution_stages(config)
+selected_resolution = st.sidebar.selectbox("Resolution", sorted_resolution_stages)
+
 # Select the type of analysis
 if os.path.isfile(f"./output/{selected_run}/sensitivity.yaml"):
     analysis_type = "sensitivity"
@@ -17,4 +22,4 @@ else:
 
 # Run the analysis
 st.sidebar.header("Options")
-getattr(analysis, analysis_type)(selected_run)
+getattr(analysis, analysis_type)(selected_run, selected_resolution)
