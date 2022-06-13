@@ -17,7 +17,7 @@ def _select_data(run_name, *, name):
 
     # Geth the source of the data
     col1, col2 = st.sidebar.columns(2)
-    data_source_options = ["Statistics", "Hourly results", "Production capacity", "Storage capacity (energy)", "Storage capacity (power)"]
+    data_source_options = ["Statistics", "Temporal results", "Production capacity", "Storage capacity (energy)", "Storage capacity (power)"]
     data_source = col1.selectbox(name.capitalize(), data_source_options)
 
     # Specify the aggregation options in the general scope
@@ -33,20 +33,20 @@ def _select_data(run_name, *, name):
         countries = utils.read_yaml(f"./output/{run_name}/config.yaml")["countries"]
         return pd.Series(dict([(country["nuts_2"], statistic_method(run_name, countries=[country["nuts_2"]])) for country in countries]))
 
-    if data_source == "Hourly results":
-        # Get the hourly results
-        all_hourly_results = utils.get_hourly_results(run_name, group="country")
+    if data_source == "Temporal results":
+        # Get the temporal results
+        all_temporal_results = utils.get_temporal_results(run_name, group="country")
 
         # Merge the DataFrames on a specific column
-        relevant_columns = utils.find_common_columns(all_hourly_results)
+        relevant_columns = utils.find_common_columns(all_temporal_results)
         column_name = col2.selectbox("Column", relevant_columns, format_func=utils.format_column_name, key=name)
-        hourly_results = utils.merge_dataframes_on_column(all_hourly_results, column_name)
+        temporal_results = utils.merge_dataframes_on_column(all_temporal_results, column_name)
 
-        # Aggregate the hourly results
-        hourly_results_aggregated = hourly_results.mean()
+        # Aggregate the temporal results
+        temporal_results_aggregated = temporal_results.mean()
 
         # Return the aggregated data and formatted column name
-        return hourly_results_aggregated
+        return temporal_results_aggregated
 
     if data_source == "Production capacity":
         # Get the production capacity

@@ -120,13 +120,24 @@ with st.sidebar.expander("Sensitivity analysis"):
     sensitity_steps = np.linspace(start=sensitivity_start, stop=sensitivity_stop, num=number_steps)
     sensitivity_config["steps"] = dict([(f"{step:.3f}", float(step)) for step in sensitity_steps])
 
-# Set the optimization parameters
-with st.sidebar.expander("Optimization parameters"):
-    config["optimization"] = {}
+
+# Set the time discretization parameters
+with st.sidebar.expander("Time discretization"):
+    config["time_discretization"] = {}
 
     # Select the resolution steps
     resolutions = ["1H", "2H", "4H", "6H", "12H", "1D", "2D", "1W"]
-    config["resolution_stages"] = st.multiselect("Resolution stages", resolutions, default=["1H"], format_func=utils.format_resolution)
+    config["time_discretization"]["resolution_stages"] = st.multiselect("Resolution stages", resolutions, default=["1H"], format_func=utils.format_resolution)
+
+    # Select the relative boundary propagation
+    multiple_stages = len(config["time_discretization"]["resolution_stages"]) > 1
+    config["time_discretization"]["capacity_propagation"] = st.slider("Capacity propagation", value=1.0, disabled=not multiple_stages)
+    config["time_discretization"]["soc_propagation"] = st.slider("SoC propagation", value=1.0, disabled=not multiple_stages)
+
+
+# Set the optimization parameters
+with st.sidebar.expander("Optimization parameters"):
+    config["optimization"] = {}
 
     # Select the optimization method
     method_options = {-1: "Automatic", 0: "Primal simplex", 1: "Dual simplex", 2: "Barrier", 3: "Concurrent", 4: "Deterministic concurrent", 5: "Deterministic concurrent simplex"}

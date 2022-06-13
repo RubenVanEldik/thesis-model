@@ -77,7 +77,7 @@ def is_config(value, *, required=True, new_config=False):
         return False
     if not is_date_range(value["date_range"]):
         return False
-    if not is_resolution_stages(value["resolution_stages"]):
+    if not is_resolution_stages(value["time_discretization"]["resolution_stages"]):
         return False
     if not is_datetime(value["optimization"]["time_limit"]):
         return False
@@ -197,32 +197,6 @@ def is_aggregation_level(value, *, required=True):
         return not required
 
     return value in ["all", "country"]
-
-
-def is_hourly_data_row(value, *, required=True):
-    if value is None:
-        return not required
-
-    if not is_series(value):
-        return False
-
-    includes_demand = any(x.startswith("demand_") for x in value.index)
-    includes_pv = any(x.startswith("pv_") for x in value.index)
-    includes_onshore = any(x.startswith("onshore_") for x in value.index)
-    return includes_demand and includes_pv and includes_onshore
-
-
-def is_hourly_results_row(value, *, required=True):
-    if value is None:
-        return not required
-
-    if not is_series(value):
-        return False
-
-    includes_demand = any(x.startswith("demand_") for x in value.index)
-    includes_production = any(x.startswith("production_") for x in value.index)
-    includes_net_storage_flow = any(x.startswith("net_storage_flow") for x in value.index)
-    return includes_demand and includes_production and includes_net_storage_flow
 
 
 def is_date_range(value, *, required=True):

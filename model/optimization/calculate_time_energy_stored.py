@@ -1,7 +1,7 @@
 import pandas as pd
 
 
-def calculate_time_energy_stored(row, *, storage_technology, hourly_results):
+def calculate_time_energy_stored(row, *, storage_technology, temporal_results):
     """
     Calculate how long the energy that is released in a particular row has been stored for
     """
@@ -9,12 +9,12 @@ def calculate_time_energy_stored(row, *, storage_technology, hourly_results):
     timestamp_previous = timestamp_current - pd.Timedelta(hours=1)
 
     # Return 0 if its the first timestamp
-    if timestamp_previous not in hourly_results.index:
+    if timestamp_previous not in temporal_results.index:
         return 0
 
     # Calculate the energy stored in the current and previous timestamp
     energy_stored_current = row[f"energy_stored_{storage_technology}_MWh"]
-    energy_stored_previous = hourly_results[f"energy_stored_{storage_technology}_MWh"].loc[timestamp_previous]
+    energy_stored_previous = temporal_results[f"energy_stored_{storage_technology}_MWh"].loc[timestamp_previous]
     energy_delta = energy_stored_current - energy_stored_previous
 
     # Return 0 if the battery hasn't released energy
@@ -24,7 +24,7 @@ def calculate_time_energy_stored(row, *, storage_technology, hourly_results):
     # Set the weighted time and energy stored and loop over all timestamps that lie in the past
     weighted_time = 0
     energy_stored_min = energy_stored_previous
-    reversed_history = hourly_results.loc[timestamp_previous::-1]
+    reversed_history = temporal_results.loc[timestamp_previous::-1]
     for timestamp, energy_stored in reversed_history[f"energy_stored_{storage_technology}_MWh"].iteritems():
         # Continue if the energy stored is not less than the minimum stored energy already encountered
         if energy_stored >= energy_stored_min:

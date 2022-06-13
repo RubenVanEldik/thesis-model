@@ -12,7 +12,7 @@ selected_run = st.sidebar.selectbox("Previous runs", previous_runs)
 if os.path.isfile(f"./output/{selected_run}/sensitivity.yaml"):
     analysis_type = "sensitivity"
 else:
-    analysis_type_options = ["statistics", "hourly_results", "countries", "correlation", "duration_curve"]
+    analysis_type_options = ["statistics", "temporal_results", "countries", "correlation", "duration_curve"]
     analysis_type = st.sidebar.radio("Type of analysis", analysis_type_options, format_func=utils.format_str)
 
 # Run the analysis

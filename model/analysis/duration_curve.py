@@ -15,14 +15,14 @@ def duration_curve(run_name):
 
     st.title("⌛ Duration curve")
 
-    # Get the storage capacity and hourly results
-    all_hourly_results = utils.get_hourly_results(run_name, group="country")
+    # Get the storage capacity and temporal results
+    all_temporal_results = utils.get_temporal_results(run_name, group="country")
 
     # Select a column as numerator and denominator
     st.sidebar.subheader("Columns")
-    first_country = next(iter(all_hourly_results))
-    columns = all_hourly_results[first_country].columns
-    relevant_columns = utils.find_common_columns(all_hourly_results)
+    first_country = next(iter(all_temporal_results))
+    columns = all_temporal_results[first_country].columns
+    relevant_columns = utils.find_common_columns(all_temporal_results)
     relative = st.sidebar.checkbox("Relative")
     if relative:
         col1, col2 = st.sidebar.columns(2)
@@ -52,9 +52,9 @@ def duration_curve(run_name):
     unity_line = st.sidebar.checkbox("Unity line", value=False)
 
     # Create two new DataFrames with only the numerator/denominator column and all values sorted
-    waterfall_df = utils.merge_dataframes_on_column(all_hourly_results, numerator, sorted=True)
+    waterfall_df = utils.merge_dataframes_on_column(all_temporal_results, numerator, sorted=True)
     if denominator:
-        denominator_df = utils.merge_dataframes_on_column(all_hourly_results, denominator, sorted=True)
+        denominator_df = utils.merge_dataframes_on_column(all_temporal_results, denominator, sorted=True)
         waterfall_df = waterfall_df / denominator_df.max()
 
     # Create the chart

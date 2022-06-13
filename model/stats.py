@@ -14,12 +14,12 @@ def firm_lcoe(run_name, *, countries=None):
     # Get the capacities and demand
     production_capacity = utils.get_production_capacity(run_name, countries=countries)
     storage_capacity = utils.get_storage_capacity(run_name, countries=countries)
-    hourly_results = utils.get_hourly_results(run_name, countries=countries)
-    hourly_demand = utils.merge_dataframes_on_column(hourly_results, "demand_MW")
+    temporal_results = utils.get_temporal_results(run_name, countries=countries)
+    temporal_demand = utils.merge_dataframes_on_column(temporal_results, "demand_MW")
     config = utils.read_yaml(f"./output/{run_name}/config.yaml")
 
     # Return the LCOE
-    return utils.calculate_lcoe(production_capacity, storage_capacity, hourly_demand, config=config)
+    return utils.calculate_lcoe(production_capacity, storage_capacity, temporal_demand, config=config)
 
 
 def unconstrained_lcoe(run_name, *, countries=None):
@@ -32,12 +32,12 @@ def unconstrained_lcoe(run_name, *, countries=None):
     # Get the capacities and demand
     production_capacity = utils.get_production_capacity(run_name, countries=countries)
     storage_capacity = utils.get_storage_capacity(run_name, countries=countries)
-    hourly_results = utils.get_hourly_results(run_name, countries=countries)
-    hourly_demand = utils.merge_dataframes_on_column(hourly_results, "production_total_MW")
+    temporal_results = utils.get_temporal_results(run_name, countries=countries)
+    temporal_demand = utils.merge_dataframes_on_column(temporal_results, "production_total_MW")
     config = utils.read_yaml(f"./output/{run_name}/config.yaml")
 
     # Return the LCOE
-    return utils.calculate_lcoe(production_capacity, storage_capacity, hourly_demand, config=config)
+    return utils.calculate_lcoe(production_capacity, storage_capacity, temporal_demand, config=config)
 
 
 def premium(run_name, *, countries=None):
@@ -62,8 +62,8 @@ def relative_curtailment(run_name, *, countries=None):
     assert validate.is_string(run_name)
     assert validate.is_country_code_list(countries, type="nuts_2", required=False)
 
-    hourly_results = utils.get_hourly_results(run_name, group="all", countries=countries)
-    return hourly_results.curtailed_MW.sum() / hourly_results.production_total_MW.sum()
+    temporal_results = utils.get_temporal_results(run_name, group="all", countries=countries)
+    return temporal_results.curtailed_MW.sum() / temporal_results.production_total_MW.sum()
 
 
 def production_capacity(run_name, *, countries=None):

@@ -36,60 +36,60 @@ def optimize(config, *, status, resolution, output_folder, previous_output_folde
     Step 3: Initialize each bidding zone
     """
     # Create dictionaries to store all the data per bidding zone
-    hourly_data = {}
-    hourly_results = {}
+    temporal_data = {}
+    temporal_results = {}
     production_capacity = {}
     storage_capacity = {}
     interconnections = {}
 
     for index, bidding_zone in enumerate(bidding_zones):
         """
-        Step 3A: Import the hourly data
+        Step 3A: Import the temporal data
         """
         status.update(f"Importing data for {bidding_zone}")
         filepath = f"./input/bidding_zones/{config['model_year']}/{bidding_zone}.csv"
         start_date = config["date_range"]["start"]
         end_date = config["date_range"]["end"]
-        # Get the hourly data and resample to the required resolution
-        hourly_data[bidding_zone] = utils.read_hourly_data(filepath, start=start_date, end=end_date).resample(resolution).mean()
+        # Get the temporal data and resample to the required resolution
+        temporal_data[bidding_zone] = utils.read_temporal_data(filepath, start=start_date, end=end_date).resample(resolution).mean()
         # Remove the leap days from the dataset that could have been introduced by the resample method
-        hourly_data[bidding_zone] = hourly_data[bidding_zone][~((hourly_data[bidding_zone].index.month == 2) & (hourly_data[bidding_zone].index.day == 29))]
-        # Create an hourly_results DataFrame with the demand_MW column
-        hourly_results[bidding_zone] = hourly_data[bidding_zone].loc[:, ["demand_MW"]]
+        temporal_data[bidding_zone] = temporal_data[bidding_zone][~((temporal_data[bidding_zone].index.month == 2) & (temporal_data[bidding_zone].index.day == 29))]
+        # Create an temporal_results DataFrame with the demand_MW column
+        temporal_results[bidding_zone] = temporal_data[bidding_zone].loc[:, ["demand_MW"]]
 
         # Create a DataFrame for the production capacities
         production_capacity[bidding_zone] = pd.DataFrame(columns=config["technologies"]["production"].keys())
 
         if previous_output_folder:
-            # Get the hourly results from the previous run
-            previous_hourly_results = utils.read_csv(f"{previous_output_folder}/results/{bidding_zone}/hourly_results.csv", parse_dates=True, index_col=0)
+            # Get the temporal results from the previous run
+            previous_temporal_results = utils.read_csv(f"{previous_output_folder}/results/{bidding_zone}/temporal_results.csv", parse_dates=True, index_col=0)
             # Resample the previous results so it has the same timestamps as the current step
-            previous_hourly_results = previous_hourly_results.resample(resolution).mean()
+            previous_temporal_results = previous_temporal_results.resample(resolution).mean()
             # Find and add the rows that are missing in the previous results (the resample method does not add rows after the last timestamp)
-            for timestamp in hourly_results[bidding_zone].index.difference(previous_hourly_results.index):
-                previous_hourly_results.loc[timestamp] = None
+            for timestamp in temporal_results[bidding_zone].index.difference(previous_temporal_results.index):
+                previous_temporal_results.loc[timestamp] = None
             # Fill the empty rows created by the resample method by the value from the previous rows
-            previous_hourly_results = previous_hourly_results.ffill()
+            previous_temporal_results = previous_temporal_results.ffill()
             # Remove the leap days from the dataset that could have been introduced by the resample method
-            previous_hourly_results = previous_hourly_results[~((previous_hourly_results.index.month == 2) & (previous_hourly_results.index.day == 29))]
+            previous_temporal_results = previous_temporal_results[~((previous_temporal_results.index.month == 2) & (previous_temporal_results.index.day == 29))]
 
         # Create empty DataFrames for the interconnections, if they don't exist yet
         if not len(interconnections):
-            interconnections["hvac"] = pd.DataFrame(index=hourly_results[bidding_zone].index)
-            interconnections["hvdc"] = pd.DataFrame(index=hourly_results[bidding_zone].index)
+            interconnections["hvac"] = pd.DataFrame(index=temporal_results[bidding_zone].index)
+            interconnections["hvdc"] = pd.DataFrame(index=temporal_results[bidding_zone].index)
 
         """
         Step 3B: Define production capacity variables
         """
-        hourly_results[bidding_zone]["production_total_MW"] = 0
+        temporal_results[bidding_zone]["production_total_MW"] = 0
         for production_technology in config["technologies"]["production"]:
             status.update(f"Adding {utils.labelize_technology(production_technology, capitalize=False)} production to {bidding_zone}")
 
             # Create a capacity variable for each climate zone
-            climate_zones = [re.match(f"{production_technology}_(.+)_cf", column).group(1) for column in hourly_data[bidding_zone].columns if column.startswith(f"{production_technology}_")]
+            climate_zones = [re.match(f"{production_technology}_(.+)_cf", column).group(1) for column in temporal_data[bidding_zone].columns if column.startswith(f"{production_technology}_")]
             if previous_output_folder:
                 previous_production_capacity = utils.read_csv(f"{previous_output_folder}/results/{bidding_zone}/production.csv", index_col=0)
-                capacities = model.addVars(climate_zones, lb=previous_production_capacity[production_technology].dropna())
+                capacities = model.addVars(climate_zones, lb=config["time_discretization"]["capacity_propagation"] * previous_production_capacity[production_technology].dropna())
             else:
                 capacities = model.addVars(climate_zones)
 
@@ -97,14 +97,14 @@ def optimize(config, *, status, resolution, output_folder, previous_output_folde
             for climate_zone in capacities:
                 production_capacity[bidding_zone].loc[climate_zone, production_technology] = capacities[climate_zone]
 
-            # Calculate the hourly production for a specific technology
-            def calculate_hourly_production(row, production_technology, capacities):
+            # Calculate the temporal production for a specific technology
+            def calculate_production_in_row(row, production_technology, capacities):
                 return sum(row[f"{production_technology}_{climate_zone}_cf"] * capacity for climate_zone, capacity in capacities.items())
 
-            # Calculate the hourly production and add it to the hourly_results DataFrame
-            hourly_production = hourly_data[bidding_zone].apply(calculate_hourly_production, args=(production_technology, capacities), axis=1)
-            hourly_results[bidding_zone][f"production_{production_technology}_MW"] = hourly_production
-            hourly_results[bidding_zone]["production_total_MW"] += hourly_production
+            # Calculate the temporal production and add it to the temporal_results DataFrame
+            temporal_production = temporal_data[bidding_zone].apply(calculate_production_in_row, args=(production_technology, capacities), axis=1)
+            temporal_results[bidding_zone][f"production_{production_technology}_MW"] = temporal_production
+            temporal_results[bidding_zone]["production_total_MW"] += temporal_production
 
         """
         Step 3C: Define storage variables and constraints
@@ -113,8 +113,8 @@ def optimize(config, *, status, resolution, output_folder, previous_output_folde
         storage_capacity[bidding_zone] = pd.DataFrame(0, index=config["technologies"]["storage"], columns=["energy", "power"])
 
         # Create an object to save the storage capacity (energy & power) and add 2 columns to the results DataFrame
-        hourly_results[bidding_zone]["net_storage_flow_total_MW"] = 0
-        hourly_results[bidding_zone]["energy_stored_total_MWh"] = 0
+        temporal_results[bidding_zone]["net_storage_flow_total_MW"] = 0
+        temporal_results[bidding_zone]["energy_stored_total_MWh"] = 0
 
         # Add the variables and constraints for all storage technologies
         for storage_technology in config["technologies"]["storage"]:
@@ -125,48 +125,48 @@ def optimize(config, *, status, resolution, output_folder, previous_output_folde
             # Create a variable for the energy and power storage capacity
             if previous_output_folder:
                 previous_storage_capacity = utils.read_csv(f"{previous_output_folder}/results/{bidding_zone}/storage.csv", index_col=0)
-                storage_capacity[bidding_zone].loc[storage_technology, "energy"] = model.addVar(lb=previous_storage_capacity.loc[storage_technology, "energy"])
-                storage_capacity[bidding_zone].loc[storage_technology, "power"] = model.addVar(lb=previous_storage_capacity.loc[storage_technology, "power"])
+                storage_capacity[bidding_zone].loc[storage_technology, "energy"] = model.addVar(lb=config["time_discretization"]["capacity_propagation"] * previous_storage_capacity.loc[storage_technology, "energy"])
+                storage_capacity[bidding_zone].loc[storage_technology, "power"] = model.addVar(lb=config["time_discretization"]["capacity_propagation"] * previous_storage_capacity.loc[storage_technology, "power"])
             else:
                 storage_capacity[bidding_zone].loc[storage_technology, "energy"] = model.addVar()
                 storage_capacity[bidding_zone].loc[storage_technology, "power"] = model.addVar()
 
-            # Create the hourly state of charge variables
+            # Create the state of charge variables
             if previous_output_folder:
-                energy_stored_hourly = model.addVars(hourly_data[bidding_zone].index, lb=previous_hourly_results[f"energy_stored_{storage_technology}_MWh"])
+                temporal_energy_stored = model.addVars(temporal_data[bidding_zone].index, lb=config["time_discretization"]["soc_propagation"] * previous_temporal_results[f"energy_stored_{storage_technology}_MWh"])
             else:
-                energy_stored_hourly = model.addVars(hourly_data[bidding_zone].index)
+                temporal_energy_stored = model.addVars(temporal_data[bidding_zone].index)
 
-            # Create the hourly inflow and outflow variables
+            # Create the inflow and outflow variables
             if previous_output_folder:
-                inflow = model.addVars(hourly_data[bidding_zone].index, lb=previous_hourly_results[f"net_storage_flow_{storage_technology}_MW"].clip(lower=0))
-                outflow = model.addVars(hourly_data[bidding_zone].index, lb=(-previous_hourly_results[f"net_storage_flow_{storage_technology}_MW"]).clip(lower=0))
+                inflow = model.addVars(temporal_data[bidding_zone].index, lb=config["time_discretization"]["soc_propagation"] * previous_temporal_results[f"net_storage_flow_{storage_technology}_MW"].clip(lower=0))
+                outflow = model.addVars(temporal_data[bidding_zone].index, lb=config["time_discretization"]["soc_propagation"] * (-previous_temporal_results[f"net_storage_flow_{storage_technology}_MW"]).clip(lower=0))
             else:
-                inflow = model.addVars(hourly_data[bidding_zone].index)
-                outflow = model.addVars(hourly_data[bidding_zone].index)
+                inflow = model.addVars(temporal_data[bidding_zone].index)
+                outflow = model.addVars(temporal_data[bidding_zone].index)
 
-            hourly_results[bidding_zone][f"net_storage_flow_{storage_technology}_MW"] = 0
-            hourly_results[bidding_zone][f"energy_stored_{storage_technology}_MW"] = 0
+            temporal_results[bidding_zone][f"net_storage_flow_{storage_technology}_MW"] = 0
+            temporal_results[bidding_zone][f"energy_stored_{storage_technology}_MW"] = 0
 
             # Loop over all hours
             previous_timestamp = None
-            for timestamp in hourly_data[bidding_zone].index:
+            for timestamp in temporal_data[bidding_zone].index:
                 status.update(f"Adding {utils.labelize_technology(storage_technology, capitalize=False)} storage to {bidding_zone}", timestamp=timestamp)
                 # Unpack the energy and power capacities
                 energy_capacity = storage_capacity[bidding_zone].loc[storage_technology, "energy"]
                 power_capacity = storage_capacity[bidding_zone].loc[storage_technology, "power"]
 
                 # Get the previous state of charge and one-way efficiency
-                energy_stored_current = energy_stored_hourly[timestamp]
-                energy_stored_previous = energy_stored_hourly.get(previous_timestamp, assumptions["soc0"] * energy_capacity)
+                energy_stored_current = temporal_energy_stored[timestamp]
+                energy_stored_previous = temporal_energy_stored.get(previous_timestamp, assumptions["soc0"] * energy_capacity)
                 efficiency = assumptions["roundtrip_efficiency"] ** 0.5
 
                 # Add the state of charge constraints
                 model.addConstr(energy_stored_current == energy_stored_previous + (inflow[timestamp] * efficiency - outflow[timestamp] / efficiency) * timestep_hours)
 
                 # Add the energy capacity constraints (can't be added when the flow variables are defined because it's a gurobipy.Var)
-                model.addConstr(energy_stored_hourly[timestamp] >= assumptions["soc_min"] * energy_capacity)
-                model.addConstr(energy_stored_hourly[timestamp] <= assumptions["soc_max"] * energy_capacity)
+                model.addConstr(temporal_energy_stored[timestamp] >= assumptions["soc_min"] * energy_capacity)
+                model.addConstr(temporal_energy_stored[timestamp] <= assumptions["soc_max"] * energy_capacity)
 
                 # Add the power capacity constraints (can't be added when the flow variables are defined because it's a gurobipy.Var)
                 model.addConstr(inflow[timestamp] <= power_capacity)
@@ -174,10 +174,10 @@ def optimize(config, *, status, resolution, output_folder, previous_output_folde
 
                 # Add the net flow to the total net storage
                 net_flow = inflow[timestamp] - outflow[timestamp]
-                hourly_results[bidding_zone].loc[timestamp, f"net_storage_flow_{storage_technology}_MW"] = net_flow
-                hourly_results[bidding_zone].loc[timestamp, f"energy_stored_{storage_technology}_MWh"] = energy_stored_current
-                hourly_results[bidding_zone].loc[timestamp, "net_storage_flow_total_MW"] += net_flow
-                hourly_results[bidding_zone].loc[timestamp, "energy_stored_total_MWh"] += energy_stored_current
+                temporal_results[bidding_zone].loc[timestamp, f"net_storage_flow_{storage_technology}_MW"] = net_flow
+                temporal_results[bidding_zone].loc[timestamp, f"energy_stored_{storage_technology}_MWh"] = energy_stored_current
+                temporal_results[bidding_zone].loc[timestamp, "net_storage_flow_total_MW"] += net_flow
+                temporal_results[bidding_zone].loc[timestamp, "energy_stored_total_MWh"] += energy_stored_current
 
                 # Update the previous_timestamp
                 previous_timestamp = timestamp
@@ -207,25 +207,25 @@ def optimize(config, *, status, resolution, output_folder, previous_output_folde
     """
     for bidding_zone in bidding_zones:
         status.update(f"Adding demand constraints to {bidding_zone}")
-        # Add a column for the hourly export to each country
+        # Add a column for the temporal export to each country
         for interconnection_type in interconnections:
             relevant_interconnections = [interconnection for interconnection in interconnections[interconnection_type] if bidding_zone in interconnection]
             for interconnection in relevant_interconnections:
                 direction = 1 if interconnection[0] == bidding_zone else -config["interconnections"]["efficiency"][interconnection_type]
                 other_bidding_zone = interconnection[1 if interconnection[0] == bidding_zone else 0]
                 column_name = f"net_export_{other_bidding_zone}_MW"
-                if column_name not in hourly_results:
-                    hourly_results[bidding_zone][column_name] = 0
-                hourly_results[bidding_zone][column_name] += direction * interconnections[interconnection_type][interconnection]
+                if column_name not in temporal_results:
+                    temporal_results[bidding_zone][column_name] = 0
+                temporal_results[bidding_zone][column_name] += direction * interconnections[interconnection_type][interconnection]
 
-        # Add a column for the total hourly export
-        hourly_results[bidding_zone]["net_export_MW"] = 0
-        for column_name in hourly_results[bidding_zone]:
+        # Add a column for the total temporal export
+        temporal_results[bidding_zone]["net_export_MW"] = 0
+        for column_name in temporal_results[bidding_zone]:
             if column_name.startswith("net_export_") and column_name != "net_export_MW":
-                hourly_results[bidding_zone]["net_export_MW"] += hourly_results[bidding_zone][column_name]
+                temporal_results[bidding_zone]["net_export_MW"] += temporal_results[bidding_zone][column_name]
 
         # Add the demand constraint
-        hourly_results[bidding_zone].apply(lambda row: model.addConstr(row.production_total_MW - row.net_storage_flow_total_MW - row.net_export_MW >= row.demand_MW), axis=1)
+        temporal_results[bidding_zone].apply(lambda row: model.addConstr(row.production_total_MW - row.net_storage_flow_total_MW - row.net_export_MW >= row.demand_MW), axis=1)
 
     # Remove the progress bar
     progress.empty()
@@ -233,8 +233,8 @@ def optimize(config, *, status, resolution, output_folder, previous_output_folde
     """
     Step 5: Set objective function
     """
-    hourly_demand = utils.merge_dataframes_on_column(hourly_results, "demand_MW")
-    firm_lcoe = utils.calculate_lcoe(production_capacity, storage_capacity, hourly_demand, config=config)
+    temporal_demand = utils.merge_dataframes_on_column(temporal_results, "demand_MW")
+    firm_lcoe = utils.calculate_lcoe(production_capacity, storage_capacity, temporal_demand, config=config)
     model.setObjective(firm_lcoe, gp.GRB.MINIMIZE)
 
     """
@@ -291,26 +291,26 @@ def optimize(config, *, status, resolution, output_folder, previous_output_folde
     """
     Step 7: Store the results
     """
-    # Store the actual values per bidding zone for the hourly results
+    # Store the actual values per bidding zone for the temporal results
     for bidding_zone in bidding_zones:
         # Make the directory for the bidding zone
         os.makedirs(f"{output_folder}/results/{bidding_zone}")
 
-        # Convert the hourly results variables
-        hourly_results_bidding_zone = utils.convert_variables_recursively(hourly_results[bidding_zone])
+        # Convert the temporal results variables
+        temporal_results_bidding_zone = utils.convert_variables_recursively(temporal_results[bidding_zone])
 
         # Calculate the curtailed energy per hour
-        curtailed_MW = hourly_results_bidding_zone.production_total_MW - hourly_results_bidding_zone.demand_MW - hourly_results_bidding_zone.net_storage_flow_total_MW - hourly_results_bidding_zone.net_export_MW
-        hourly_results_bidding_zone.insert(hourly_results_bidding_zone.columns.get_loc("production_total_MW"), "curtailed_MW", curtailed_MW)
+        curtailed_MW = temporal_results_bidding_zone.production_total_MW - temporal_results_bidding_zone.demand_MW - temporal_results_bidding_zone.net_storage_flow_total_MW - temporal_results_bidding_zone.net_export_MW
+        temporal_results_bidding_zone.insert(temporal_results_bidding_zone.columns.get_loc("production_total_MW"), "curtailed_MW", curtailed_MW)
 
         # Calculate the time of energy stored per storage technology per hour
         for storage_technology in config["technologies"]["storage"]:
-            time_stored_H = hourly_results_bidding_zone.apply(calculate_time_energy_stored, storage_technology=storage_technology, hourly_results=hourly_results_bidding_zone, axis=1)
-            column_index = hourly_results_bidding_zone.columns.get_loc(f"energy_stored_{storage_technology}_MW") + 1
-            hourly_results_bidding_zone.insert(column_index, f"time_stored_{storage_technology}_H", time_stored_H)
+            time_stored_H = temporal_results_bidding_zone.apply(calculate_time_energy_stored, storage_technology=storage_technology, temporal_results=temporal_results_bidding_zone, axis=1)
+            column_index = temporal_results_bidding_zone.columns.get_loc(f"energy_stored_{storage_technology}_MW") + 1
+            temporal_results_bidding_zone.insert(column_index, f"time_stored_{storage_technology}_H", time_stored_H)
 
-        # Store the hourly results to a CSV file
-        hourly_results_bidding_zone.to_csv(f"{output_folder}/results/{bidding_zone}/hourly_results.csv")
+        # Store the temporal results to a CSV file
+        temporal_results_bidding_zone.to_csv(f"{output_folder}/results/{bidding_zone}/temporal_results.csv")
 
         # Convert and store the production capacity
         production_capacity_bidding_zone = utils.convert_variables_recursively(production_capacity[bidding_zone])

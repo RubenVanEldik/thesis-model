@@ -12,7 +12,7 @@ from .format_str import format_str
 from .get_bidding_zones_for_countries import get_bidding_zones_for_countries
 from .get_country_of_bidding_zone import get_country_of_bidding_zone
 from .get_geometries_of_countries import get_geometries_of_countries
-from .get_hourly_results import get_hourly_results
+from .get_temporal_results import get_temporal_results
 from .get_interconnections import get_interconnections
 from .get_nested_key import get_nested_key
 from .get_previous_runs import get_previous_runs
@@ -24,7 +24,7 @@ from .merge_dataframes_on_column import merge_dataframes_on_column
 from .preprocess_bidding_zone import preprocess_bidding_zone
 from .preprocess_interconnections import preprocess_interconnections
 from .read_csv import read_csv
-from .read_hourly_data import read_hourly_data
+from .read_temporal_data import read_temporal_data
 from .read_shapefile import read_shapefile
 from .read_yaml import read_yaml
 from .set_nested_key import set_nested_key
