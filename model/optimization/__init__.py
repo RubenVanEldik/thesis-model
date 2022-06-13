@@ -10,9 +10,13 @@ from .status import Status
 
 
 def run(config, *, status=Status(), output_folder):
+    previous_output_folder = None
+
     sorted_resolution_stages = sorted(config["resolution_stages"], key=lambda resolution: pd.Timedelta(resolution).total_seconds(), reverse=True)
     for resolution in sorted_resolution_stages:
-        optimize(config, resolution=resolution, status=status, output_folder=f"{output_folder}/{resolution}")
+        full_output_folder = f"{output_folder}/{resolution}"
+        optimize(config, resolution=resolution, status=status, output_folder=full_output_folder, previous_output_folder=previous_output_folder)
+        previous_output_folder = full_output_folder
 
 
 def run_sensitivity(config, sensitivity_config):

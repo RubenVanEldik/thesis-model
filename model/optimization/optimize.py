@@ -12,13 +12,14 @@ from .calculate_time_energy_stored import calculate_time_energy_stored
 from .intialize_model import intialize_model
 
 
-def optimize(config, *, status, resolution, output_folder):
+def optimize(config, *, status, resolution, output_folder, previous_output_folder):
     """
     Create and run the model
     """
     assert validate.is_config(config, new_config=True)
     assert validate.is_resolution(resolution)
     assert validate.is_directory_path(output_folder)
+    assert validate.is_directory_path(previous_output_folder, required=False)
 
     """
     Step 1: Create the model and set the parameters
@@ -51,13 +52,26 @@ def optimize(config, *, status, resolution, output_folder):
         end_date = config["date_range"]["end"]
         # Get the hourly data and resample to the required resolution
         hourly_data[bidding_zone] = utils.read_hourly_data(filepath, start=start_date, end=end_date).resample(resolution).mean()
-        # Remove the leap days from the dataset that could introduced by the resample method
+        # Remove the leap days from the dataset that could have been introduced by the resample method
         hourly_data[bidding_zone] = hourly_data[bidding_zone][~((hourly_data[bidding_zone].index.month == 2) & (hourly_data[bidding_zone].index.day == 29))]
         # Create an hourly_results DataFrame with the demand_MW column
         hourly_results[bidding_zone] = hourly_data[bidding_zone].loc[:, ["demand_MW"]]
 
         # Create a DataFrame for the production capacities
         production_capacity[bidding_zone] = pd.DataFrame(columns=config["technologies"]["production"].keys())
+
+        if previous_output_folder:
+            # Get the hourly results from the previous run
+            previous_hourly_results = utils.read_csv(f"{previous_output_folder}/results/{bidding_zone}/hourly_results.csv", parse_dates=True, index_col=0)
+            # Resample the previous results so it has the same timestamps as the current step
+            previous_hourly_results = previous_hourly_results.resample(resolution).mean()
+            # Find and add the rows that are missing in the previous results (the resample method does not add rows after the last timestamp)
+            for timestamp in hourly_results[bidding_zone].index.difference(previous_hourly_results.index):
+                previous_hourly_results.loc[timestamp] = None
+            # Fill the empty rows created by the resample method by the value from the previous rows
+            previous_hourly_results = previous_hourly_results.ffill()
+            # Remove the leap days from the dataset that could have been introduced by the resample method
+            previous_hourly_results = previous_hourly_results[~((previous_hourly_results.index.month == 2) & (previous_hourly_results.index.day == 29))]
 
         # Create empty DataFrames for the interconnections, if they don't exist yet
         if not len(interconnections):
@@ -73,7 +87,11 @@ def optimize(config, *, status, resolution, output_folder):
 
             # Create a capacity variable for each climate zone
             climate_zones = [re.match(f"{production_technology}_(.+)_cf", column).group(1) for column in hourly_data[bidding_zone].columns if column.startswith(f"{production_technology}_")]
-            capacities = model.addVars(climate_zones)
+            if previous_output_folder:
+                previous_production_capacity = utils.read_csv(f"{previous_output_folder}/results/{bidding_zone}/production.csv", index_col=0)
+                capacities = model.addVars(climate_zones, lb=previous_production_capacity[production_technology].dropna())
+            else:
+                capacities = model.addVars(climate_zones)
 
             # Add the capacities to the production_capacity DataFrame
             for climate_zone in capacities:
@@ -105,14 +123,27 @@ def optimize(config, *, status, resolution, output_folder):
             timestep_hours = pd.Timedelta(resolution).total_seconds() / 3600
 
             # Create a variable for the energy and power storage capacity
-            storage_capacity[bidding_zone].loc[storage_technology] = model.addVar(), model.addVar()
+            if previous_output_folder:
+                previous_storage_capacity = utils.read_csv(f"{previous_output_folder}/results/{bidding_zone}/storage.csv", index_col=0)
+                storage_capacity[bidding_zone].loc[storage_technology, "energy"] = model.addVar(lb=previous_storage_capacity.loc[storage_technology, "energy"])
+                storage_capacity[bidding_zone].loc[storage_technology, "power"] = model.addVar(lb=previous_storage_capacity.loc[storage_technology, "power"])
+            else:
+                storage_capacity[bidding_zone].loc[storage_technology, "energy"] = model.addVar()
+                storage_capacity[bidding_zone].loc[storage_technology, "power"] = model.addVar()
 
             # Create the hourly state of charge variables
-            energy_stored_hourly = model.addVars(hourly_data[bidding_zone].index)
+            if previous_output_folder:
+                energy_stored_hourly = model.addVars(hourly_data[bidding_zone].index, lb=previous_hourly_results[f"energy_stored_{storage_technology}_MWh"])
+            else:
+                energy_stored_hourly = model.addVars(hourly_data[bidding_zone].index)
 
             # Create the hourly inflow and outflow variables
-            inflow = model.addVars(hourly_data[bidding_zone].index)
-            outflow = model.addVars(hourly_data[bidding_zone].index)
+            if previous_output_folder:
+                inflow = model.addVars(hourly_data[bidding_zone].index, lb=previous_hourly_results[f"net_storage_flow_{storage_technology}_MW"].clip(lower=0))
+                outflow = model.addVars(hourly_data[bidding_zone].index, lb=(-previous_hourly_results[f"net_storage_flow_{storage_technology}_MW"]).clip(lower=0))
+            else:
+                inflow = model.addVars(hourly_data[bidding_zone].index)
+                outflow = model.addVars(hourly_data[bidding_zone].index)
 
             hourly_results[bidding_zone][f"net_storage_flow_{storage_technology}_MW"] = 0
             hourly_results[bidding_zone][f"energy_stored_{storage_technology}_MW"] = 0
