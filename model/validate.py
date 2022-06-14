@@ -69,23 +69,27 @@ def is_config(value, *, required=True, new_config=False):
     if type(value) is not dict:
         return False
 
-    if not is_directory_path(value["name"]):
+    if not is_directory_path(value.get("name")):
         return False
-    if not is_model_year(value["model_year"]):
+    if not is_model_year(value.get("model_year")):
         return False
-    if not is_country_obj_list(value["countries"]):
+    if not is_country_obj_list(value.get("countries")):
         return False
-    if not is_date_range(value["date_range"]):
+    if not is_date_range(value.get("date_range")):
         return False
-    if not is_resolution_stages(value["time_discretization"]["resolution_stages"]):
+    if not value.get("time_discretization"):
         return False
-    if not is_datetime(value["optimization"]["time_limit"]):
+    if not is_resolution_stages(value["time_discretization"].get("resolution_stages")):
         return False
-    if new_config and value["optimization"]["time_limit"] < datetime.datetime.now():
+    if not value.get("optimization"):
         return False
-    if not is_integer(value["optimization"]["method"], min_value=-1, max_value=6):
+    if not is_datetime(value["optimization"].get("time_limit")):
         return False
-    if not is_integer(value["optimization"]["thread_count"], min_value=1):
+    if new_config and value["optimization"].get("time_limit") < datetime.datetime.now():
+        return False
+    if not is_integer(value["optimization"].get("method"), min_value=-1, max_value=6):
+        return False
+    if not is_integer(value["optimization"].get("thread_count"), min_value=1):
         return False
 
     return True
