@@ -27,7 +27,7 @@ def temporal_results(run_name, resolution):
     # Show the chart and DataFrame if any columns are selected
     if columns:
         # Calculate the rolling average
-        rolling_average_options = {1: "Off", 24: "Daily", 24 * 7: "Weekly", 24 * 28: "Monthly", 24 * 365: "Yearly"}
+        rolling_average_options = {1: "Off", "1D": "Daily", "7D": "Weekly", "30D": "Monthly", "365D": "Yearly"}
         window = st.sidebar.selectbox("Rolling average", rolling_average_options.keys(), index=2, format_func=lambda key: rolling_average_options[key])
         temporal_results = temporal_results.rolling(window=window).mean()
 
