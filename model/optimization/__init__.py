@@ -12,7 +12,7 @@ from .status import Status
 def run(config, *, status=Status(), output_folder):
     previous_output_folder = None
 
-    for resolution in utils.get_sorted_resolution_stages(config):
+    for resolution in utils.get_sorted_resolution_stages(config, descending=True):
         full_output_folder = f"{output_folder}/{resolution}"
         optimize(config, resolution=resolution, status=status, output_folder=full_output_folder, previous_output_folder=previous_output_folder)
         previous_output_folder = full_output_folder
