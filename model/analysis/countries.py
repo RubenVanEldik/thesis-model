@@ -111,8 +111,7 @@ def countries(run_name, resolution):
 
         # Get the units for the color bar
         units = {10 ** -9: "Billionth", 10 ** -6: "Millionth", 10 ** -3: "Thousandth", 1: "One", 10 ** 3: "Thousand", 10 ** 6: "Million", 10 ** 9: "Billion"}
-        default_unit = next(unit for unit in units.keys() if (data.abs().max() < unit * 1000))
-        unit = st.sidebar.select_slider("Format units", units.keys(), value=default_unit, format_func=lambda key: units[key])
+        unit = st.sidebar.select_slider("Format units", units.keys(), value=1, format_func=lambda key: units[key])
 
         # Create and show the map
         map = chart.Map(data / unit, label=label)
