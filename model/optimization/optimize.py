@@ -68,6 +68,8 @@ def optimize(config, *, status, resolution, output_folder, previous_output_folde
             # Find and add the rows that are missing in the previous results (the resample method does not add rows after the last timestamp)
             for timestamp in temporal_results[bidding_zone].index.difference(previous_temporal_results.index):
                 previous_temporal_results.loc[timestamp] = None
+            # Remove all rows that are in previous_temporal_results but not in the new temporal_results DataFrame (don't know why this happens, but it happens sometimes)
+            previous_temporal_results = previous_temporal_results[previous_temporal_results.index.isin(temporal_results[bidding_zone].index)]
             # Fill the empty rows created by the resample method by the value from the previous rows
             previous_temporal_results = previous_temporal_results.ffill()
             # Remove the leap days from the dataset that could have been introduced by the resample method
