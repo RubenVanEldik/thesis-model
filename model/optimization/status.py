@@ -14,7 +14,7 @@ class Status:
             getattr(self.status, type)(text)
             self.text = text
             self.last_updated_at = datetime.now()
-        elif self.text != text or (datetime.now() - self.last_updated_at) > timedelta(seconds=1):
+        elif self.text != text or (datetime.now() - self.last_updated_at) > timedelta(seconds=0.5):
             getattr(self.status, type)(f"{text} ({timestamp.strftime('%B %Y')})")
             self.text = text
             self.last_updated_at = datetime.now()
