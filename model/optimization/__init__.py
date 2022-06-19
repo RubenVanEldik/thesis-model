@@ -10,12 +10,11 @@ from .status import Status
 
 
 def run(config, *, status=Status(), output_folder):
-    previous_output_folder = None
+    previous_resolution = None
 
     for resolution in utils.get_sorted_resolution_stages(config, descending=True):
-        full_output_folder = f"{output_folder}/{resolution}"
-        optimize(config, resolution=resolution, status=status, output_folder=full_output_folder, previous_output_folder=previous_output_folder)
-        previous_output_folder = full_output_folder
+        optimize(config, resolution=resolution, previous_resolution=previous_resolution, status=status, output_folder=output_folder)
+        previous_resolution = resolution
 
     # Store the config as a .YAML file
     utils.write_yaml(f"{output_folder}/config.yaml", config)

@@ -12,14 +12,14 @@ from .calculate_time_energy_stored import calculate_time_energy_stored
 from .intialize_model import intialize_model
 
 
-def optimize(config, *, status, resolution, output_folder, previous_output_folder):
+def optimize(config, *, resolution, previous_resolution, status, output_folder):
     """
     Create and run the model
     """
     assert validate.is_config(config, new_config=True)
     assert validate.is_resolution(resolution)
+    assert validate.is_resolution(previous_resolution, required=False)
     assert validate.is_directory_path(output_folder)
-    assert validate.is_directory_path(previous_output_folder, required=False)
 
     """
     Step 1: Create the model and set the parameters
@@ -60,9 +60,9 @@ def optimize(config, *, status, resolution, output_folder, previous_output_folde
         # Create a DataFrame for the production capacities
         production_capacity[bidding_zone] = pd.DataFrame(columns=config["technologies"]["production"].keys())
 
-        if previous_output_folder:
+        if previous_resolution:
             # Get the temporal results from the previous run
-            previous_temporal_results = utils.read_csv(f"{previous_output_folder}/temporal/{bidding_zone}.csv", parse_dates=True, index_col=0)
+            previous_temporal_results = utils.read_csv(f"{output_folder}/{previous_resolution}/temporal/{bidding_zone}.csv", parse_dates=True, index_col=0)
             # Resample the previous results so it has the same timestamps as the current step
             previous_temporal_results = previous_temporal_results.resample(resolution).mean()
             # Find and add the rows that are missing in the previous results (the resample method does not add rows after the last timestamp)
@@ -89,8 +89,8 @@ def optimize(config, *, status, resolution, output_folder, previous_output_folde
 
             # Create a capacity variable for each climate zone
             climate_zones = [re.match(f"{production_technology}_(.+)_cf", column).group(1) for column in temporal_data[bidding_zone].columns if column.startswith(f"{production_technology}_")]
-            if previous_output_folder:
-                previous_production_capacity = utils.read_csv(f"{previous_output_folder}/production/{bidding_zone}.csv", index_col=0)
+            if previous_resolution:
+                previous_production_capacity = utils.read_csv(f"{output_folder}/{previous_resolution}/production/{bidding_zone}.csv", index_col=0)
                 capacities = model.addVars(climate_zones, lb=config["time_discretization"]["capacity_propagation"] * previous_production_capacity[production_technology].dropna())
             else:
                 capacities = model.addVars(climate_zones)
@@ -125,8 +125,8 @@ def optimize(config, *, status, resolution, output_folder, previous_output_folde
             timestep_hours = pd.Timedelta(resolution).total_seconds() / 3600
 
             # Create a variable for the energy and power storage capacity
-            if previous_output_folder:
-                previous_storage_capacity = utils.read_csv(f"{previous_output_folder}/storage/{bidding_zone}.csv", index_col=0)
+            if previous_resolution:
+                previous_storage_capacity = utils.read_csv(f"{output_folder}/{previous_resolution}/storage/{bidding_zone}.csv", index_col=0)
                 storage_capacity[bidding_zone].loc[storage_technology, "energy"] = model.addVar(lb=config["time_discretization"]["capacity_propagation"] * previous_storage_capacity.loc[storage_technology, "energy"])
                 storage_capacity[bidding_zone].loc[storage_technology, "power"] = model.addVar(lb=config["time_discretization"]["capacity_propagation"] * previous_storage_capacity.loc[storage_technology, "power"])
             else:
@@ -134,13 +134,13 @@ def optimize(config, *, status, resolution, output_folder, previous_output_folde
                 storage_capacity[bidding_zone].loc[storage_technology, "power"] = model.addVar()
 
             # Create the state of charge variables
-            if previous_output_folder:
+            if previous_resolution:
                 temporal_energy_stored = model.addVars(temporal_data[bidding_zone].index, lb=config["time_discretization"]["soc_propagation"] * previous_temporal_results[f"energy_stored_{storage_technology}_MWh"])
             else:
                 temporal_energy_stored = model.addVars(temporal_data[bidding_zone].index)
 
             # Create the inflow and outflow variables
-            if previous_output_folder:
+            if previous_resolution:
                 inflow = model.addVars(temporal_data[bidding_zone].index, lb=config["time_discretization"]["soc_propagation"] * previous_temporal_results[f"net_storage_flow_{storage_technology}_MW"].clip(lower=0))
                 outflow = model.addVars(temporal_data[bidding_zone].index, lb=config["time_discretization"]["soc_propagation"] * (-previous_temporal_results[f"net_storage_flow_{storage_technology}_MW"]).clip(lower=0))
             else:
@@ -294,7 +294,7 @@ def optimize(config, *, status, resolution, output_folder, previous_output_folde
     """
     # Make a directory for each type of output
     for directory in ["temporal", "production", "storage"]:
-        os.makedirs(f"{output_folder}/{directory}")
+        os.makedirs(f"{output_folder}/{resolution}/{directory}")
 
     # Store the actual values per bidding zone for the temporal results
     for bidding_zone in bidding_zones:
@@ -313,18 +313,18 @@ def optimize(config, *, status, resolution, output_folder, previous_output_folde
             temporal_results_bidding_zone.insert(column_index, f"time_stored_{storage_technology}_H", time_stored_H)
 
         # Store the temporal results to a CSV file
-        temporal_results_bidding_zone.to_csv(f"{output_folder}/temporal/{bidding_zone}.csv")
+        temporal_results_bidding_zone.to_csv(f"{output_folder}/{resolution}/temporal/{bidding_zone}.csv")
 
         # Convert and store the production capacity
         production_capacity_bidding_zone = utils.convert_variables_recursively(production_capacity[bidding_zone])
-        production_capacity_bidding_zone.to_csv(f"{output_folder}/production/{bidding_zone}.csv")
+        production_capacity_bidding_zone.to_csv(f"{output_folder}/{resolution}/production/{bidding_zone}.csv")
 
         # Convert and store the storage capacity
         storage_capacity_bidding_zone = utils.convert_variables_recursively(storage_capacity[bidding_zone])
-        storage_capacity_bidding_zone.to_csv(f"{output_folder}/storage/{bidding_zone}.csv")
+        storage_capacity_bidding_zone.to_csv(f"{output_folder}/{resolution}/storage/{bidding_zone}.csv")
 
     # Store the optimization log
-    utils.write_text(f"{output_folder}/log.txt", "".join(log_messages))
+    utils.write_text(f"{output_folder}/{resolution}/log.txt", "".join(log_messages))
 
     # Set the final status
     status.update(f"Optimization has finished and results are stored", type="success")
