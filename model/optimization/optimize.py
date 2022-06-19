@@ -174,15 +174,15 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
                 model.addConstr(inflow[timestamp] <= power_capacity)
                 model.addConstr(outflow[timestamp] <= power_capacity)
 
-                # Add the net flow to the total net storage
-                net_flow = inflow[timestamp] - outflow[timestamp]
-                temporal_results[bidding_zone].loc[timestamp, f"net_storage_flow_{storage_technology}_MW"] = net_flow
-                temporal_results[bidding_zone].loc[timestamp, f"energy_stored_{storage_technology}_MWh"] = energy_stored_current
-                temporal_results[bidding_zone].loc[timestamp, "net_storage_flow_total_MW"] += net_flow
-                temporal_results[bidding_zone].loc[timestamp, "energy_stored_total_MWh"] += energy_stored_current
-
                 # Update the previous_timestamp
                 previous_timestamp = timestamp
+
+            # Add the net flow to the total net storage
+            net_flow = [inflow_value - outflow_value for inflow_value, outflow_value in zip(inflow.values(), outflow.values())]
+            temporal_results[bidding_zone][f"net_storage_flow_{storage_technology}_MW"] = net_flow
+            temporal_results[bidding_zone][f"energy_stored_{storage_technology}_MWh"] = temporal_energy_stored.values()
+            temporal_results[bidding_zone]["net_storage_flow_total_MW"] += net_flow
+            temporal_results[bidding_zone]["energy_stored_total_MWh"] += temporal_energy_stored.values()
 
         """
         Step 3D: Define the interconnection variables
