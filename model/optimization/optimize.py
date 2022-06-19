@@ -282,11 +282,10 @@ def optimize(config, *, status, resolution, output_folder, previous_output_folde
     model.optimize(optimization_callback)
 
     # Show success or error message
-    if model.status == gp.GRB.OPTIMAL:
-        status.update(f"Optimization finished succesfully in {timedelta(seconds=model.Runtime)}", type="success")
-    elif model.status == gp.GRB.TIME_LIMIT:
+    if model.status == gp.GRB.TIME_LIMIT:
         status.update(f"Optimization finished due to the time limit in {timedelta(seconds=model.Runtime)}", type="warning")
-    else:
+        return
+    elif model.status != gp.GRB.OPTIMAL:
         status.update("The model could not be resolved", type="error")
         return
 
@@ -299,6 +298,7 @@ def optimize(config, *, status, resolution, output_folder, previous_output_folde
 
     # Store the actual values per bidding zone for the temporal results
     for bidding_zone in bidding_zones:
+        status.update(f"Converting and storing the results for {bidding_zone}")
         # Convert the temporal results variables
         temporal_results_bidding_zone = utils.convert_variables_recursively(temporal_results[bidding_zone])
 
@@ -325,3 +325,6 @@ def optimize(config, *, status, resolution, output_folder, previous_output_folde
 
     # Store the optimization log
     utils.write_text(f"{output_folder}/log.txt", "".join(log_messages))
+
+    # Set the final status
+    status.update(f"Optimization has finished and results are stored", type="success")
