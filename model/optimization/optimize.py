@@ -177,11 +177,12 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
                 previous_timestamp = timestamp
 
             # Add the net flow to the total net storage
-            net_flow = [inflow_value - outflow_value for inflow_value, outflow_value in zip(inflow.values(), outflow.values())]
+            net_flow = pd.Series(data=[inflow_value - outflow_value for inflow_value, outflow_value in zip(inflow.values(), outflow.values())], index=temporal_results[bidding_zone].index)
+            energy_stored = pd.Series(data=temporal_energy_stored.values(), index=temporal_results[bidding_zone].index)
             temporal_results[bidding_zone][f"net_storage_flow_{storage_technology}_MW"] = net_flow
-            temporal_results[bidding_zone][f"energy_stored_{storage_technology}_MWh"] = temporal_energy_stored.values()
+            temporal_results[bidding_zone][f"energy_stored_{storage_technology}_MWh"] = energy_stored
             temporal_results[bidding_zone]["net_storage_flow_total_MW"] += net_flow
-            temporal_results[bidding_zone]["energy_stored_total_MWh"] += temporal_energy_stored.values()
+            temporal_results[bidding_zone]["energy_stored_total_MWh"] += energy_stored
 
         """
         Step 3D: Define the interconnection variables
