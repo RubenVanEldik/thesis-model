@@ -118,7 +118,7 @@ with st.sidebar.expander("Sensitivity analysis"):
     sensitivity_start, sensitivity_stop = st.slider("Relative range", value=(0.5, 1.5), min_value=0.0, max_value=2.0, step=0.05, disabled=not sensitivity_enabled)
     number_steps = st.slider("Number of steps", value=5, min_value=3, max_value=15, step=2, disabled=not sensitivity_enabled)
     sensitity_steps = np.linspace(start=sensitivity_start, stop=sensitivity_stop, num=number_steps)
-    sensitivity_config["steps"] = dict([(f"{step:.3f}", float(step)) for step in sensitity_steps])
+    sensitivity_config["steps"] = {f"{step:.3f}": float(step) for step in sensitity_steps}
 
 
 # Set the time discretization parameters
