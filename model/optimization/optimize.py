@@ -141,7 +141,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
             # Create the inflow and outflow variables
             if previous_resolution:
                 inflow = model.addVars(temporal_data[bidding_zone].index, lb=config["time_discretization"]["soc_propagation"] * previous_temporal_results[f"net_storage_flow_{storage_technology}_MW"].clip(lower=0))
-                outflow = model.addVars(temporal_data[bidding_zone].index, lb=config["time_discretization"]["soc_propagation"] * (-previous_temporal_results[f"net_storage_flow_{storage_technology}_MW"]).clip(lower=0))
+                outflow = model.addVars(temporal_data[bidding_zone].index, lb=config["time_discretization"]["soc_propagation"] * -previous_temporal_results[f"net_storage_flow_{storage_technology}_MW"].clip(upper=0))
             else:
                 inflow = model.addVars(temporal_data[bidding_zone].index)
                 outflow = model.addVars(temporal_data[bidding_zone].index)
