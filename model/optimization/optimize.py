@@ -146,8 +146,6 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
                 inflow = model.addVars(temporal_data[bidding_zone].index)
                 outflow = model.addVars(temporal_data[bidding_zone].index)
 
-            temporal_results[bidding_zone][f"net_storage_flow_{storage_technology}_MW"] = 0
-            temporal_results[bidding_zone][f"energy_stored_{storage_technology}_MW"] = 0
 
             # Loop over all hours
             previous_timestamp = None
