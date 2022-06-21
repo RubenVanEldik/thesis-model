@@ -155,16 +155,17 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
             previous_timestamp = None
             for timestamp in temporal_data[bidding_zone].index:
                 status.update(f"Adding {utils.labelize_technology(storage_technology, capitalize=False)} storage to {bidding_zone}", timestamp=timestamp)
-                # Unpack the energy and power capacities
+
+                # Unpack the energy and power capacities for this storage technology
                 energy_capacity = storage_capacity[bidding_zone].loc[storage_technology, "energy"]
                 power_capacity = storage_capacity[bidding_zone].loc[storage_technology, "power"]
 
-                # Get the previous state of charge and one-way efficiency
+                # Get the current and previous state of charge
                 energy_stored_current = temporal_energy_stored[timestamp]
                 energy_stored_previous = temporal_energy_stored.get(previous_timestamp, assumptions["soc0"] * energy_capacity)
-                efficiency = assumptions["roundtrip_efficiency"] ** 0.5
 
                 # Add the state of charge constraints
+                efficiency = assumptions["roundtrip_efficiency"] ** 0.5
                 model.addConstr(energy_stored_current == energy_stored_previous + (inflow[timestamp] * efficiency - outflow[timestamp] / efficiency) * timestep_hours)
 
                 # Add the energy capacity constraints (can't be added when the flow variables are defined because it's a gurobipy.Var)
@@ -178,6 +179,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
                 # Update the previous_timestamp
                 previous_timestamp = timestamp
 
+            # Add the energy stored for this storage technology to the total energy stored column
             energy_stored = pd.Series(data=temporal_energy_stored.values(), index=temporal_results[bidding_zone].index)
             temporal_results[bidding_zone][f"energy_stored_{storage_technology}_MWh"] = energy_stored
             temporal_results[bidding_zone]["energy_stored_total_MWh"] += energy_stored
