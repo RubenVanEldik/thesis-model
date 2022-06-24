@@ -206,6 +206,9 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
         # Update the progress bar
         progress.progress((index + 1) / len(bidding_zones))
 
+    # Remove the progress bar
+    progress.empty()
+
     """
     Step 4: Define demand constraints
     """
@@ -230,9 +233,6 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
 
         # Add the demand constraint
         temporal_results[bidding_zone].apply(lambda row: model.addConstr(row.production_total_MW - row.net_storage_flow_total_MW - row.net_export_MW >= row.demand_MW), axis=1)
-
-    # Remove the progress bar
-    progress.empty()
 
     """
     Step 5: Set objective function
