@@ -214,6 +214,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
     """
     for bidding_zone in bidding_zones:
         status.update(f"Adding demand constraints to {bidding_zone}")
+
         # Add a column for the temporal export to each country
         for interconnection_type in interconnections:
             relevant_interconnections = [interconnection for interconnection in interconnections[interconnection_type] if bidding_zone in interconnection]
@@ -233,6 +234,10 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
 
         # Add the demand constraint
         temporal_results[bidding_zone].apply(lambda row: model.addConstr(row.production_total_MW - row.net_storage_flow_total_MW - row.net_export_MW >= row.demand_MW), axis=1)
+
+        # Calculate the curtailed energy per hour
+        curtailed_MW = temporal_results[bidding_zone].production_total_MW - temporal_results[bidding_zone].demand_MW - temporal_results[bidding_zone].net_storage_flow_total_MW - temporal_results[bidding_zone].net_export_MW
+        temporal_results[bidding_zone].insert(temporal_results[bidding_zone].columns.get_loc("production_total_MW"), "curtailed_MW", curtailed_MW)
 
     """
     Step 5: Set objective function
@@ -303,10 +308,6 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
         status.update(f"Converting and storing the results for {bidding_zone}")
         # Convert the temporal results variables
         temporal_results_bidding_zone = utils.convert_variables_recursively(temporal_results[bidding_zone])
-
-        # Calculate the curtailed energy per hour
-        curtailed_MW = temporal_results_bidding_zone.production_total_MW - temporal_results_bidding_zone.demand_MW - temporal_results_bidding_zone.net_storage_flow_total_MW - temporal_results_bidding_zone.net_export_MW
-        temporal_results_bidding_zone.insert(temporal_results_bidding_zone.columns.get_loc("production_total_MW"), "curtailed_MW", curtailed_MW)
 
         # Calculate the time of energy stored per storage technology per hour
         for storage_technology in config["technologies"]["storage"]:
