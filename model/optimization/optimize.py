@@ -240,14 +240,40 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
         temporal_results[bidding_zone].insert(temporal_results[bidding_zone].columns.get_loc("production_total_MW"), "curtailed_MW", curtailed_MW)
 
     """
-    Step 5: Set objective function
+    Step 5: Define self-sufficiency constraints
+    """
+    for country in config["countries"]:
+        status.update(f"Adding self-sufficiency constraints to {country['name']}")
+
+        # Get the bidding zones for the country
+        bidding_zones_in_country = utils.get_bidding_zones_for_countries([country["nuts_2"]])
+
+        # Add a self-sufficiency constraint for each year
+        for year in temporal_results[bidding_zone].index.year.unique():
+            total_demand = 0
+            total_production = 0
+
+            # Sum the demand and production for all bidding zones
+            for bidding_zone in bidding_zones_in_country:
+                annual_temporal_results_bidding_zone = temporal_results[bidding_zone][temporal_results[bidding_zone].index.year == year]
+
+                # Calculate the total demand and non-curtailed production in this country
+                total_demand += annual_temporal_results_bidding_zone.demand_MW.sum()
+                total_production += (annual_temporal_results_bidding_zone.production_total_MW - annual_temporal_results_bidding_zone.curtailed_MW).sum()
+
+            # Add a constraint so cumulative production over the cumulative demand is always greater than the minimum self-sufficiency factor
+            min_self_sufficiency = config["interconnections"]["min_self_sufficiency"]
+            model.addConstr(total_production / total_demand >= min_self_sufficiency)
+
+    """
+    Step 6: Set objective function
     """
     temporal_demand = utils.merge_dataframes_on_column(temporal_results, "demand_MW")
     firm_lcoe = utils.calculate_lcoe(production_capacity, storage_capacity, temporal_demand, config=config)
     model.setObjective(firm_lcoe, gp.GRB.MINIMIZE)
 
     """
-    Step 6: Solve model
+    Step 7: Solve model
     """
     # Set the status message and create
     status.update("Optimizing")
@@ -297,7 +323,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
         return
 
     """
-    Step 7: Store the results
+    Step 8: Store the results
     """
     # Make a directory for each type of output
     for directory in ["temporal", "production", "storage"]:
