@@ -12,7 +12,7 @@ def sensitivity(run_name):
     """
     assert validate.is_string(run_name)
 
-    st.title("Sensitivity analysis")
+    st.title("⚖️ Sensitivity analysis")
 
     # Get the sensitivity analysis
     sensitivity_config = utils.read_yaml(f"./output/{run_name}/sensitivity.yaml")
