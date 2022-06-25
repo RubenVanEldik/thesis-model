@@ -8,14 +8,15 @@ import utils
 def run():
     # Get the previous runs
     previous_runs = utils.get_previous_runs()
+    previous_completed_runs = [previous_run for previous_run in previous_runs if utils.validate_run(previous_run)]
 
-    # Show a warning and return the function if there are no previous runs
-    if not previous_runs:
+    # Show a warning and return the function if there are no completed runs
+    if not previous_completed_runs:
         st.sidebar.warning("There are no previous runs to analyze")
         return
 
     # Select the run to analyze
-    selected_run = st.sidebar.selectbox("Previous runs", previous_runs)
+    selected_run = st.sidebar.selectbox("Previous runs", previous_completed_runs)
 
     # Select the resolution to show the data of
     config = utils.read_yaml(f"./output/{selected_run}/config.yaml")

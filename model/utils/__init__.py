@@ -30,5 +30,6 @@ from .read_shapefile import read_shapefile
 from .read_yaml import read_yaml
 from .set_nested_key import set_nested_key
 from .validate_files import validate_files
+from .validate_run import validate_run
 from .write_text import write_text
 from .write_yaml import write_yaml
