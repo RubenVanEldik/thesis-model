@@ -6,7 +6,7 @@ import utils
 import validate
 
 
-def sensitivity(run_name):
+def sensitivity(run_name, resolution):
     """
     Analyze the sensitivity
     """
@@ -26,7 +26,7 @@ def sensitivity(run_name):
         data = pd.Series(data=sensitivity_config["steps"], name="input").to_frame()
 
         # Calculate the output for each sensitivity step
-        data["output"] = data.apply(lambda row: getattr(stats, statistic_name)(f"{run_name}/{row.name}"), axis=1)
+        data["output"] = data.apply(lambda row: getattr(stats, statistic_name)(f"{run_name}/{row.name}", resolution), axis=1)
 
         # Show a line chart with the output
         st.line_chart(data.output)
