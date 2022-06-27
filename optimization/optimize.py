@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import datetime, timedelta
 import gurobipy as gp
 import os
 import pandas as pd
@@ -9,7 +9,6 @@ import utils
 import validate
 
 from .calculate_time_energy_stored import calculate_time_energy_stored
-from .intialize_model import intialize_model
 
 
 def optimize(config, *, resolution, previous_resolution, status, output_folder):
@@ -24,7 +23,11 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
     """
     Step 1: Create the model and set the parameters
     """
-    model = intialize_model(config)
+    model = gp.Model(config["name"])
+    model.setParam("OutputFlag", 0)
+    model.setParam("Threads", config["optimization"]["thread_count"])
+    model.setParam("Method", config["optimization"]["method"])
+    model.setParam("TimeLimit", (config["optimization"]["time_limit"] - datetime.now()).total_seconds())
 
     """
     Step 2: Create a bidding zone list and set the progress bar
