@@ -5,6 +5,7 @@ click==8.1.3
 click-plugins==1.1.1
 cligj==0.7.2
 cycler==0.11.0
+et-xmlfile==1.1.0
 Fiona==1.8.21
 fonttools==4.33.3
 geopandas==0.11.0
@@ -15,6 +16,7 @@ matplotlib==3.5.2
 multivolumefile==0.2.3
 munch==2.5.0
 numpy==1.22.4
+openpyxl==3.0.10
 packaging==21.3
 pandas==1.4.3
 Pillow==9.1.1
