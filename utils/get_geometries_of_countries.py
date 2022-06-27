@@ -18,7 +18,7 @@ def get_geometries_of_countries(country_codes):
         excluded_geographic_subunits.extend(country.get("excluded_geographic_subunits") or [])
 
     # Get a Geopandas DataFrame with the relevant rows
-    map_df = utils.read_shapefile("./input/countries/ne_10m_admin_0_map_subunits.shp")
+    map_df = utils.read_shapefile("./input/gis/ne_10m_admin_0_map_subunits.shp")
     map_df = map_df[map_df.GU_A3.isin(included_geographic_units)]
     map_df = map_df[~map_df.SU_A3.isin(excluded_geographic_subunits)]
 
