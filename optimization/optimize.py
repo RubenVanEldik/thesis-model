@@ -156,7 +156,6 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
             power_capacity = storage_capacity[bidding_zone].loc[storage_technology, "power"]
 
             # Loop over all hours
-            previous_timestamp = None
             energy_stored_previous = assumptions["soc0"] * energy_capacity
             for timestamp in temporal_data[bidding_zone].index:
                 status.update(f"Adding {utils.labelize_technology(storage_technology, capitalize=False)} storage to {bidding_zone}", timestamp=timestamp)
@@ -182,8 +181,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
                 model.addConstr(inflow[timestamp] <= power_capacity)
                 model.addConstr(outflow[timestamp] <= power_capacity)
 
-                # Update previous_timestamp and energy_stored_previous
-                previous_timestamp = timestamp
+                # Update energy_stored_previous
                 energy_stored_previous = energy_stored_current
 
             # Add the energy stored for this storage technology to the total energy stored column
