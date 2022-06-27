@@ -12,7 +12,7 @@ joblib==1.1.0
 kiwisolver==1.4.3
 matplotlib==3.5.2
 munch==2.5.0
-numpy==1.23.0
+numpy==1.22.4
 packaging==21.3
 pandas==1.4.3
 Pillow==9.1.1
@@ -21,7 +21,7 @@ pyproj==3.2.1
 python-dateutil==2.8.2
 pytz==2022.1
 scikit-learn==1.1.1
-scipy==1.8.1
+scipy==1.7.3
 Shapely==1.8.2
 six==1.16.0
 sklearn==0.0
