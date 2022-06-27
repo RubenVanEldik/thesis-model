@@ -65,12 +65,12 @@ def statistics(run_name, resolution):
                 if show_relative_production_capacity:
                     metric_value = f"{mean_hourly_production / mean_demand:.1%}"
                 else:
-                    metric_value = f"{mean_hourly_production / 1000:,.2f}GW"
+                    metric_value = f"{mean_hourly_production / 1000:,.0f}GW"
             else:
                 if show_relative_production_capacity:
                     metric_value = f"{production_capacity[technology] / mean_demand:.1%}"
                 else:
-                    metric_value = f"{production_capacity[technology] / 1000:,.2f}GW"
+                    metric_value = f"{production_capacity[technology] / 1000:,.0f}GW"
 
             # Set the metric
             cols[index].metric(utils.labelize_technology(technology), metric_value)
