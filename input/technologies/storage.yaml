@@ -1,5 +1,4 @@
 lion:
-  soc0: 0.2
   soc_min: 0.2
   soc_max: 1
   roundtrip_efficiency: 0.85

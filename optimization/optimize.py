@@ -156,7 +156,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
             power_capacity = storage_capacity[bidding_zone].loc[storage_technology, "power"]
 
             # Loop over all hours
-            energy_stored_previous = assumptions["soc0"] * energy_capacity
+            energy_stored_previous = None
             temporal_energy_stored_dict = {}
             for timestamp in temporal_data[bidding_zone].index:
                 status.update(f"Adding {utils.labelize_technology(storage_technology, capitalize=False)} storage to {bidding_zone}", timestamp=timestamp)
@@ -167,9 +167,10 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
                 else:
                     energy_stored_current = model.addVar()
 
-                # Add the state of charge constraints
-                efficiency = assumptions["roundtrip_efficiency"] ** 0.5
-                model.addConstr(energy_stored_current == energy_stored_previous + (inflow[timestamp] * efficiency - outflow[timestamp] / efficiency) * timestep_hours)
+                # Add the SOC constraint with regard to the previous timestamp
+                if energy_stored_previous:
+                    efficiency = assumptions["roundtrip_efficiency"] ** 0.5
+                    model.addConstr(energy_stored_current == energy_stored_previous + (inflow[timestamp] * efficiency - outflow[timestamp] / efficiency) * timestep_hours)
 
                 # Add the energy capacity constraints (can't be added when the flow variables are defined because it's a gurobipy.Var)
                 model.addConstr(energy_stored_current >= assumptions["soc_min"] * energy_capacity)
@@ -187,6 +188,9 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
 
             # Convert the temporal_energy_stored_dict to a Series
             temporal_energy_stored = pd.Series(data=temporal_energy_stored_dict)
+
+            # Ensure that the SOC of the first timestep equals the SOC of the last timestep
+            model.addConstr(temporal_energy_stored.head(1).item() == temporal_energy_stored.tail(1).item())
 
             # Add the temporal energy stored to the temporal_results DataFrame
             temporal_results[bidding_zone][f"energy_stored_{storage_technology}_MWh"] = temporal_energy_stored
