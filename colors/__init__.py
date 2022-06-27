@@ -13,7 +13,7 @@ def get(color, value, *, alpha=1):
     assert validate.is_color_value(value)
     assert validate.is_number(alpha, min_value=0, max_value=1)
 
-    colors = utils.read_csv("./model/colors/colors.csv", index_col=0)
+    colors = utils.read_csv("./colors/colors.csv", index_col=0)
     alpha_hex = hex(round(alpha * 255))[2:].upper().rjust(2, "0")
     return f"{colors.loc[value, color]}{alpha_hex}"
 
@@ -22,7 +22,7 @@ def list():
     """
     Return a list of all available colors
     """
-    colors = utils.read_csv("./model/colors/colors.csv", index_col=0)
+    colors = utils.read_csv("./colors/colors.csv", index_col=0)
     return colors.columns.tolist()
 
 
