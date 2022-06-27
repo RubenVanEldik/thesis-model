@@ -157,6 +157,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
 
             # Loop over all hours
             energy_stored_previous = assumptions["soc0"] * energy_capacity
+            temporal_energy_stored_dict = {}
             for timestamp in temporal_data[bidding_zone].index:
                 status.update(f"Adding {utils.labelize_technology(storage_technology, capitalize=False)} storage to {bidding_zone}", timestamp=timestamp)
 
@@ -165,9 +166,6 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
                     energy_stored_current = model.addVar(lb=config["time_discretization"]["soc_propagation"] * previous_temporal_results.loc[timestamp, f"energy_stored_{storage_technology}_MWh"])
                 else:
                     energy_stored_current = model.addVar()
-
-                # Add the current energy stored to the temporal results DataFrame
-                temporal_results[bidding_zone].loc[timestamp, f"energy_stored_{storage_technology}_MWh"] = energy_stored_current
 
                 # Add the state of charge constraints
                 efficiency = assumptions["roundtrip_efficiency"] ** 0.5
@@ -181,11 +179,18 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
                 model.addConstr(inflow[timestamp] <= power_capacity)
                 model.addConstr(outflow[timestamp] <= power_capacity)
 
+                # Add the current energy stored to temporal_energy_stored_dict
+                temporal_energy_stored_dict[timestamp] = energy_stored_current
+
                 # Update energy_stored_previous
                 energy_stored_previous = energy_stored_current
 
-            # Add the energy stored for this storage technology to the total energy stored column
-            temporal_results[bidding_zone]["energy_stored_total_MWh"] += temporal_results[bidding_zone][f"energy_stored_{storage_technology}_MWh"]
+            # Convert the temporal_energy_stored_dict to a Series
+            temporal_energy_stored = pd.Series(data=temporal_energy_stored_dict)
+
+            # Add the temporal energy stored to the temporal_results DataFrame
+            temporal_results[bidding_zone][f"energy_stored_{storage_technology}_MWh"] = temporal_energy_stored
+            temporal_results[bidding_zone]["energy_stored_total_MWh"] += temporal_energy_stored
 
         """
         Step 3D: Define the interconnection variables
