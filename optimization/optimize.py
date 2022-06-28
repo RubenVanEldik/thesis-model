@@ -375,6 +375,3 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
 
     # Store the optimization log
     utils.write_text(f"{output_folder}/{resolution}/log.txt", "".join(log_messages))
-
-    # Set the final status
-    status.update(f"Optimization has finished and results are stored", type="success")

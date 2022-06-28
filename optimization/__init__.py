@@ -19,6 +19,9 @@ def run(config, *, status=Status(), output_folder):
     # Store the config as a .YAML file
     utils.write_yaml(f"{output_folder}/config.yaml", config)
 
+    # Set the final status
+    status.update(f"Optimization has finished and results are stored", type="success")
+
 
 def run_sensitivity(config, sensitivity_config):
     """
@@ -45,3 +48,6 @@ def run_sensitivity(config, sensitivity_config):
 
     # Store the sensitivity config file
     utils.write_yaml(f"{output_folder}/sensitivity.yaml", sensitivity_config)
+
+    # Set the final status
+    status.update(f"Sensitivity analysis has finished and results are stored", type="success")
