@@ -271,7 +271,7 @@ def is_interconnection_tuple(value, *, required=True):
     if type(value) is not tuple or len(value) != 2:
         return False
 
-    return is_bidding_zone(value[0]) and is_bidding_zone(value[1])
+    return is_bidding_zone(value[0]) and (is_bidding_zone(value[1]) or bool(re.search("^(gross|net)_(ex|im)port_limit$", value[1])))
 
 
 def is_interconnection_type(value, *, required=True):

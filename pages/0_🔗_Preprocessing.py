@@ -90,7 +90,7 @@ def _validate_and_import_interconnection_data():
                 if not validate.is_dataframe(data):
                     is_valid_file = False
 
-                if len(data.columns) < 2 or not all(validate.is_bidding_zone(column[0]) for column in data.columns):
+                if len(data.columns) < 2 or not all(validate.is_interconnection_tuple(column) for column in data.columns):
                     is_valid_file = False
 
                 # Check if the DataFrame has any missing timestamps
