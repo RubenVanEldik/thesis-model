@@ -3,184 +3,255 @@
   name: Albania
   bidding_zones: [AL00]
   included_geographic_units: [ALB]
+  potential:
+    onshore: 16368.52499
 - nuts_2: AT
   alpha_3: AUT
   name: Austria
   bidding_zones: [AT00]
   included_geographic_units: [AUT]
+  potential:
+    onshore: 111695.2452
 - nuts_2: BA
   alpha_3: BIH
   name: Bosnia and Herzegovina
   bidding_zones: [BA00]
   included_geographic_units: [BHF, BIS, BHB]
+  potential:
+    onshore: 92454.61278
 - nuts_2: BE
   alpha_3: BEL
   name: Belgium
   bidding_zones: [BE00]
   included_geographic_units: [BFR, BWR, BCR]
+  potential:
+    onshore: 13548.88149
 - nuts_2: BG
   alpha_3: BGR
   name: Bulgaria
   bidding_zones: [BG00]
   included_geographic_units: [BGR]
+  potential:
+    onshore: 8487.873066
 - nuts_2: CH
   alpha_3: CHE
   name: Switzerland
   bidding_zones: [CH00]
   included_geographic_units: [CHE]
+  potential:
+    onshore: 13684.3703
 - nuts_2: CY
   alpha_3: CYP
   name: Cyprus
   bidding_zones: [CY00]
   included_geographic_units: [CYP]
+  potential: {}
 - nuts_2: CZ
   alpha_3: CZE
   name: Czech Republic
   bidding_zones: [CZ00]
   included_geographic_units: [CZE]
+  potential:
+    onshore: 40886.12328
 - nuts_2: DE
   alpha_3: DEU
   name: Germany
   bidding_zones: [DE00]
   included_geographic_units: [DEU]
+  potential:
+    onshore: 117392.8253
 - nuts_2: DK
   alpha_3: DNK
   name: Denmark
   bidding_zones: [DKE1, DKW1]
   included_geographic_units: [DNK]
+  potential:
+    onshore: 150548.3151
 - nuts_2: EE
   alpha_3: EST
   name: Estonia
   bidding_zones: [EE00]
   included_geographic_units: [EST]
+  potential:
+    onshore: 144673.9717
 - nuts_2: ES
   alpha_3: ESP
   name: Spain
   bidding_zones: [ES00]
   included_geographic_units: [ESP]
   excluded_geographic_subunits: [ESC]
+  potential:
+    onshore: 391316.1594
 - nuts_2: FI
   alpha_3: FIN
   name: Finland
   bidding_zones: [FI00]
   included_geographic_units: [FIN, ALD]
+  potential:
+    onshore: 777503.8953
 - nuts_2: FR
   alpha_3: FRA
   name: France
   bidding_zones: [FR00, FR15]
   included_geographic_units: [FXX]
+  potential:
+    onshore: 1079711.951
 - nuts_2: GR
   alpha_3: GRC
   name: Greece
   bidding_zones: [GR00, GR03]
   included_geographic_units: [GRC]
+  potential:
+    onshore: 72093.18945
 - nuts_2: HR
   alpha_3: HRV
   name: Croatia
   bidding_zones: [HR00]
   included_geographic_units: [HRV]
+  potential:
+    onshore: 34181.50698
 - nuts_2: HU
   alpha_3: HUN
   name: Hungary
   bidding_zones: [HU00]
   included_geographic_units: [HUN]
+  potential:
+    onshore: 17033.15274
 - nuts_2: IE
   alpha_3: IRL
   name: Ireland
   bidding_zones: [IE00]
   included_geographic_units: [IRL]
+  potential:
+    onshore: 317525.7372
 - nuts_2: IT
   alpha_3: ITA
   name: Italy
   bidding_zones: [ITCA, ITCN, ITCS, ITN1, ITS1, ITSA, ITSI]
   included_geographic_units: [ITA]
+  potential:
+    onshore: 109494.4076
 - nuts_2: LT
   alpha_3: LTU
   name: Lithuania
   bidding_zones: [LT00]
   included_geographic_units: [LTU]
+  potential:
+    onshore: 221926.6599
 - nuts_2: LU
   alpha_3: LUX
   name: Luxembourg
   bidding_zones: [LUB1, LUF1, LUG1]
   included_geographic_units: [LUX]
+  potential:
+    onshore: 0
 - nuts_2: LV
   alpha_3: LVA
   name: Latvia
   bidding_zones: [LV00]
   included_geographic_units: [LVA]
+  potential:
+    onshore: 155110.0796
 - nuts_2: ME
   alpha_3: MNE
   name: Montenegro
   bidding_zones: [ME00]
   included_geographic_units: [MNE]
+  potential:
+    onshore: 28013.26503
 - nuts_2: MK
   alpha_3: MKD
   name: FYR of Macedonia
   bidding_zones: [MK00]
   included_geographic_units: [MKD]
+  potential:
+    onshore: 5757.915653
 - nuts_2: MT
   alpha_3: MLT
   name: Malta
   bidding_zones: [MT00]
   included_geographic_units: [MLT]
+  potential: {}
 - nuts_2: NL
   alpha_3: NLD
   name: Netherlands
   bidding_zones: [NL00]
   included_geographic_units: [NLX]
+  potential:
+    onshore: 78847.25957
 - nuts_2: "NO" # Strings are required, otherwise the YAML parser will parse it as a boolean False value
   alpha_3: NOR
   name: Norway
   bidding_zones: [NOM1, NON1, NOS0]
   included_geographic_units: [NOW]
+  potential:
+    onshore: 747165.9611
 - nuts_2: PL
   alpha_3: POL
   name: Poland
   bidding_zones: [PL00]
   included_geographic_units: [POL]
+  potential:
+    onshore: 419543.8884
 - nuts_2: PT
   alpha_3: PRT
   name: Portugal
   bidding_zones: [PT00]
   included_geographic_units: [PRX]
+  potential:
+    onshore: 59674.41051
 - nuts_2: RO
   alpha_3: ROU
   name: Romania
   bidding_zones: [RO00]
   included_geographic_units: [ROU]
+  potential:
+    onshore: 38135.22537
 - nuts_2: RS
   alpha_3: SRB
   name: Serbia
   bidding_zones: [RS00]
   included_geographic_units: [SRV, SRS]
+  potential:
+    onshore: 23653.77034
 - nuts_2: SE
   alpha_3: SWE
   name: Sweden
   bidding_zones: [SE01, SE02, SE03, SE04]
   included_geographic_units: [SWE]
+  potential:
+    onshore: 841925.3066
 - nuts_2: SI
   alpha_3: SVN
   name: Slovenia
   bidding_zones: [SI00]
   included_geographic_units: [SVN]
+  potential:
+    onshore: 4580.086726
 - nuts_2: SK
   alpha_3: SVK
   name: Slovak Republic
   bidding_zones: [SK00]
   included_geographic_units: [SVK]
+  potential:
+    onshore: 17375.51911
 - nuts_2: TR
   alpha_3: TUR
   name: Republic of Turkey
   bidding_zones: [TR00]
   included_geographic_units: [TUR]
+  potential:
+    onshore: 468071.8363
 - nuts_2: UA
   alpha_3: UKR
   name: Ukraine
   bidding_zones: [UA01]
   included_geographic_units: [UKR]
+  potential: {}
 - nuts_2: UK
   alpha_3: GBR
   name: United Kingdom
   bidding_zones: [UK00, UKNI]
   included_geographic_units: [ENG, GGY, IMN, GGY, JEY, NIR, SCT, WLS]
+  potential:
+    onshore: 689995.2295
