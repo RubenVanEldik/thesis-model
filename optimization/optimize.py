@@ -25,6 +25,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
     """
     model = gp.Model(config["name"])
     model.setParam("OutputFlag", 0)
+    model.setParam("BarHomogeneous", 1)  # Don't know what this does, but it speeds up some more complex models
     model.setParam("Threads", config["optimization"]["thread_count"])
     model.setParam("Method", config["optimization"]["method"])
     model.setParam("TimeLimit", (config["optimization"]["time_limit"] - datetime.now()).total_seconds())
