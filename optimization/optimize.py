@@ -251,13 +251,23 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
         temporal_results[bidding_zone].insert(temporal_results[bidding_zone].columns.get_loc("production_total_MW"), "curtailed_MW", curtailed_MW)
 
     """
-    Step 5: Define self-sufficiency constraints
+    Step 5: Define the production potential and self-sufficiency constraints  per country
     """
     for country in config["countries"]:
-        status.update(f"Adding self-sufficiency constraints to {country['name']}")
+        status.update(f"Adding production potential and self-sufficiency constraints to {country['name']}")
 
         # Get the bidding zones for the country
         bidding_zones_in_country = utils.get_bidding_zones_for_countries([country["nuts_2"]])
+
+        # Add a production capacity constraint per production technology per country
+        for production_technology in config["technologies"]["production"]:
+            # Don't add a constraint if the production technology has no potential specified for this country
+            if not production_technology in country["potential"]:
+                continue
+
+            # Add a constraint so cumulative production capacity in the country is always smaller than the potential for that technology
+            total_production_capacity = sum(production_capacity[bidding_zone][production_technology].sum() for bidding_zone in bidding_zones_in_country)
+            model.addConstr(total_production_capacity <= country["potential"][production_technology])
 
         # Add a self-sufficiency constraint for each year
         for year in temporal_results[bidding_zone].index.year.unique():
