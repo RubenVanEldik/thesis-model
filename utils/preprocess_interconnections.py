@@ -36,7 +36,9 @@ def preprocess_interconnections(interconnection_type, year):
 
     if interconnection_type == "limits":
         limits = pd.read_excel(filepath, sheet_name="Max limit", index_col=[0, 1], skiprows=9)
+        limits = limits.loc[:, ~limits.columns.str.contains("^Unnamed")]
         limits = limits.drop(index=("Country Level Maximum NTC ", "UTC"))
+        limits.columns = pd.MultiIndex.from_tuples([tuple(header) for header in limits.columns.str.split(" - ")])
         limits = limits[sorted(limits.columns)]
         limits.index = utils.create_datetime_index(limits.index, year)
         limits.to_csv(f"{output_directory}/limits.csv")
