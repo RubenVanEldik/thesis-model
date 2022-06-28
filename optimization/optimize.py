@@ -42,9 +42,9 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
     # Create dictionaries to store all the data per bidding zone
     temporal_data = {}
     temporal_results = {}
+    temporal_export = {}
     production_capacity = {}
     storage_capacity = {}
-    interconnections = {}
 
     for index, bidding_zone in enumerate(bidding_zones):
         """
@@ -80,9 +80,9 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
             previous_temporal_results = previous_temporal_results[~((previous_temporal_results.index.month == 2) & (previous_temporal_results.index.day == 29))]
 
         # Create empty DataFrames for the interconnections, if they don't exist yet
-        if not len(interconnections):
-            interconnections["hvac"] = pd.DataFrame(index=temporal_results[bidding_zone].index)
-            interconnections["hvdc"] = pd.DataFrame(index=temporal_results[bidding_zone].index)
+        if not len(temporal_export):
+            temporal_export["hvac"] = pd.DataFrame(index=temporal_results[bidding_zone].index)
+            temporal_export["hvdc"] = pd.DataFrame(index=temporal_results[bidding_zone].index)
 
         """
         Step 3B: Define production capacity variables
@@ -201,18 +201,17 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
         Step 3D: Define the interconnection variables
         """
 
-        def add_interconnection(timestamp, *, limits, model_year, model):
-            interconnection_timestamp = timestamp.replace(year=model_year)
-            limit = limits.loc[interconnection_timestamp]
-            return model.addVar(ub=limit)
+        def add_interconnection(timestamp, *, temporal_export_limit, model_year, model):
+            export_limit = temporal_export_limit.loc[timestamp.replace(year=model_year)]
+            return model.addVar(ub=export_limit)
 
         for connection_type in ["hvac", "hvdc"]:
             status.update(f"Adding {connection_type.upper()} interconnections to {bidding_zone}")
-            interconnection_limits = utils.get_interconnections(bidding_zone, type=connection_type, config=config)
-            for column in interconnection_limits:
-                interconnection_limit = interconnection_limits[column] * config["interconnections"]["relative_capacity"]
-                interconnection_index = interconnections[connection_type].index.to_series()
-                interconnections[connection_type][column] = interconnection_index.apply(add_interconnection, limits=interconnection_limit, model_year=config["model_year"], model=model)
+            temporal_export_limits = utils.get_export_limits(bidding_zone, type=connection_type, config=config)
+            for column in temporal_export_limits:
+                temporal_export_limit = temporal_export_limits[column] * config["interconnections"]["relative_capacity"]
+                temporal_export_index = temporal_export[connection_type].index.to_series()
+                temporal_export[connection_type][column] = temporal_export_index.apply(add_interconnection, temporal_export_limit=temporal_export_limit, model_year=config["model_year"], model=model)
 
         # Update the progress bar
         progress.progress((index + 1) / len(bidding_zones))
@@ -227,15 +226,15 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
         status.update(f"Adding demand constraints to {bidding_zone}")
 
         # Add a column for the temporal export to each country
-        for interconnection_type in interconnections:
-            relevant_interconnections = [interconnection for interconnection in interconnections[interconnection_type] if bidding_zone in interconnection]
-            for interconnection in relevant_interconnections:
-                direction = 1 if interconnection[0] == bidding_zone else -config["interconnections"]["efficiency"][interconnection_type]
-                other_bidding_zone = interconnection[1 if interconnection[0] == bidding_zone else 0]
+        for interconnection_type in temporal_export:
+            relevant_temporal_export = [interconnection_bidding_zones for interconnection_bidding_zones in temporal_export[interconnection_type] if bidding_zone in interconnection_bidding_zones]
+            for bidding_zone1, bidding_zone2 in relevant_temporal_export:
+                direction = 1 if bidding_zone1 == bidding_zone else -config["interconnections"]["efficiency"][interconnection_type]
+                other_bidding_zone = bidding_zone1 if bidding_zone2 == bidding_zone else bidding_zone2
                 column_name = f"net_export_{other_bidding_zone}_MW"
                 if column_name not in temporal_results:
                     temporal_results[bidding_zone][column_name] = 0
-                temporal_results[bidding_zone][column_name] += direction * interconnections[interconnection_type][interconnection]
+                temporal_results[bidding_zone][column_name] += direction * temporal_export[interconnection_type][(bidding_zone1, bidding_zone2)]
 
         # Add a column for the total temporal export
         temporal_results[bidding_zone]["net_export_MW"] = 0

@@ -2,9 +2,9 @@ import utils
 import validate
 
 
-def get_interconnections(bidding_zone, *, config, type, direction="export"):
+def get_export_limits(bidding_zone, *, config, type, direction="export"):
     """
-    Find the relevant interconnections for a bidding zone
+    Find the relevant export limits for a bidding zone
     """
     assert validate.is_bidding_zone(bidding_zone)
     assert validate.is_config(config)

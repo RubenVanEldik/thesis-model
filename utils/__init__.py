@@ -11,9 +11,9 @@ from .format_resolution import format_resolution
 from .format_str import format_str
 from .get_bidding_zones_for_countries import get_bidding_zones_for_countries
 from .get_country_of_bidding_zone import get_country_of_bidding_zone
+from .get_export_limits import get_export_limits
 from .get_geometries_of_countries import get_geometries_of_countries
 from .get_temporal_results import get_temporal_results
-from .get_interconnections import get_interconnections
 from .get_nested_key import get_nested_key
 from .get_previous_runs import get_previous_runs
 from .get_production_capacity import get_production_capacity
