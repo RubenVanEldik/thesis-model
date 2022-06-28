@@ -173,6 +173,13 @@ def is_datetime(value, *, required=True):
     return type(value) is datetime.datetime
 
 
+def is_datetime_index(value, *, required=True):
+    if value is None:
+        return not required
+
+    return type(value) is pd.core.indexes.datetimes.DatetimeIndex
+
+
 def is_dict(value, *, required=True):
     if value is None:
         return not required

@@ -200,18 +200,12 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
         """
         Step 3D: Define the interconnection variables
         """
-
-        def add_interconnection(timestamp, *, temporal_export_limit, model_year, model):
-            export_limit = temporal_export_limit.loc[timestamp.replace(year=model_year)]
-            return model.addVar(ub=export_limit)
-
         for connection_type in ["hvac", "hvdc"]:
             status.update(f"Adding {connection_type.upper()} interconnections to {bidding_zone}")
-            temporal_export_limits = utils.get_export_limits(bidding_zone, type=connection_type, config=config)
+            temporal_export_limits = utils.get_export_limits(bidding_zone, type=connection_type, index=temporal_results[bidding_zone].index, config=config)
             for column in temporal_export_limits:
                 temporal_export_limit = temporal_export_limits[column] * config["interconnections"]["relative_capacity"]
-                temporal_export_index = temporal_export[connection_type].index.to_series()
-                temporal_export[connection_type][column] = temporal_export_index.apply(add_interconnection, temporal_export_limit=temporal_export_limit, model_year=config["model_year"], model=model)
+                temporal_export[connection_type][column] = pd.Series(model.addVars(temporal_export[connection_type].index, ub=temporal_export_limit))
 
         # Update the progress bar
         progress.progress((index + 1) / len(bidding_zones))
