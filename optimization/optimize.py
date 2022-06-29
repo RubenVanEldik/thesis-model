@@ -89,6 +89,8 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
         """
         temporal_results[bidding_zone]["production_total_MW"] = 0
         for production_technology in config["technologies"]["production"]:
+            status.update(f"Adding {utils.labelize_technology(production_technology, capitalize=False)} production to {bidding_zone}")
+
             # Create a capacity variable for each climate zone
             climate_zones = [re.match(f"{production_technology}_(.+)_cf", column).group(1) for column in temporal_data[bidding_zone].columns if column.startswith(f"{production_technology}_")]
             if previous_resolution:
@@ -97,17 +99,11 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
             else:
                 capacities = model.addVars(climate_zones)
 
-            # Add the capacities to the production_capacity DataFrame
-            for climate_zone in capacities:
-                production_capacity[bidding_zone].loc[climate_zone, production_technology] = capacities[climate_zone]
-
-            # Calculate the temporal production for a specific technology
-            def calculate_production_in_row(row, production_technology, capacities):
-                status.update(f"Adding {utils.labelize_technology(production_technology, capitalize=False)} production to {bidding_zone}", timestamp=row.name)
-                return sum(row[f"{production_technology}_{climate_zone}_cf"] * capacity for climate_zone, capacity in capacities.items())
-
-            # Calculate the temporal production and add it to the temporal_results DataFrame
-            temporal_production = temporal_data[bidding_zone].apply(calculate_production_in_row, args=(production_technology, capacities), axis=1)
+            # Add the capacities to the production_capacity DataFrame and calculate the temporal production for a specific technology
+            temporal_production = 0
+            for climate_zone, capacity in capacities.items():
+                production_capacity[bidding_zone].loc[climate_zone, production_technology] = capacity
+                temporal_production += temporal_data[bidding_zone][f"{production_technology}_{climate_zone}_cf"] * capacity
             temporal_results[bidding_zone][f"production_{production_technology}_MW"] = temporal_production
             temporal_results[bidding_zone]["production_total_MW"] += temporal_production
 
