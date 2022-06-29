@@ -16,7 +16,7 @@ def get_export_limits(bidding_zone, *, config, type, index, direction="export"):
     interconnections = utils.read_csv(filepath, parse_dates=True, index_col=0, header=[0, 1])
 
     # Remap the export limits from the model year to the selected years
-    interconnections = index.to_series().apply(lambda timestamp: interconnections.loc[timestamp.replace(year=config["model_year"])])
+    interconnections = index.map(lambda timestamp: interconnections.loc[timestamp.replace(year=config["model_year"])])
 
     relevant_interconnections = []
     for country in config["countries"]:
