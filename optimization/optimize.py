@@ -328,16 +328,20 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
     # Run the model
     model.optimize(optimization_callback)
 
-    # Show success or error message
-    if model.status == gp.GRB.TIME_LIMIT:
-        status.update(f"Optimization finished due to the time limit in {timedelta(seconds=model.Runtime)}", type="warning")
-        return
-    elif model.status != gp.GRB.OPTIMAL:
-        status.update("The model could not be resolved", type="error")
-        return
+    # Store the optimization log
+    os.makedirs(f"{output_folder}/{resolution}")
+    utils.write_text(f"{output_folder}/{resolution}/log.txt", "".join(log_messages))
 
     """
-    Step 8: Store the results
+    Step 8: Check if the model could be solved
+    """
+    if model.status == gp.GRB.TIME_LIMIT:
+        return f"The optimization terminated due to the time limit in {timedelta(seconds=model.Runtime)}"
+    if model.status != gp.GRB.OPTIMAL:
+        return "The model could for an unknown reason not be solved"
+
+    """
+    Step 9: Store the results
     """
     # Make a directory for each type of output
     for directory in ["temporal", "production", "storage"]:
@@ -365,6 +369,3 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
         # Convert and store the storage capacity
         storage_capacity_bidding_zone = utils.convert_variables_recursively(storage_capacity[bidding_zone])
         storage_capacity_bidding_zone.to_csv(f"{output_folder}/{resolution}/storage/{bidding_zone}.csv")
-
-    # Store the optimization log
-    utils.write_text(f"{output_folder}/{resolution}/log.txt", "".join(log_messages))

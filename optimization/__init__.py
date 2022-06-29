@@ -13,7 +13,13 @@ def run(config, *, status=Status(), output_folder):
     previous_resolution = None
 
     for resolution in utils.get_sorted_resolution_stages(config, descending=True):
-        optimize(config, resolution=resolution, previous_resolution=previous_resolution, status=status, output_folder=output_folder)
+        error_message = optimize(config, resolution=resolution, previous_resolution=previous_resolution, status=status, output_folder=output_folder)
+
+        # Stop the run if an error occured during the optimization of one of the resolutions
+        if error_message:
+            status.update(error_message, type="error")
+            return
+
         previous_resolution = resolution
 
     # Store the config as a .YAML file
