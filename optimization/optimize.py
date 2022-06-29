@@ -335,8 +335,28 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
     """
     Step 8: Check if the model could be solved
     """
+    if model.status == gp.GRB.INFEASIBLE:
+        return "The model was infeasible"
+    if model.status == gp.GRB.UNBOUNDED:
+        return "The model was unbounded"
+    if model.status == gp.GRB.INF_OR_UNBD:
+        return "The model was either infeasible or unbounded"
+    if model.status == gp.GRB.CUTOFF:
+        return "The optimal objective for the model was worse than the value specified in the Cutoff parameter"
+    if model.status == gp.GRB.ITERATION_LIMIT:
+        return "The optimization terminated because the total number of iterations performed exceeded the value specified in the IterationLimit or BarIterLimit parameter"
+    if model.status == gp.GRB.NODE_LIMIT:
+        return "The optimization terminated because the total number of branch-and-cut nodes explored exceeded the value specified in the NodeLimit parameter"
     if model.status == gp.GRB.TIME_LIMIT:
         return f"The optimization terminated due to the time limit in {timedelta(seconds=model.Runtime)}"
+    if model.status == gp.GRB.SOLUTION_LIMIT:
+        return "The optimization terminated because the number of solutions found reached the value specified in the SolutionLimit parameter"
+    if model.status == gp.GRB.INTERRUPTED:
+        return "The optimization was terminated by the user"
+    if model.status == gp.GRB.NUMERIC:
+        return "The optimization was terminated due to unrecoverable numerical difficulties"
+    if model.status == gp.GRB.SUBOPTIMAL:
+        return "Unable to satisfy optimality tolerances; a sub-optimal solution is available"
     if model.status != gp.GRB.OPTIMAL:
         return "The model could for an unknown reason not be solved"
 
