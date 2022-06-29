@@ -15,6 +15,11 @@ def get_export_limits(bidding_zone, *, config, type, index, direction="export"):
     filepath = f"./input/interconnections/{config['model_year']}/{type}.csv"
     interconnections = utils.read_csv(filepath, parse_dates=True, index_col=0, header=[0, 1])
 
+    # Resample the interconnections if required
+    if len(interconnections.index) != len(index):
+        resolution = index[1] - index[0]
+        interconnections = interconnections.resample(resolution).mean()
+
     # Remap the export limits from the model year to the selected years
     interconnections = index.to_series().apply(lambda timestamp: interconnections.loc[timestamp.replace(year=config["model_year"])])
 
