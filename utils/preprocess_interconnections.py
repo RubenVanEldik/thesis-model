@@ -6,6 +6,22 @@ import utils
 import validate
 
 
+def _format_export_limit_type(limit_type):
+    """
+    Format the export limit type to snake_case
+    """
+    assert validate.is_string(limit_type)
+
+    if limit_type == "Gross Export limit":
+        return "gross_export_limit"
+    if limit_type == "Gross Import limit":
+        return "gross_import_limit"
+    if limit_type == "Country position (net exp. limit)":
+        return "net_export_limit"
+    if limit_type == "Country position (net imp. limit)":
+        return "net_import_limit"
+
+
 def preprocess_interconnections(interconnection_type, year):
     """
     Create separate CSV files for the HVAC, HVDC, and limits data
@@ -38,7 +54,7 @@ def preprocess_interconnections(interconnection_type, year):
         limits = pd.read_excel(filepath, sheet_name="Max limit", index_col=[0, 1], skiprows=9)
         limits = limits.loc[:, ~limits.columns.str.contains("^Unnamed")]
         limits = limits.drop(index=("Country Level Maximum NTC ", "UTC"))
-        limits.columns = pd.MultiIndex.from_tuples([tuple(header) for header in limits.columns.str.split(" - ")])
+        limits.columns = pd.MultiIndex.from_tuples([(bidding_zone, _format_export_limit_type(limit_type)) for bidding_zone, limit_type in limits.columns.str.split(" - ")])
         limits = limits[sorted(limits.columns)]
         limits.index = utils.create_datetime_index(limits.index, year)
         limits.to_csv(f"{output_directory}/limits.csv")
