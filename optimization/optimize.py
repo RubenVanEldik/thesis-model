@@ -103,7 +103,8 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
             temporal_production = 0
             for climate_zone, capacity in capacities.items():
                 production_capacity[bidding_zone].loc[climate_zone, production_technology] = capacity
-                temporal_production += temporal_data[bidding_zone][f"{production_technology}_{climate_zone}_cf"] * capacity
+                # Apply is required, otherwise it will throw a ValueError if there are more than a few thousand rows (see https://stackoverflow.com/questions/64801287)
+                temporal_production += temporal_data[bidding_zone][f"{production_technology}_{climate_zone}_cf"].apply(lambda cf: cf * capacity)
             temporal_results[bidding_zone][f"production_{production_technology}_MW"] = temporal_production
             temporal_results[bidding_zone]["production_total_MW"] += temporal_production
 
