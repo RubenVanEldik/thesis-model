@@ -16,6 +16,8 @@ def correlation(run_name, resolution):
 
     st.title("📉 Correlation")
 
+    st.sidebar.header("Options")
+
     # Get the temporal results and merge them on a single column
     all_temporal_results = utils.get_temporal_results(run_name, resolution, group="country")
     relevant_columns = utils.find_common_columns(all_temporal_results)

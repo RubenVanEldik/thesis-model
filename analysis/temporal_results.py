@@ -13,6 +13,8 @@ def temporal_results(run_name, resolution):
 
     st.title("🕰️ Temporal results")
 
+    st.sidebar.header("Options")
+
     # Get temporal results for a country
     all_temporal_results = utils.get_temporal_results(run_name, resolution, group="country")
     config = utils.read_yaml(f"./output/{run_name}/config.yaml")

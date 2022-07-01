@@ -16,6 +16,8 @@ def duration_curve(run_name, resolution):
 
     st.title("⌛ Duration curve")
 
+    st.sidebar.header("Options")
+
     # Get the storage capacity and temporal results
     all_temporal_results = utils.get_temporal_results(run_name, resolution, group="country")
 

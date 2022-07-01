@@ -40,7 +40,6 @@ def run():
         analysis_type = st.sidebar.radio("Type of analysis", analysis_type_options, format_func=utils.format_str)
 
     # Run the analysis
-    st.sidebar.header("Options")
     getattr(analysis, analysis_type)(selected_run, selected_resolution)
 
 

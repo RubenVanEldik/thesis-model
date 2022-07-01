@@ -85,6 +85,8 @@ def countries(run_name, resolution):
 
     st.title("🎌 Countries")
 
+    st.sidebar.header("Options")
+
     # Check if the data should be relative and get the numerator data
     relative = st.sidebar.checkbox("Relative")
     numerator = _select_data(run_name, resolution, name="numerator")

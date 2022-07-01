@@ -14,6 +14,8 @@ def sensitivity(run_name, resolution):
 
     st.title("⚖️ Sensitivity analysis")
 
+    st.sidebar.header("Options")
+
     # Get the sensitivity analysis
     sensitivity_config = utils.read_yaml(f"./output/{run_name}/sensitivity.yaml")
 
