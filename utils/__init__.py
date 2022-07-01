@@ -26,6 +26,7 @@ from .preprocess_bidding_zone import preprocess_bidding_zone
 from .preprocess_interconnections import preprocess_interconnections
 from .read_csv import read_csv
 from .read_temporal_data import read_temporal_data
+from .read_text import read_text
 from .read_shapefile import read_shapefile
 from .read_yaml import read_yaml
 from .set_nested_key import set_nested_key
