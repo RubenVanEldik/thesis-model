@@ -244,13 +244,12 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
     Step 5: Define the production potential and self-sufficiency constraints  per country
     """
     for country in config["countries"]:
-        status.update(f"Adding production potential and self-sufficiency constraints to {country['name']}")
-
         # Get the bidding zones for the country
         bidding_zones_in_country = utils.get_bidding_zones_for_countries([country["nuts_2"]])
 
         # Add a production capacity constraint per production technology per country
         for production_technology in config["technologies"]["production"]:
+            status.update(f"Adding {utils.labelize_technology(production_technology, capitalize=False)} potential to {country['name']}")
             # Don't add a constraint if the production technology has no potential specified for this country
             if not production_technology in country["potential"]:
                 continue
@@ -259,22 +258,26 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
             total_production_capacity = sum(production_capacity[bidding_zone][production_technology].sum() for bidding_zone in bidding_zones_in_country)
             model.addConstr(total_production_capacity <= country["potential"][production_technology])
 
-        # Add a self-sufficiency constraint for each year
-        for year in temporal_results[bidding_zone].index.year.unique():
-            total_demand = 0
-            total_production = 0
+        # Add a self-sufficiency constraint to each country
+        status.update(f"Adding self-sufficiency constraint to {country['name']}")
 
-            # Sum the demand and production for all bidding zones
-            for bidding_zone in bidding_zones_in_country:
-                annual_temporal_results_bidding_zone = temporal_results[bidding_zone][temporal_results[bidding_zone].index.year == year]
+        # Set the variables required to calculate the cumulative results in the country
+        sum_demand = 0
+        sum_production = 0
+        sum_curtailed = 0
+        sum_storage_flow = 0
 
-                # Calculate the total demand and non-curtailed production in this country
-                total_demand += annual_temporal_results_bidding_zone.demand_MW.sum()
-                total_production += (annual_temporal_results_bidding_zone.production_total_MW - annual_temporal_results_bidding_zone.curtailed_MW).sum()
+        # Loop over all bidding zones in the country
+        for bidding_zone in bidding_zones_in_country:
+            # Calculate the total demand and non-curtailed production in this country
+            sum_demand += temporal_results[bidding_zone].demand_MW.sum()
+            sum_production += temporal_results[bidding_zone].production_total_MW.sum()
+            sum_curtailed += temporal_results[bidding_zone].curtailed_MW.sum()
+            sum_storage_flow += temporal_results[bidding_zone].net_storage_flow_total_MW.sum()
 
-            # Add a constraint so cumulative production over the cumulative demand is always greater than the minimum self-sufficiency factor
-            min_self_sufficiency = config["interconnections"]["min_self_sufficiency"]
-            model.addConstr(total_production / total_demand >= min_self_sufficiency)
+        # Add the self-sufficiency constraint
+        min_self_sufficiency = config["interconnections"]["min_self_sufficiency"]
+        model.addConstr((sum_production - sum_curtailed - sum_storage_flow) / sum_demand >= min_self_sufficiency)
 
     """
     Step 6: Set objective function
