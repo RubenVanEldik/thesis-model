@@ -36,7 +36,7 @@ def run():
     if is_sensitivity_analysis:
         analysis_type = "sensitivity"
     else:
-        analysis_type_options = ["statistics", "temporal_results", "countries", "correlation", "duration_curve"]
+        analysis_type_options = ["statistics", "temporal_results", "countries", "correlation", "duration_curve", "optimization_log"]
         analysis_type = st.sidebar.radio("Type of analysis", analysis_type_options, format_func=utils.format_str)
 
     # Run the analysis
