@@ -100,3 +100,20 @@ def storage_capacity(run_name, resolution, *, type, countries=None):
         return {}
 
     return storage_capacity[type].to_dict()
+
+
+def self_sufficiency(run_name, resolution, *, countries=None):
+    """
+    Return the self-sufficiency factor for the selected countries
+    """
+    assert validate.is_string(run_name)
+    assert validate.is_resolution(resolution)
+    assert validate.is_country_code_list(countries, type="nuts_2", required=False)
+
+    temporal_results = utils.get_temporal_results(run_name, resolution, countries=countries)
+    mean_demand = utils.merge_dataframes_on_column(temporal_results, "demand_MW").mean(axis=1)
+    mean_production = utils.merge_dataframes_on_column(temporal_results, "production_total_MW").mean(axis=1)
+    mean_curtailment = utils.merge_dataframes_on_column(temporal_results, "curtailed_MW").mean(axis=1)
+    mean_storage_flow = utils.merge_dataframes_on_column(temporal_results, "net_storage_flow_total_MW").mean(axis=1)
+
+    return (mean_production - mean_curtailment - mean_storage_flow).mean() / mean_demand.mean()

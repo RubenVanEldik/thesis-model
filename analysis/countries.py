@@ -23,7 +23,7 @@ def _select_data(run_name, resolution, *, name):
 
     if data_source == "Statistics":
         # Get the type of statistic
-        statistic_type_options = ["firm_lcoe", "unconstrained_lcoe", "premium", "relative_curtailment"]
+        statistic_type_options = ["firm_lcoe", "unconstrained_lcoe", "premium", "relative_curtailment", "self_sufficiency"]
         statistic_type = col2.selectbox("Type", statistic_type_options, format_func=utils.format_str, key=name)
         statistic_method = getattr(stats, statistic_type)
 
