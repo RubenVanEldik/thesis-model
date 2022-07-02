@@ -81,8 +81,9 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
 
         # Create empty DataFrames for the interconnections, if they don't exist yet
         if not len(temporal_export):
-            temporal_export["hvac"] = pd.DataFrame(index=temporal_results[bidding_zone].index)
-            temporal_export["hvdc"] = pd.DataFrame(index=temporal_results[bidding_zone].index)
+            temporal_export_columns = pd.MultiIndex.from_tuples([], names=["from", "to"])
+            temporal_export["hvac"] = pd.DataFrame(index=temporal_results[bidding_zone].index, columns=temporal_export_columns)
+            temporal_export["hvdc"] = pd.DataFrame(index=temporal_results[bidding_zone].index, columns=temporal_export_columns)
 
         """
         Step 3B: Define production capacity variables
@@ -225,7 +226,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
                 column_name = f"net_export_{other_bidding_zone}_MW"
                 if column_name not in temporal_results:
                     temporal_results[bidding_zone][column_name] = 0
-                temporal_results[bidding_zone][column_name] += direction * temporal_export[interconnection_type][(bidding_zone1, bidding_zone2)]
+                temporal_results[bidding_zone][column_name] += direction * temporal_export[interconnection_type][bidding_zone1, bidding_zone2]
 
         # Add a column for the total temporal export
         temporal_results[bidding_zone]["net_export_MW"] = 0
