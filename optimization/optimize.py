@@ -364,10 +364,10 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
     Step 9: Store the results
     """
     # Make a directory for each type of output
-    for directory in ["temporal", "production", "storage"]:
+    for directory in ["temporal", "export", "production", "storage"]:
         os.makedirs(f"{output_folder}/{resolution}/{directory}")
 
-    # Store the actual values per bidding zone for the temporal results
+    # Store the actual values per bidding zone for the temporal results and capacities
     for bidding_zone in bidding_zones:
         status.update(f"Converting and storing the results for {bidding_zone}")
         # Convert the temporal results variables
@@ -389,3 +389,8 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
         # Convert and store the storage capacity
         storage_capacity_bidding_zone = utils.convert_variables_recursively(storage_capacity[bidding_zone])
         storage_capacity_bidding_zone.to_csv(f"{output_folder}/{resolution}/storage/{bidding_zone}.csv")
+
+    # Store the actual values per connection type for the temporal export
+    for connection_type in ["hvac", "hvdc"]:
+        temporal_export_connection_type = utils.convert_variables_recursively(temporal_export[connection_type])
+        temporal_export_connection_type.to_csv(f"{output_folder}/{resolution}/export/{connection_type}.csv")
