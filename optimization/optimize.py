@@ -66,7 +66,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
 
         if previous_resolution:
             # Get the temporal results from the previous run
-            previous_temporal_results = utils.read_csv(f"{output_folder}/{previous_resolution}/temporal/{bidding_zone}.csv", parse_dates=True, index_col=0)
+            previous_temporal_results = utils.read_csv(f"{output_folder}/{previous_resolution}/temporal_results/{bidding_zone}.csv", parse_dates=True, index_col=0)
             # Resample the previous results so it has the same timestamps as the current step
             previous_temporal_results = previous_temporal_results.resample(resolution).mean()
             # Find and add the rows that are missing in the previous results (the resample method does not add rows after the last timestamp)
@@ -365,7 +365,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
     Step 9: Store the results
     """
     # Make a directory for each type of output
-    for directory in ["temporal", "export", "production", "storage"]:
+    for directory in ["temporal_results", "temporal_export", "production", "storage"]:
         os.makedirs(f"{output_folder}/{resolution}/{directory}")
 
     # Store the actual values per bidding zone for the temporal results and capacities
@@ -381,7 +381,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
             temporal_results_bidding_zone.insert(column_index, f"time_stored_{storage_technology}_H", time_stored_H)
 
         # Store the temporal results to a CSV file
-        temporal_results_bidding_zone.to_csv(f"{output_folder}/{resolution}/temporal/{bidding_zone}.csv")
+        temporal_results_bidding_zone.to_csv(f"{output_folder}/{resolution}/temporal_results/{bidding_zone}.csv")
 
         # Convert and store the production capacity
         production_capacity_bidding_zone = utils.convert_variables_recursively(production_capacity[bidding_zone])
@@ -394,4 +394,4 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
     # Store the actual values per connection type for the temporal export
     for connection_type in ["hvac", "hvdc"]:
         temporal_export_connection_type = utils.convert_variables_recursively(temporal_export[connection_type])
-        temporal_export_connection_type.to_csv(f"{output_folder}/{resolution}/export/{connection_type}.csv")
+        temporal_export_connection_type.to_csv(f"{output_folder}/{resolution}/temporal_export/{connection_type}.csv")
