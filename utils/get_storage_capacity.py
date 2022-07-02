@@ -23,7 +23,7 @@ def get_storage_capacity(run_name, resolution, *, group=None, countries=None):
     # Get the storage capacity for each bidding zone
     storage_capacity = {}
     for bidding_zone in utils.get_bidding_zones_for_countries(countries):
-        filepath = f"./output/{run_name}/{resolution}/storage/{bidding_zone}.csv"
+        filepath = f"./output/{run_name}/{resolution}/storage_capacities/{bidding_zone}.csv"
         storage_capacity[bidding_zone] = utils.read_csv(filepath, index_col=0)
 
     # Return a dictionary with the storage capacity per bidding zone DataFrame if not grouped
