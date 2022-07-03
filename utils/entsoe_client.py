@@ -11,4 +11,4 @@ if not api_key:
     raise KeyError("ENTSOE_KEY variable has not been set")
 
 # Return an initialized ENTSO-E Pandas client
-entsoe = EntsoePandasClient(api_key=api_key)
+entsoe_client = EntsoePandasClient(api_key=api_key)
