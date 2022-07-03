@@ -10,7 +10,7 @@ import validate
 
 
 def get_default_name():
-    runs = utils.get_previous_runs()
+    runs = utils.get_previous_runs(include_uncompleted_runs=True)
     runs_with_proper_names = [run for run in runs if re.search(r"^Run \d\d\d\d", run)]
 
     # Calculate what the next default name should be
@@ -160,7 +160,7 @@ with st.sidebar.expander("Optimization parameters"):
 invalid_config = not validate.is_config(config, new_config=True)
 invalid_sensitivity_config = sensitivity_enabled and not validate.is_sensitivity_config(sensitivity_config)
 if st.sidebar.button("Run model", disabled=invalid_config or invalid_sensitivity_config):
-    if config["name"] in utils.get_previous_runs():
+    if config["name"] in utils.get_previous_runs(include_uncompleted_runs=True):
         st.error(f"There is already a run called '{config['name']}'")
     elif sensitivity_enabled:
         optimization.run_sensitivity(config, sensitivity_config)

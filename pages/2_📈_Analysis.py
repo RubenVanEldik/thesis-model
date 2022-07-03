@@ -8,15 +8,14 @@ import utils
 def run():
     # Get the previous runs
     previous_runs = utils.get_previous_runs()
-    previous_completed_runs = [previous_run for previous_run in previous_runs if utils.validate_run(previous_run)]
 
     # Show a warning and return the function if there are no completed runs
-    if not previous_completed_runs:
+    if not previous_runs:
         st.sidebar.warning("There are no previous runs to analyze")
         return
 
     # Select the run to analyze
-    selected_run = st.sidebar.selectbox("Previous runs", previous_completed_runs)
+    selected_run = st.sidebar.selectbox("Previous runs", previous_runs)
     is_sensitivity_analysis = os.path.isfile(f"./output/{selected_run}/sensitivity.yaml")
 
     # Get the config
