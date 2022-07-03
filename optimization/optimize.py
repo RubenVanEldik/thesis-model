@@ -1,3 +1,4 @@
+import math
 from datetime import datetime, timedelta
 import gurobipy as gp
 import os
@@ -75,6 +76,11 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
                 previous_temporal_results.loc[timestamp] = None
             # Remove all rows that are in previous_temporal_results but not in the new temporal_results DataFrame (don't know why this happens, but it happens sometimes)
             previous_temporal_results = previous_temporal_results[previous_temporal_results.index.isin(temporal_results[bidding_zone].index)]
+            # Interpolate the empty rows for the energy stored columns created by the resample method
+            previous_energy_stored_columns = previous_temporal_results.filter(regex="energy_stored_.+_MWh", axis=1)
+            relative_resolution = math.ceil(pd.Timedelta(previous_resolution) / pd.Timedelta(resolution))
+            previous_energy_stored_columns = previous_energy_stored_columns.interpolate().shift(relative_resolution - 1, axis=0).fillna(0)
+            previous_temporal_results[previous_energy_stored_columns.columns] = previous_energy_stored_columns
             # Fill the empty rows created by the resample method by the value from the previous rows
             previous_temporal_results = previous_temporal_results.ffill()
             # Remove the leap days from the dataset that could have been introduced by the resample method
