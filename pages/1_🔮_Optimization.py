@@ -152,6 +152,7 @@ with st.sidebar.expander("Optimization parameters"):
 
     # Select the thread count
     cpu_count = os.cpu_count()
+    config["optimization"]["barrier_convergence_tolerance"] = st.select_slider("Barrier convergence tolerance", [10 ** exponent for exponent in range(-12, -7)], value=10 ** -10)
     config["optimization"]["thread_count"] = st.slider("Thread count", value=cpu_count, min_value=1, max_value=cpu_count)
 
 
