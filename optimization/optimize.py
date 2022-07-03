@@ -376,10 +376,10 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
         temporal_results_bidding_zone = utils.convert_variables_recursively(temporal_results[bidding_zone])
 
         # Calculate the time of energy stored per storage technology per hour
-        for storage_technology in config["technologies"]["storage"]:
-            time_stored_H = temporal_results_bidding_zone.apply(calculate_time_energy_stored, storage_technology=storage_technology, temporal_results=temporal_results_bidding_zone, axis=1)
-            column_index = temporal_results_bidding_zone.columns.get_loc(f"energy_stored_{storage_technology}_MWh") + 1
-            temporal_results_bidding_zone.insert(column_index, f"time_stored_{storage_technology}_H", time_stored_H)
+        # for storage_technology in config["technologies"]["storage"]:
+        #     time_stored_H = temporal_results_bidding_zone.apply(calculate_time_energy_stored, storage_technology=storage_technology, temporal_results=temporal_results_bidding_zone, axis=1)
+        #     column_index = temporal_results_bidding_zone.columns.get_loc(f"energy_stored_{storage_technology}_MWh") + 1
+        #     temporal_results_bidding_zone.insert(column_index, f"time_stored_{storage_technology}_H", time_stored_H)
 
         # Store the temporal results to a CSV file
         temporal_results_bidding_zone.to_csv(f"{output_folder}/{resolution}/temporal_results/{bidding_zone}.csv")
