@@ -11,15 +11,15 @@ import validate
 
 def get_default_name():
     runs = utils.get_previous_runs()
-    runs_with_proper_names = [run for run in runs if re.search(r"^run_\d\d\d\d", run)]
+    runs_with_proper_names = [run for run in runs if re.search(r"^Run \d\d\d\d", run)]
 
     # Calculate what the next default name should be
     if runs_with_proper_names:
         last_run_with_proper_name = runs_with_proper_names[0]
-        last_run_number = re.search(r"^run_(\d\d\d\d)", last_run_with_proper_name).group(1)
-        default_name = f"run_{int(last_run_number) + 1:04}"
+        last_run_number = re.search(r"^Run (\d\d\d\d)", last_run_with_proper_name).group(1)
+        default_name = f"Run {int(last_run_number) + 1:04}"
     else:
-        default_name = "run_0001"
+        default_name = "Run 0001"
     return default_name
 
 
