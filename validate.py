@@ -200,7 +200,7 @@ def is_directory_path(value, *, required=True):
     if value is None:
         return not required
 
-    return bool(re.search("^[0-9a-zA-Z_\-\./\(\), ]+$", value))
+    return bool(re.search("^[^\n\r\t\0]+$", value))
 
 
 def is_aggregation_level(value, *, required=True):
