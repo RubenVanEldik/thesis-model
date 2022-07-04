@@ -25,6 +25,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
     Step 1: Create the model and set the parameters
     """
     model = gp.Model(config["name"])
+    model.setParam("Crossover", 0 if utils.is_last_resolution(resolution, config=config) else -1)
     model.setParam("OutputFlag", 0)
     model.setParam("BarConvTol", config["optimization"]["barrier_convergence_tolerance"])
     model.setParam("BarHomogeneous", 1)  # Don't know what this does, but it speeds up some more complex models
