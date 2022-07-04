@@ -23,7 +23,7 @@ def temporal_results(run_name, resolution):
 
     # Filter the data columns
     temporal_results.columns = [utils.format_column_name(column_name) for column_name in temporal_results.columns]
-    columns = st.sidebar.multiselect("Columns", temporal_results.columns)
+    columns = st.sidebar.multiselect("Columns", temporal_results.columns, default=temporal_results.columns.values[:1])
     temporal_results = temporal_results[columns]
 
     # Show the chart and DataFrame if any columns are selected
