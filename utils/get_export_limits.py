@@ -15,15 +15,15 @@ def _read_and_map_export_limits(*, model_year, type, timestamps):
 
     # Read the interconnection CSV file
     filepath = f"./input/interconnections/{model_year}/{type}.csv"
-    interconnections = utils.read_csv(filepath, parse_dates=True, index_col=0, header=[0, 1])
+    export_limits = utils.read_csv(filepath, parse_dates=True, index_col=0, header=[0, 1])
 
-    # Resample the interconnections if required
-    if len(interconnections.index) != len(timestamps):
+    # Resample the export limits if required
+    if len(export_limits.index) != len(timestamps):
         resolution = timestamps[1] - timestamps[0]
-        interconnections = interconnections.resample(resolution).mean()
+        export_limits = export_limits.resample(resolution).mean()
 
     # Remap the export limits from the model year to the selected years
-    return timestamps.apply(lambda timestamp: interconnections.loc[timestamp.replace(year=model_year)])
+    return timestamps.apply(lambda timestamp: export_limits.loc[timestamp.replace(year=model_year)])
 
 
 def get_export_limits(bidding_zone, *, config, type, index, direction="export"):
@@ -37,12 +37,12 @@ def get_export_limits(bidding_zone, *, config, type, index, direction="export"):
     assert validate.is_interconnection_direction(direction)
 
     # Read and map the export limits
-    interconnections = _read_and_map_export_limits(model_year=config["model_year"], type=type, timestamps=index.to_series())
+    export_limits = _read_and_map_export_limits(model_year=config["model_year"], type=type, timestamps=index.to_series())
 
     relevant_interconnections = []
     for country in config["countries"]:
         for zone in country["bidding_zones"]:
             interconnection = (bidding_zone, zone) if direction == "export" else (zone, bidding_zone)
-            if interconnection in interconnections:
+            if interconnection in export_limits.columns:
                 relevant_interconnections.append(interconnection)
-    return interconnections[relevant_interconnections]
+    return export_limits[relevant_interconnections]
