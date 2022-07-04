@@ -142,7 +142,7 @@ with st.sidebar.expander("Optimization parameters"):
 
     # Select the optimization method
     method_options = {-1: "Automatic", 0: "Primal simplex", 1: "Dual simplex", 2: "Barrier", 3: "Concurrent", 4: "Deterministic concurrent", 5: "Deterministic concurrent simplex"}
-    config["optimization"]["method"] = st.selectbox("Method", method_options.keys(), format_func=lambda key: method_options[key])
+    config["optimization"]["method"] = st.selectbox("Method", method_options.keys(), index=3, format_func=lambda key: method_options[key])
 
     # Select the time limit
     col1, col2 = st.columns(2)
@@ -152,7 +152,7 @@ with st.sidebar.expander("Optimization parameters"):
 
     # Select the thread count
     cpu_count = os.cpu_count()
-    config["optimization"]["barrier_convergence_tolerance"] = st.select_slider("Barrier convergence tolerance", [10 ** exponent for exponent in range(-12, -7)], value=10 ** -10)
+    config["optimization"]["barrier_convergence_tolerance"] = st.select_slider("Barrier convergence tolerance", [10 ** exponent for exponent in range(-12, -5)], value=10 ** -9)
     config["optimization"]["thread_count"] = st.slider("Thread count", value=cpu_count, min_value=1, max_value=cpu_count)
 
 
