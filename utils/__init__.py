@@ -21,6 +21,7 @@ from .get_production_capacity import get_production_capacity
 from .get_sorted_resolution_stages import get_sorted_resolution_stages
 from .get_storage_capacity import get_storage_capacity
 from .get_technology_assumptions import get_technology_assumptions
+from .is_last_resolution import is_last_resolution
 from .labelize_technology import labelize_technology
 from .merge_dataframes_on_column import merge_dataframes_on_column
 from .preprocess_bidding_zone import preprocess_bidding_zone
