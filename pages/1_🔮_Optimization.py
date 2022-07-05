@@ -37,9 +37,12 @@ with st.sidebar.expander("Scope"):
     # Select the countries
     countries = utils.read_yaml("./input/countries.yaml")
     country_codes = [country["nuts_2"] for country in countries]
-    default_countries = ["NL", "BE", "DE"]
-    format_func = lambda nuts_2: next((country["name"] for country in countries if country["nuts_2"] == nuts_2), None)
-    selected_countries = st.multiselect("Countries", country_codes, default=default_countries, format_func=format_func)
+    if st.checkbox("Include all countries"):
+        selected_countries = country_codes
+    else:
+        default_countries = ["NL", "BE", "DE"]
+        format_func = lambda nuts_2: next((country["name"] for country in countries if country["nuts_2"] == nuts_2), None)
+        selected_countries = st.multiselect("Countries", country_codes, default=default_countries, format_func=format_func)
     config["countries"] = [country for country in countries if country["nuts_2"] in selected_countries]
 
     # Select the date range
