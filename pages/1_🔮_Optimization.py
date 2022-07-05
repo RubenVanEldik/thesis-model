@@ -37,7 +37,7 @@ with st.sidebar.expander("Scope"):
     # Select the countries
     countries = utils.read_yaml("./input/countries.yaml")
     country_codes = [country["nuts_2"] for country in countries]
-    if st.checkbox("Include all countries"):
+    if st.checkbox("Include all countries", value=True):
         selected_countries = country_codes
     else:
         default_countries = ["NL", "BE", "DE"]
