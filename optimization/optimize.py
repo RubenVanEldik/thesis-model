@@ -16,7 +16,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
     """
     Create and run the model
     """
-    assert validate.is_config(config, new_config=True)
+    assert validate.is_config(config)
     assert validate.is_resolution(resolution)
     assert validate.is_resolution(previous_resolution, required=False)
     assert validate.is_directory_path(output_folder)
@@ -30,7 +30,6 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
     # Set the user defined parameters
     model.setParam("Threads", config["optimization"]["thread_count"])
     model.setParam("Method", config["optimization"]["method"])
-    model.setParam("TimeLimit", (config["optimization"]["time_limit"] - datetime.now()).total_seconds())
 
     # Improve the speed of the model
     is_last_resolution = utils.get_sorted_resolution_stages(config, descending=True)[-1]

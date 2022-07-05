@@ -62,7 +62,7 @@ def is_color_value(value, *, required=True):
     return value in [50, 100, 200, 300, 400, 500, 600, 700, 800, 900]
 
 
-def is_config(value, *, required=True, new_config=False):
+def is_config(value, *, required=True):
     if value is None:
         return not required
 
@@ -82,10 +82,6 @@ def is_config(value, *, required=True, new_config=False):
     if not is_resolution_stages(value["time_discretization"].get("resolution_stages")):
         return False
     if not value.get("optimization"):
-        return False
-    if not is_datetime(value["optimization"].get("time_limit")):
-        return False
-    if new_config and value["optimization"].get("time_limit") < datetime.datetime.now():
         return False
     if not is_integer(value["optimization"].get("method"), min_value=-1, max_value=6):
         return False

@@ -147,19 +147,13 @@ with st.sidebar.expander("Optimization parameters"):
     method_options = {-1: "Automatic", 0: "Primal simplex", 1: "Dual simplex", 2: "Barrier", 3: "Concurrent", 4: "Deterministic concurrent", 5: "Deterministic concurrent simplex"}
     config["optimization"]["method"] = st.selectbox("Method", method_options.keys(), index=3, format_func=lambda key: method_options[key])
 
-    # Select the time limit
-    col1, col2 = st.columns(2)
-    end_date = col1.date_input("End date", value=datetime.now() + timedelta(days=1), min_value=datetime.now())
-    end_time = col2.time_input("End time", value=time(9))
-    config["optimization"]["time_limit"] = datetime.combine(end_date, end_time)
-
     # Select the thread count
     cpu_count = os.cpu_count()
     config["optimization"]["thread_count"] = st.slider("Thread count", value=cpu_count, min_value=1, max_value=cpu_count)
 
 
 # Run the model if the button has been pressed
-invalid_config = not validate.is_config(config, new_config=True)
+invalid_config = not validate.is_config(config)
 invalid_sensitivity_config = sensitivity_enabled and not validate.is_sensitivity_config(sensitivity_config)
 if st.sidebar.button("Run model", disabled=invalid_config or invalid_sensitivity_config):
     if config["name"] in utils.get_previous_runs(include_uncompleted_runs=True):

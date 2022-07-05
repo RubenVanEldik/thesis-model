@@ -33,7 +33,7 @@ def run_sensitivity(config, sensitivity_config):
     """
     Run the model for each step in the sensitivity analysis
     """
-    assert validate.is_config(config, new_config=True)
+    assert validate.is_config(config)
     assert validate.is_sensitivity_config(sensitivity_config)
 
     status = Status()
