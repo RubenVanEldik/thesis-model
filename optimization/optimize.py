@@ -25,13 +25,19 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
     Step 1: Create the model and set the parameters
     """
     model = gp.Model(config["name"])
-    model.setParam("Crossover", 0 if utils.is_last_resolution(resolution, config=config) else -1)
     model.setParam("OutputFlag", 0)
-    model.setParam("BarConvTol", config["optimization"]["barrier_convergence_tolerance"])
-    model.setParam("BarHomogeneous", 1)  # Don't know what this does, but it speeds up some more complex models
+
+    # Set the user defined parameters
     model.setParam("Threads", config["optimization"]["thread_count"])
     model.setParam("Method", config["optimization"]["method"])
     model.setParam("TimeLimit", (config["optimization"]["time_limit"] - datetime.now()).total_seconds())
+
+    # Improve the speed of the model
+    is_last_resolution = utils.get_sorted_resolution_stages(config, descending=True)[-1]
+    model.setParam("Crossover", 0 if is_last_resolution else -1)
+    model.setParam("BarConvTol", 10 ** -3 if is_last_resolution else 10 ** -9)
+    model.setParam("FeasibilityTol", 10 ** -3 if is_last_resolution else 10 ** -6)
+    model.setParam("BarHomogeneous", 1)  # Don't know what this does, but it speeds up some more complex models
 
     """
     Step 2: Create a bidding zone list and set the progress bar

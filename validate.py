@@ -89,8 +89,6 @@ def is_config(value, *, required=True, new_config=False):
         return False
     if not is_integer(value["optimization"].get("method"), min_value=-1, max_value=6):
         return False
-    if not is_float(value["optimization"].get("barrier_convergence_tolerance"), min_value=0, max_value=1):
-        return False
     if not is_integer(value["optimization"].get("thread_count"), min_value=1):
         return False
 
