@@ -132,6 +132,8 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
 
         # Add the variables and constraints for all storage technologies
         for storage_technology in config["technologies"]["storage"]:
+            status.update(f"Adding {utils.labelize_technology(storage_technology, capitalize=False)} storage to {bidding_zone}")
+
             # Get the specific storage assumptions
             assumptions = config["technologies"]["storage"][storage_technology]
             timestep_hours = pd.Timedelta(resolution).total_seconds() / 3600
@@ -169,8 +171,6 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
             energy_stored_previous = None
             temporal_energy_stored_dict = {}
             for timestamp in temporal_data[bidding_zone].index:
-                status.update(f"Adding {utils.labelize_technology(storage_technology, capitalize=False)} storage to {bidding_zone}", timestamp=timestamp)
-
                 # Create the state of charge variables
                 if previous_resolution:
                     energy_stored_current = model.addVar(lb=config["time_discretization"]["soc_propagation"] * previous_temporal_results.loc[timestamp, f"energy_stored_{storage_technology}_MWh"])
