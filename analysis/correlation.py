@@ -24,6 +24,9 @@ def correlation(run_name, resolution):
     column_name = st.sidebar.selectbox("Column", relevant_columns, format_func=utils.format_column_name)
     temporal_results = utils.merge_dataframes_on_column(all_temporal_results, column_name)
 
+    # Remove all columns which contain only zeroes
+    temporal_results = temporal_results.loc[:, (temporal_results != 0).any(axis=0)]
+
     # Get the geometries and centroids for all countries
     geometries = utils.get_geometries_of_countries(all_temporal_results.keys())
     geometries["centroid"] = geometries.centroid
