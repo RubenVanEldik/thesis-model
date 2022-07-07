@@ -37,13 +37,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
     model.setParam("BarHomogeneous", 1)  # Don't know what this does, but it speeds up some more complex models
 
     """
-    Step 2: Create a bidding zone list and set the progress bar
-    """
-    bidding_zones = [bidding_zone for country in config["countries"] for bidding_zone in country["bidding_zones"]]
-    progress = st.progress(0)
-
-    """
-    Step 3: Initialize each bidding zone
+    Step 2: Initialize each bidding zone
     """
     # Create dictionaries to store all the data per bidding zone
     temporal_data = {}
@@ -52,9 +46,10 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
     production_capacity = {}
     storage_capacity = {}
 
+    bidding_zones = [bidding_zone for country in config["countries"] for bidding_zone in country["bidding_zones"]]
     for index, bidding_zone in enumerate(bidding_zones):
         """
-        Step 3A: Import the temporal data
+        Step 2A: Import the temporal data
         """
         country_flag = next(country["flag"] for country in config["countries"] if bidding_zone in country["bidding_zones"])
         status.update(f"{country_flag} Importing data")
@@ -99,7 +94,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
             temporal_export["hvdc"] = pd.DataFrame(index=temporal_results[bidding_zone].index, columns=temporal_export_columns)
 
         """
-        Step 3B: Define production capacity variables
+        Step 2B: Define production capacity variables
         """
         temporal_results[bidding_zone]["production_total_MW"] = 0
         for production_technology in config["technologies"]["production"]:
@@ -123,7 +118,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
             temporal_results[bidding_zone]["production_total_MW"] += temporal_production
 
         """
-        Step 3C: Define storage variables and constraints
+        Step 2C: Define storage variables and constraints
         """
         # Create a DataFrame for the storage capacity in this bidding zone
         storage_capacity[bidding_zone] = pd.DataFrame(0, index=config["technologies"]["storage"], columns=["energy", "power"])
@@ -209,7 +204,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
             temporal_results[bidding_zone]["energy_stored_total_MWh"] += temporal_energy_stored
 
         """
-        Step 3D: Define the interconnection variables
+        Step 2D: Define the interconnection variables
         """
         for connection_type in ["hvac", "hvdc"]:
             status.update(f"{country_flag} Adding {connection_type.upper()} interconnections")
@@ -218,14 +213,8 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
                 temporal_export_limit = temporal_export_limits[column] * config["interconnections"]["relative_capacity"]
                 temporal_export[connection_type][column] = pd.Series(model.addVars(temporal_export[connection_type].index, ub=temporal_export_limit))
 
-        # Update the progress bar
-        progress.progress((index + 1) / len(bidding_zones))
-
-    # Remove the progress bar
-    progress.empty()
-
     """
-    Step 4: Define demand constraints
+    Step 3: Define demand constraints
     """
     for bidding_zone in bidding_zones:
         country_flag = next(country["flag"] for country in config["countries"] if bidding_zone in country["bidding_zones"])
@@ -256,7 +245,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
         temporal_results[bidding_zone].insert(temporal_results[bidding_zone].columns.get_loc("production_total_MW"), "curtailed_MW", curtailed_MW)
 
     """
-    Step 5: Define the production potential and self-sufficiency constraints  per country
+    Step 4: Define the production potential and self-sufficiency constraints  per country
     """
     for country in config["countries"]:
         # Get the bidding zones for the country
@@ -295,14 +284,14 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
         model.addConstr((sum_production - sum_curtailed - sum_storage_flow) / sum_demand >= min_self_sufficiency)
 
     """
-    Step 6: Set objective function
+    Step 5: Set objective function
     """
     temporal_demand = utils.merge_dataframes_on_column(temporal_results, "demand_MW")
     firm_lcoe = utils.calculate_lcoe(production_capacity, storage_capacity, temporal_demand, config=config)
     model.setObjective(firm_lcoe, gp.GRB.MINIMIZE)
 
     """
-    Step 7: Solve model
+    Step 6: Solve model
     """
     # Set the status message and create
     status.update("Optimizing")
@@ -348,7 +337,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
     utils.write_text(f"{output_folder}/{resolution}/log.txt", "".join(log_messages))
 
     """
-    Step 8: Check if the model could be solved
+    Step 7: Check if the model could be solved
     """
     if model.status == gp.GRB.INFEASIBLE:
         return "The model was infeasible"
@@ -376,7 +365,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
         return "The model could for an unknown reason not be solved"
 
     """
-    Step 9: Store the results
+    Step 8: Store the results
     """
     # Make a directory for each type of output
     for directory in ["temporal_results", "temporal_export", "production_capacities", "storage_capacities"]:
