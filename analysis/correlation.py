@@ -48,7 +48,7 @@ def correlation(run_name, resolution):
     if st.sidebar.checkbox("Show regression line"):
         degree = st.sidebar.slider("Degrees", min_value=1, value=2, max_value=5)
         trendline_x, trendline_y = utils.calculate_regression_line(correlations.distance, correlations.r_squared, degree=degree)
-        correlation_plot.ax.plot(trendline_x, trendline_y, color=colors.get("gray", 500))
+        correlation_plot.ax.plot(trendline_x, trendline_y, color=colors.get("red", 600))
 
     # Show the plot
     st.pyplot(correlation_plot.fig)
