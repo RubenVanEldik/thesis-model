@@ -56,7 +56,9 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
         """
         Step 3A: Import the temporal data
         """
-        status.update(f"Importing data for {bidding_zone}")
+        country_flag = next(country["flag"] for country in config["countries"] if bidding_zone in country["bidding_zones"])
+        status.update(f"{country_flag} Importing data")
+
         filepath = f"./input/bidding_zones/{config['model_year']}/{bidding_zone}.csv"
         start_date = config["date_range"]["start"]
         end_date = config["date_range"]["end"]
@@ -101,7 +103,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
         """
         temporal_results[bidding_zone]["production_total_MW"] = 0
         for production_technology in config["technologies"]["production"]:
-            status.update(f"Adding {utils.labelize_technology(production_technology, capitalize=False)} production to {bidding_zone}")
+            status.update(f"{country_flag} Adding {utils.labelize_technology(production_technology, capitalize=False)} production")
 
             # Create a capacity variable for each climate zone
             climate_zones = [re.match(f"{production_technology}_(.+)_cf", column).group(1) for column in temporal_data[bidding_zone].columns if column.startswith(f"{production_technology}_")]
@@ -132,7 +134,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
 
         # Add the variables and constraints for all storage technologies
         for storage_technology in config["technologies"]["storage"]:
-            status.update(f"Adding {utils.labelize_technology(storage_technology, capitalize=False)} storage to {bidding_zone}")
+            status.update(f"{country_flag} Adding {utils.labelize_technology(storage_technology, capitalize=False)} storage")
 
             # Get the specific storage assumptions
             assumptions = config["technologies"]["storage"][storage_technology]
@@ -210,7 +212,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
         Step 3D: Define the interconnection variables
         """
         for connection_type in ["hvac", "hvdc"]:
-            status.update(f"Adding {connection_type.upper()} interconnections to {bidding_zone}")
+            status.update(f"{country_flag} Adding {connection_type.upper()} interconnections")
             temporal_export_limits = utils.get_export_limits(bidding_zone, type=connection_type, index=temporal_results[bidding_zone].index, config=config)
             for column in temporal_export_limits:
                 temporal_export_limit = temporal_export_limits[column] * config["interconnections"]["relative_capacity"]
@@ -226,7 +228,8 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
     Step 4: Define demand constraints
     """
     for bidding_zone in bidding_zones:
-        status.update(f"Adding demand constraints to {bidding_zone}")
+        country_flag = next(country["flag"] for country in config["countries"] if bidding_zone in country["bidding_zones"])
+        status.update(f"{country_flag} Adding demand constraints")
 
         # Add a column for the temporal export to each country
         for interconnection_type in temporal_export:
@@ -261,7 +264,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
 
         # Add a production capacity constraint per production technology per country
         for production_technology in config["technologies"]["production"]:
-            status.update(f"Adding {utils.labelize_technology(production_technology, capitalize=False)} potential to {country['name']}")
+            status.update(f"{country['flag']} Adding {utils.labelize_technology(production_technology, capitalize=False)} potential")
             # Don't add a constraint if the production technology has no potential specified for this country
             if not production_technology in country["potential"]:
                 continue
@@ -271,7 +274,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
             model.addConstr(total_production_capacity <= country["potential"][production_technology])
 
         # Add a self-sufficiency constraint to each country
-        status.update(f"Adding self-sufficiency constraint to {country['name']}")
+        status.update(f"{country['flag']} Adding self-sufficiency constraint")
 
         # Set the variables required to calculate the cumulative results in the country
         sum_demand = 0
