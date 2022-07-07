@@ -30,7 +30,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
     model.setParam("Method", config["optimization"]["method"])
 
     # Improve the speed of the model
-    is_last_resolution = utils.get_sorted_resolution_stages(config, descending=True)[-1]
+    is_last_resolution = resolution == utils.get_sorted_resolution_stages(config, descending=True)[-1]
     model.setParam("Crossover", 0 if is_last_resolution else -1)
     model.setParam("BarConvTol", 10 ** -3 if is_last_resolution else 10 ** -9)
     model.setParam("FeasibilityTol", 10 ** -3 if is_last_resolution else 10 ** -6)
