@@ -1,293 +1,293 @@
-- nuts_2: AL
+- name: Albania
+  nuts_2: AL
   alpha_3: ALB
   flag: 🇦🇱
-  name: Albania
   bidding_zones: [AL00]
   included_geographic_units: [ALB]
   potential:
     onshore: 16368.52499
-- nuts_2: AT
+- name: Austria
+  nuts_2: AT
   alpha_3: AUT
   flag: 🇦🇹
-  name: Austria
   bidding_zones: [AT00]
   included_geographic_units: [AUT]
   potential:
     onshore: 111695.2452
-- nuts_2: BA
+- name: Bosnia and Herzegovina
+  nuts_2: BA
   alpha_3: BIH
   flag: 🇧🇦
-  name: Bosnia and Herzegovina
   bidding_zones: [BA00]
   included_geographic_units: [BHF, BIS, BHB]
   potential:
     onshore: 92454.61278
-- nuts_2: BE
+- name: Belgium
+  nuts_2: BE
   alpha_3: BEL
   flag: 🇧🇪
-  name: Belgium
   bidding_zones: [BE00]
   included_geographic_units: [BFR, BWR, BCR]
   potential:
     onshore: 13548.88149
-- nuts_2: BG
+- name: Bulgaria
+  nuts_2: BG
   alpha_3: BGR
   flag: 🇧🇬
-  name: Bulgaria
   bidding_zones: [BG00]
   included_geographic_units: [BGR]
   potential:
     onshore: 8487.873066
-- nuts_2: CH
+- name: Switzerland
+  nuts_2: CH
   alpha_3: CHE
   flag: 🇨🇭
-  name: Switzerland
   bidding_zones: [CH00]
   included_geographic_units: [CHE]
   potential:
     onshore: 13684.3703
-- nuts_2: CY
+- name: Cyprus
+  nuts_2: CY
   alpha_3: CYP
-  - flag: 🇨🇾
-  name: Cyprus
+  flag: 🇨🇾
   bidding_zones: [CY00]
   included_geographic_units: [CYP]
   potential: {}
-- nuts_2: CZ
+- name: Czech Republic
+  nuts_2: CZ
   alpha_3: CZE
-  - flag: 🇨🇿
-  name: Czech Republic
+  flag: 🇨🇿
   bidding_zones: [CZ00]
   included_geographic_units: [CZE]
   potential:
     onshore: 40886.12328
-- nuts_2: DE
+- name: Germany
+  nuts_2: DE
   alpha_3: DEU
   flag: 🇩🇪
-  name: Germany
   bidding_zones: [DE00]
   included_geographic_units: [DEU]
   potential:
     onshore: 117392.8253
-- nuts_2: DK
+- name: Denmark
+  nuts_2: DK
   alpha_3: DNK
   flag: 🇩🇰
-  name: Denmark
   bidding_zones: [DKE1, DKW1]
   included_geographic_units: [DNK]
   potential:
     onshore: 150548.3151
-- nuts_2: EE
+- name: Estonia
+  nuts_2: EE
   alpha_3: EST
   flag: 🇪🇪
-  name: Estonia
   bidding_zones: [EE00]
   included_geographic_units: [EST]
   potential:
     onshore: 144673.9717
-- nuts_2: ES
+- name: Spain
+  nuts_2: ES
   alpha_3: ESP
   flag: 🇪🇸
-  name: Spain
   bidding_zones: [ES00]
   included_geographic_units: [ESP]
   excluded_geographic_subunits: [ESC]
   potential:
     onshore: 391316.1594
-- nuts_2: FI
+- name: Finland
+  nuts_2: FI
   alpha_3: FIN
   flag: 🇫🇮
-  name: Finland
   bidding_zones: [FI00]
   included_geographic_units: [FIN, ALD]
   potential:
     onshore: 777503.8953
-- nuts_2: FR
+- name: France
+  nuts_2: FR
   alpha_3: FRA
   flag: 🇫🇷
-  name: France
   bidding_zones: [FR00, FR15]
   included_geographic_units: [FXX]
   potential:
     onshore: 1079711.951
-- nuts_2: GR
+- name: Greece
+  nuts_2: GR
   alpha_3: GRC
   flag: 🇬🇷
-  name: Greece
   bidding_zones: [GR00, GR03]
   included_geographic_units: [GRC]
   potential:
     onshore: 72093.18945
-- nuts_2: HR
+- name: Croatia
+  nuts_2: HR
   alpha_3: HRV
   flag: 🇭🇷
-  name: Croatia
   bidding_zones: [HR00]
   included_geographic_units: [HRV]
   potential:
     onshore: 34181.50698
-- nuts_2: HU
+- name: Hungary
+  nuts_2: HU
   alpha_3: HUN
   flag: 🇭🇺
-  name: Hungary
   bidding_zones: [HU00]
   included_geographic_units: [HUN]
   potential:
     onshore: 17033.15274
-- nuts_2: IE
+- name: Ireland
+  nuts_2: IE
   alpha_3: IRL
   flag: 🇮🇪
-  name: Ireland
   bidding_zones: [IE00]
   included_geographic_units: [IRL]
   potential:
     onshore: 317525.7372
-- nuts_2: IT
+- name: Italy
+  nuts_2: IT
   alpha_3: ITA
   flag: 🇮🇹
-  name: Italy
   bidding_zones: [ITCA, ITCN, ITCS, ITN1, ITS1, ITSA, ITSI]
   included_geographic_units: [ITA]
   potential:
     onshore: 109494.4076
-- nuts_2: LT
+- name: Lithuania
+  nuts_2: LT
   alpha_3: LTU
   flag: 🇱🇹
-  name: Lithuania
   bidding_zones: [LT00]
   included_geographic_units: [LTU]
   potential:
     onshore: 221926.6599
-- nuts_2: LU
+- name: Luxembourg
+  nuts_2: LU
   alpha_3: LUX
   flag: 🇱🇺
-  name: Luxembourg
   bidding_zones: [LUB1, LUF1, LUG1]
   included_geographic_units: [LUX]
   potential:
     onshore: 0
-- nuts_2: LV
+- name: Latvia
+  nuts_2: LV
   alpha_3: LVA
   flag: 🇱🇻
-  name: Latvia
   bidding_zones: [LV00]
   included_geographic_units: [LVA]
   potential:
     onshore: 155110.0796
-- nuts_2: ME
+- name: Montenegro
+  nuts_2: ME
   alpha_3: MNE
   flag: 🇲🇪
-  name: Montenegro
   bidding_zones: [ME00]
   included_geographic_units: [MNE]
   potential:
     onshore: 28013.26503
-- nuts_2: MK
+- name: FYR of Macedonia
+  nuts_2: MK
   alpha_3: MKD
   flag: 🇲🇰
-  name: FYR of Macedonia
   bidding_zones: [MK00]
   included_geographic_units: [MKD]
   potential:
     onshore: 5757.915653
-- nuts_2: MT
+- name: Malta
+  nuts_2: MT
   alpha_3: MLT
   flag: 🇲🇹
-  name: Malta
   bidding_zones: [MT00]
   included_geographic_units: [MLT]
   potential: {}
-- nuts_2: NL
+- name: Netherlands
+  nuts_2: NL
   alpha_3: NLD
   flag: 🇳🇱
-  name: Netherlands
   bidding_zones: [NL00]
   included_geographic_units: [NLX]
   potential:
     onshore: 78847.25957
-- nuts_2: "NO" # Strings are required, otherwise the YAML parser will parse it as a boolean False value
+- name: Norway
+  nuts_2: "NO" # Strings are required, otherwise the YAML parser will parse it as a boolean False value
   alpha_3: NOR
   flag: 🇳🇴
-  name: Norway
   bidding_zones: [NOM1, NON1, NOS0]
   included_geographic_units: [NOW]
   potential:
     onshore: 747165.9611
-- nuts_2: PL
+- name: Poland
+  nuts_2: PL
   alpha_3: POL
   flag: 🇵🇱
-  name: Poland
   bidding_zones: [PL00]
   included_geographic_units: [POL]
   potential:
     onshore: 419543.8884
-- nuts_2: PT
+- name: Portugal
+  nuts_2: PT
   alpha_3: PRT
   flag: 🇵🇹
-  name: Portugal
   bidding_zones: [PT00]
   included_geographic_units: [PRX]
   potential:
     onshore: 59674.41051
-- nuts_2: RO
+- name: Romania
+  nuts_2: RO
   alpha_3: ROU
   flag: 🇷🇴
-  name: Romania
   bidding_zones: [RO00]
   included_geographic_units: [ROU]
   potential:
     onshore: 38135.22537
-- nuts_2: RS
+- name: Serbia
+  nuts_2: RS
   alpha_3: SRB
   flag: 🇷🇸
-  name: Serbia
   bidding_zones: [RS00]
   included_geographic_units: [SRV, SRS]
   potential:
     onshore: 23653.77034
-- nuts_2: SE
+- name: Sweden
+  nuts_2: SE
   alpha_3: SWE
   flag: 🇸🇪
-  name: Sweden
   bidding_zones: [SE01, SE02, SE03, SE04]
   included_geographic_units: [SWE]
   potential:
     onshore: 841925.3066
-- nuts_2: SI
+- name: Slovenia
+  nuts_2: SI
   alpha_3: SVN
   flag: 🇸🇮
-  name: Slovenia
   bidding_zones: [SI00]
   included_geographic_units: [SVN]
   potential:
     onshore: 4580.086726
-- nuts_2: SK
+- name: Slovak Republic
+  nuts_2: SK
   alpha_3: SVK
   flag: 🇸🇰
-  name: Slovak Republic
   bidding_zones: [SK00]
   included_geographic_units: [SVK]
   potential:
     onshore: 17375.51911
-- nuts_2: TR
+- name: Republic of Turkey
+  nuts_2: TR
   alpha_3: TUR
   flag: 🇹🇷
-  name: Republic of Turkey
   bidding_zones: [TR00]
   included_geographic_units: [TUR]
   potential:
     onshore: 468071.8363
-- nuts_2: UA
+- name: Ukraine
+  nuts_2: UA
   alpha_3: UKR
   flag: 🇺🇦
-  name: Ukraine
   bidding_zones: [UA01]
   included_geographic_units: [UKR]
   potential: {}
-- nuts_2: UK
+- name: United Kingdom
+  nuts_2: UK
   alpha_3: GBR
   flag: 🇬🇧
-  name: United Kingdom
   bidding_zones: [UK00, UKNI]
   included_geographic_units: [ENG, GGY, IMN, GGY, JEY, NIR, SCT, WLS]
   potential:
