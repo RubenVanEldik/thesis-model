@@ -46,13 +46,9 @@ with st.sidebar.expander("Scope"):
     config["countries"] = [country for country in countries if country["nuts_2"] in selected_countries]
 
     # Select the date range
-    start_default = date(2016, 1, 1)
-    end_default = date(2016, 12, 31)
-    start_data = date(1982, 1, 1)
-    end_data = date(2016, 12, 31)
-    date_range = st.date_input("Climate data range", (start_default, end_default), start_data, end_data)
-    if len(date_range) == 2:
-        config["date_range"] = {"start": date_range[0], "end": date_range[1]}
+    climate_years = st.slider("Climate years", value=(2016, 2016), min_value=1982, max_value=2016)
+    config["date_range"] = {"start": date(climate_years[0], 1, 1), "end": date(climate_years[1], 12, 31)}
+
 
 # Set the technology options
 with st.sidebar.expander("Technologies"):
