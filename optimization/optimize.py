@@ -286,6 +286,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
     """
     Step 5: Set objective function
     """
+    status.update("Setting the objective function")
     temporal_demand = utils.merge_dataframes_on_column(temporal_results, "demand_MW")
     firm_lcoe = utils.calculate_lcoe(production_capacity, storage_capacity, temporal_demand, config=config)
     model.setObjective(firm_lcoe, gp.GRB.MINIMIZE)
