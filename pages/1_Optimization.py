@@ -126,7 +126,7 @@ with st.sidebar.expander("Time discretization"):
     config["time_discretization"] = {}
 
     # Select the resolution steps
-    resolutions = ["1H", "2H", "4H", "6H", "12H", "1D", "2D", "1W"]
+    resolutions = ["1H", "2H", "4H", "6H", "12H", "1D"]
     config["time_discretization"]["resolution_stages"] = st.multiselect("Resolution stages", resolutions, default=["1D", "1H"], format_func=utils.format_resolution)
 
     # Select the relative boundary propagation
