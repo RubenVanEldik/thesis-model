@@ -34,6 +34,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
     model.setParam("Crossover", 0 if is_last_resolution else -1)
     model.setParam("BarConvTol", 10 ** -2 if is_last_resolution else 10 ** -9)
     model.setParam("FeasibilityTol", 10 ** -6)  # Only used in the non-last resolut
+    model.setParam("Presolve", 2)  # Use an aggressive presolver
     model.setParam("BarHomogeneous", 1)  # Don't know what this does, but it speeds up some more complex models
 
     """
