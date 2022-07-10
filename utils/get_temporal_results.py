@@ -38,8 +38,13 @@ def get_temporal_results(run_name, resolution, *, group=None, countries=None):
         for bidding_zone, temporal_results_local in temporal_results.items():
             country_code = utils.get_country_of_bidding_zone(bidding_zone)
             if country_code not in temporal_results_per_country:
+                # Create a new DataFrame for the country with the data from this bidding zone
                 temporal_results_per_country[country_code] = temporal_results_local
             else:
+                # Add the missing columns to the country's DataFrame
+                missing_columns = [column_name for column_name in temporal_results_local.columns if column_name not in temporal_results_per_country[country_code].columns]
+                temporal_results_per_country[country_code][missing_columns] = 0
+                # Add the data from the bidding zone to the existing country's DataFrame
                 temporal_results_per_country[country_code] += temporal_results_local
         return temporal_results_per_country
 
