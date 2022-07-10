@@ -103,11 +103,12 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
 
             # Create a capacity variable for each climate zone
             climate_zones = [re.match(f"{production_technology}_(.+)_cf", column).group(1) for column in temporal_data[bidding_zone].columns if column.startswith(f"{production_technology}_")]
+            production_potential = utils.get_production_potential_in_climate_zone(bidding_zone, production_technology, config=config)
             if previous_resolution:
                 previous_production_capacity = utils.read_csv(f"{output_folder}/{previous_resolution}/production_capacities/{bidding_zone}.csv", index_col=0)
-                capacities = model.addVars(climate_zones, lb=config["time_discretization"]["capacity_propagation"] * previous_production_capacity[production_technology].dropna())
+                capacities = model.addVars(climate_zones, lb=config["time_discretization"]["capacity_propagation"] * previous_production_capacity[production_technology].dropna(), ub=production_potential)
             else:
-                capacities = model.addVars(climate_zones)
+                capacities = model.addVars(climate_zones, ub=production_potential)
 
             # Add the capacities to the production_capacity DataFrame and calculate the temporal production for a specific technology
             temporal_production = 0
@@ -246,26 +247,14 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
         temporal_results[bidding_zone].insert(temporal_results[bidding_zone].columns.get_loc("production_total_MW"), "curtailed_MW", curtailed_MW)
 
     """
-    Step 4: Define the production potential and self-sufficiency constraints  per country
+    Step 4: Define the self-sufficiency constraints per country
     """
-    for country in config["countries"]:
-        # Get the bidding zones for the country
-        bidding_zones_in_country = utils.get_bidding_zones_for_countries([country["nuts_2"]])
-
-        # Add a production capacity constraint per production technology per country
-        for production_technology in config["technologies"]["production"]:
-            status.update(f"{country['flag']} Adding {utils.labelize_technology(production_technology, capitalize=False)} potential")
-            # Don't add a constraint if the production technology has no potential specified for this country
-            if not production_technology in country["potential"]:
-                continue
-
-            # Add a constraint so cumulative production capacity in the country is always smaller than the potential for that technology
-            total_production_capacity = sum(production_capacity[bidding_zone][production_technology].sum() for bidding_zone in bidding_zones_in_country)
-            model.addConstr(total_production_capacity <= country["potential"][production_technology])
-
-        # Add a self-sufficiency constraint to each country
-        if config["interconnections"]["min_self_sufficiency"] > 0:
+    if config["interconnections"]["min_self_sufficiency"] > 0:
+        for country in config["countries"]:
             status.update(f"{country['flag']} Adding self-sufficiency constraint")
+
+            # Get the bidding zones for the country
+            bidding_zones_in_country = utils.get_bidding_zones_for_countries([country["nuts_2"]])
 
             # Set the variables required to calculate the cumulative results in the country
             sum_demand = 0

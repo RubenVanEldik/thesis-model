@@ -18,6 +18,7 @@ from .get_temporal_results import get_temporal_results
 from .get_nested_key import get_nested_key
 from .get_previous_runs import get_previous_runs
 from .get_production_capacity import get_production_capacity
+from .get_production_potential_in_climate_zone import get_production_potential_in_climate_zone
 from .get_sorted_resolution_stages import get_sorted_resolution_stages
 from .get_storage_capacity import get_storage_capacity
 from .get_technology_assumptions import get_technology_assumptions
