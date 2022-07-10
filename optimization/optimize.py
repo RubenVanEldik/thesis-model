@@ -29,13 +29,18 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
     model.setParam("Threads", config["optimization"]["thread_count"])
     model.setParam("Method", config["optimization"]["method"])
 
-    # Improve the speed of the model
+    # Disable crossover for the last resolution
     is_last_resolution = resolution == utils.get_sorted_resolution_stages(config, descending=True)[-1]
     model.setParam("Crossover", 0 if is_last_resolution else -1)
-    model.setParam("BarConvTol", 10 ** -3 if is_last_resolution else 10 ** -9)
-    model.setParam("FeasibilityTol", 10 ** -6)  # Only used in the non-last resolut
-    model.setParam("Presolve", 2)  # Use an aggressive presolver
-    model.setParam("BarHomogeneous", 1)  # Don't know what this does, but it speeds up some more complex models
+
+    # Set the tuning limit if tuning is enables, otherwise set specific optimization parameters
+    if config["tuning"]["enabled"]:
+        model.setParam("TuneTimeLimit", config["tuning"]["time_limit"])
+    else:
+        model.setParam("BarConvTol", 10 ** -3 if is_last_resolution else 10 ** -9)
+        model.setParam("FeasibilityTol", 10 ** -6)  # Only used in the non-last resolut
+        model.setParam("Presolve", 2)  # Use an aggressive presolver
+        model.setParam("BarHomogeneous", 1)  # Don't know what this does, but it speeds up some more complex models
 
     """
     Step 2: Initialize each bidding zone
@@ -283,7 +288,25 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
     model.setObjective(firm_lcoe, gp.GRB.MINIMIZE)
 
     """
-    Step 6: Solve model
+    Step 6: Tune model
+    """
+    if config["tuning"]["enabled"]:
+        status.update("Tuning")
+
+        # Tune the model
+        model.tune()
+
+        # Create the directory to store the tuning results
+        tuning_folder = f"tuning/{config['name']}/{resolution}"
+        os.makedirs(tuning_folder)
+
+        # Store the tuning results from worst to best so the best result is used when solving the model
+        for i in reversed(range(model.tuneResultCount)):
+            model.getTuneResult(i)
+            model.write(f"{tuning_folder}/{i}.prm")
+
+    """
+    Step 7: Solve model
     """
     # Set the status message and create
     status.update("Optimizing")
@@ -329,7 +352,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
     utils.write_text(f"{output_folder}/{resolution}/log.txt", "".join(log_messages))
 
     """
-    Step 7: Check if the model could be solved
+    Step 8: Check if the model could be solved
     """
     if model.status == gp.GRB.INFEASIBLE:
         return "The model was infeasible"
@@ -357,7 +380,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
         return "The model could for an unknown reason not be solved"
 
     """
-    Step 8: Store the results
+    Step 9: Store the results
     """
     # Make a directory for each type of output
     for directory in ["temporal_results", "temporal_export", "production_capacities", "storage_capacities"]:

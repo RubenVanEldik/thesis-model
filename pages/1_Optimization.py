@@ -88,7 +88,7 @@ with st.sidebar.expander("Sensitivity analysis"):
     sensitivity_config = {}
 
     # Enable/disable the sensitivity analysis
-    sensitivity_enabled = st.checkbox("Enabled")
+    sensitivity_enabled = st.checkbox("Enabled", key="sensitivity")
 
     # Create a dictionary with the sensitivity options
     sensitivity_options = {}
@@ -146,6 +146,16 @@ with st.sidebar.expander("Optimization parameters"):
     # Select the thread count
     cpu_count = os.cpu_count()
     config["optimization"]["thread_count"] = st.slider("Thread count", value=cpu_count, min_value=1, max_value=cpu_count)
+
+
+# Set the tuning parameters
+with st.sidebar.expander("Tuning parameters"):
+    config["tuning"] = {}
+
+    tuning_enabled = st.checkbox("Enabled", key="tuning")
+    config["tuning"]["enabled"] = tuning_enabled
+
+    config["tuning"]["time_limit"] = st.number_input("Time limit per resolution (minutes)", min_value=0, value=60, disabled=not tuning_enabled) * 60
 
 
 # Run the model if the button has been pressed
