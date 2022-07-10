@@ -87,6 +87,12 @@ def is_config(value, *, required=True):
         return False
     if not is_integer(value["optimization"].get("thread_count"), min_value=1):
         return False
+    if not is_bool(value["tuning"].get("enabled")):
+        return False
+    if value["tuning"].get("sensitivity") and value["tuning"].get("enabled"):
+        return False
+    if not is_integer(value["tuning"].get("time_limit"), min_value=0):
+        return False
 
     return True
 

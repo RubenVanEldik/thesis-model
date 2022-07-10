@@ -152,10 +152,13 @@ with st.sidebar.expander("Optimization parameters"):
 with st.sidebar.expander("Tuning parameters"):
     config["tuning"] = {}
 
-    tuning_enabled = st.checkbox("Enabled", key="tuning")
+    if sensitivity_enabled:
+        st.warning("Tuning cannot be enabled for a sensitivity analysis")
+
+    tuning_enabled = st.checkbox("Enabled", disabled=sensitivity_enabled, key="tuning")
     config["tuning"]["enabled"] = tuning_enabled
 
-    config["tuning"]["time_limit"] = st.number_input("Time limit per resolution (minutes)", min_value=0, value=60, disabled=not tuning_enabled) * 60
+    config["tuning"]["time_limit"] = st.number_input("Time limit per resolution (minutes)", min_value=0, value=60, disabled=sensitivity_enabled or not tuning_enabled) * 60
 
 
 # Run the model if the button has been pressed
