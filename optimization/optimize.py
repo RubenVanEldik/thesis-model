@@ -264,25 +264,26 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
             model.addConstr(total_production_capacity <= country["potential"][production_technology])
 
         # Add a self-sufficiency constraint to each country
-        # status.update(f"{country['flag']} Adding self-sufficiency constraint")
-        #
-        # # Set the variables required to calculate the cumulative results in the country
-        # sum_demand = 0
-        # sum_production = 0
-        # sum_curtailed = 0
-        # sum_storage_flow = 0
-        #
-        # # Loop over all bidding zones in the country
-        # for bidding_zone in bidding_zones_in_country:
-        #     # Calculate the total demand and non-curtailed production in this country
-        #     sum_demand += temporal_results[bidding_zone].demand_MW.sum()
-        #     sum_production += temporal_results[bidding_zone].production_total_MW.sum()
-        #     sum_curtailed += temporal_results[bidding_zone].curtailed_MW.sum()
-        #     sum_storage_flow += temporal_results[bidding_zone].net_storage_flow_total_MW.sum()
-        #
-        # # Add the self-sufficiency constraint
-        # min_self_sufficiency = config["interconnections"]["min_self_sufficiency"]
-        # model.addConstr((sum_production - sum_curtailed - sum_storage_flow) / sum_demand >= min_self_sufficiency)
+        if config["interconnections"]["min_self_sufficiency"] > 0:
+            status.update(f"{country['flag']} Adding self-sufficiency constraint")
+
+            # Set the variables required to calculate the cumulative results in the country
+            sum_demand = 0
+            sum_production = 0
+            sum_curtailed = 0
+            sum_storage_flow = 0
+
+            # Loop over all bidding zones in the country
+            for bidding_zone in bidding_zones_in_country:
+                # Calculate the total demand and non-curtailed production in this country
+                sum_demand += temporal_results[bidding_zone].demand_MW.sum()
+                sum_production += temporal_results[bidding_zone].production_total_MW.sum()
+                sum_curtailed += temporal_results[bidding_zone].curtailed_MW.sum()
+                sum_storage_flow += temporal_results[bidding_zone].net_storage_flow_total_MW.sum()
+
+            # Add the self-sufficiency constraint
+            min_self_sufficiency = config["interconnections"]["min_self_sufficiency"]
+            model.addConstr((sum_production - sum_curtailed - sum_storage_flow) / sum_demand >= min_self_sufficiency)
 
     """
     Step 5: Set objective function
