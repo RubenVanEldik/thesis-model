@@ -23,7 +23,9 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
     Step 1: Create the model and set the parameters
     """
     model = gp.Model(config["name"])
-    model.setParam("OutputFlag", 0)
+
+    # Only print the output if the model is tuning
+    model.setParam("OutputFlag", 1 if config["tuning"]["enabled"] else 0)
 
     # Set the user defined parameters
     model.setParam("Threads", config["optimization"]["thread_count"])
