@@ -285,7 +285,8 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
     status.update("Setting the objective function")
     temporal_demand = utils.merge_dataframes_on_column(temporal_results, "demand_MW")
     firm_lcoe = utils.calculate_lcoe(production_capacity, storage_capacity, temporal_demand, config=config)
-    model.setObjective(firm_lcoe, gp.GRB.MINIMIZE)
+    objective_scale_factor = 10 ** 6
+    model.setObjective(firm_lcoe * objective_scale_factor, gp.GRB.MINIMIZE)
 
     """
     Step 6: Tune model
@@ -328,17 +329,17 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
         """
         if where == gp.GRB.Callback.BARRIER:
             iteration = model.cbGet(gp.GRB.Callback.BARRIER_ITRCNT)
-            objective_value = model.cbGet(gp.GRB.Callback.BARRIER_PRIMOBJ)
+            objective_value = model.cbGet(gp.GRB.Callback.BARRIER_PRIMOBJ) / objective_scale_factor
             infeasibility = model.cbGet(gp.GRB.Callback.BARRIER_PRIMINF)
             stat1.metric("Iteration (barrier)", f"{iteration:,}")
-            stat2.metric("Objective", f"{int(objective_value)}€/MWh")
+            stat2.metric("Objective", f"{objective_value:,.2f}€/MWh")
             stat3.metric("Infeasibility", f"{infeasibility:.2E}")
         if where == gp.GRB.Callback.SIMPLEX and model.cbGet(gp.GRB.Callback.SPX_ITRCNT) % 1000 == 0:
             iteration = model.cbGet(int(gp.GRB.Callback.SPX_ITRCNT))
-            objective_value = model.cbGet(gp.GRB.Callback.SPX_OBJVAL)
+            objective_value = model.cbGet(gp.GRB.Callback.SPX_OBJVAL) / objective_scale_factor
             infeasibility = model.cbGet(gp.GRB.Callback.SPX_PRIMINF)
             stat1.metric("Iteration (simplex)", f"{int(iteration):,}")
-            stat2.metric("Objective", f"{int(objective_value)}€/MWh")
+            stat2.metric("Objective", f"{objective_value:,.2f}€/MWh")
             stat3.metric("Infeasibility", f"{infeasibility:.2E}")
         if where == gp.GRB.Callback.MESSAGE:
             log_messages.append(model.cbGet(gp.GRB.Callback.MSG_STRING))
