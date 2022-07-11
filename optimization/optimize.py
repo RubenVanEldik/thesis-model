@@ -41,9 +41,6 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
     # Set the tuning limit if tuning is enables, otherwise set specific optimization parameters
     if config["tuning"]["enabled"]:
         model.setParam("TuneTimeLimit", config["tuning"]["time_limit"])
-    else:
-        model.setParam("BarConvTol", 10 ** -3 if is_last_resolution else 10 ** -9)
-        model.setParam("FeasibilityTol", 10 ** -6)  # Only used in the non-last resolut
 
     """
     Step 2: Initialize each bidding zone
