@@ -60,7 +60,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
         """
         Step 2A: Import the temporal data
         """
-        country_flag = next(country["flag"] for country in config["countries"] if bidding_zone in country["bidding_zones"])
+        country_flag = utils.get_country_property(utils.get_country_of_bidding_zone(bidding_zone), "flag")
         status.update(f"{country_flag} Importing data")
 
         filepath = f"./input/bidding_zones/{config['model_year']}/{bidding_zone}.csv"
@@ -227,7 +227,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
     Step 3: Define demand constraints
     """
     for bidding_zone in bidding_zones:
-        country_flag = next(country["flag"] for country in config["countries"] if bidding_zone in country["bidding_zones"])
+        country_flag = utils.get_country_property(utils.get_country_of_bidding_zone(bidding_zone), "flag")
         status.update(f"{country_flag} Adding demand constraints")
 
         # Add a column for the temporal export to each country

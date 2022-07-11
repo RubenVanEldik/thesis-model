@@ -17,7 +17,6 @@ def get_bidding_zones_for_countries(country_codes):
     # Add the bidding zones for each country to the bidding_zones list
     bidding_zones = []
     for country_code in country_codes:
-        country = next(country for country in countries if country["nuts_2"] == country_code)
-        bidding_zones += country["bidding_zones"]
+        bidding_zones += utils.get_country_property(country_code, "bidding_zones")
 
     return bidding_zones

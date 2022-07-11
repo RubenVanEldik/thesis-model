@@ -24,7 +24,7 @@ def get_geometries_of_countries(country_codes):
 
     # Merge the regions for each country and set the nuts_2 country code as the index
     map_df = map_df.dissolve(by="SOV_A3")
-    map_df["nuts_2"] = map_df.apply(lambda row: next(country["nuts_2"] for country in relevant_countries if country["alpha_3"] == row.ADM0_A3), axis=1)
+    map_df["nuts_2"] = map_df.apply(lambda row: utils.get_country_property(row.ADM0_A3, "nuts_2", type="alpha_3"), axis=1)
     map_df = map_df.set_index("nuts_2")
 
     # Return a DataFrame with only the 'geometry' column

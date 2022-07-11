@@ -119,6 +119,13 @@ def is_country_code_list(value, *, required=True, type):
     return all(is_country_code(code, type=type) for code in value)
 
 
+def is_country_code_type(value, *, required=True):
+    if value is None:
+        return not required
+
+    return value == "nuts_2" or value == "alpha_3"
+
+
 def is_country_obj(value, *, required=True):
     if value is None:
         return not required
