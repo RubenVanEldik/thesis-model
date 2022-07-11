@@ -1,5 +1,6 @@
 import datetime
 import gurobipy
+import numpy as np
 import pandas as pd
 import re
 import shapely
@@ -247,7 +248,7 @@ def is_float(value, *, required=True, min_value=None, max_value=None):
     if value is None:
         return not required
 
-    if not type(value) is float:
+    if not type(value) is float and not isinstance(value, np.float64):
         return False
 
     if min_value is not None and value < min_value:
