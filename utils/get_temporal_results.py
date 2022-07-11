@@ -44,6 +44,9 @@ def get_temporal_results(run_name, resolution, *, group=None, countries=None):
                 # Add the missing columns to the country's DataFrame
                 missing_columns = [column_name for column_name in temporal_results_local.columns if column_name not in temporal_results_per_country[country_code].columns]
                 temporal_results_per_country[country_code][missing_columns] = 0
+                # Add the missing columns to the local DataFrame
+                missing_columns_local = [column_name for column_name in temporal_results_per_country[country_code].columns if column_name not in temporal_results_local.columns]
+                temporal_results_local[missing_columns_local] = 0
                 # Add the data from the bidding zone to the existing country's DataFrame
                 temporal_results_per_country[country_code] += temporal_results_local
         return temporal_results_per_country
