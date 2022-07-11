@@ -330,10 +330,10 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
         if where == gp.GRB.Callback.BARRIER:
             iteration = model.cbGet(gp.GRB.Callback.BARRIER_ITRCNT)
             objective_value = model.cbGet(gp.GRB.Callback.BARRIER_PRIMOBJ) / objective_scale_factor
-            infeasibility = model.cbGet(gp.GRB.Callback.BARRIER_PRIMINF)
+            barrier_convergence = model.cbGet(gp.GRB.Callback.BARRIER_PRIMOBJ) / model.cbGet(gp.GRB.Callback.BARRIER_DUALOBJ) - 1
             stat1.metric("Iteration (barrier)", f"{iteration:,}")
             stat2.metric("Objective", f"{objective_value:,.2f}€/MWh")
-            stat3.metric("Infeasibility", f"{infeasibility:.2E}")
+            stat3.metric("Convergence", f"{barrier_convergence:.2e}")
         if where == gp.GRB.Callback.SIMPLEX and model.cbGet(gp.GRB.Callback.SPX_ITRCNT) % 1000 == 0:
             iteration = model.cbGet(int(gp.GRB.Callback.SPX_ITRCNT))
             objective_value = model.cbGet(gp.GRB.Callback.SPX_OBJVAL) / objective_scale_factor
