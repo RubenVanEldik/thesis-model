@@ -80,7 +80,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
             previous_temporal_results = previous_temporal_results.resample(resolution).mean()
             # Find and add the rows that are missing in the previous results (the resample method does not add rows after the last timestamp)
             for timestamp in temporal_results[bidding_zone].index.difference(previous_temporal_results.index):
-                previous_temporal_results.loc[timestamp] = None
+                previous_temporal_results.loc[timestamp] = pd.Series([], dtype="float64")  # Sets None to all columns in the new row
             # Remove all rows that are in previous_temporal_results but not in the new temporal_results DataFrame (don't know why this happens, but it happens sometimes)
             previous_temporal_results = previous_temporal_results[previous_temporal_results.index.isin(temporal_results[bidding_zone].index)]
             # Interpolate the empty rows for the energy stored columns created by the resample method
