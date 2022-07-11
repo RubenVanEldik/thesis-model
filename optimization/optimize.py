@@ -36,6 +36,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
     model.setParam("Crossover", 0 if is_last_resolution else -1)
     model.setParam("BarHomogeneous", 1)  # Don't know what this does, but it speeds up some more complex models
     model.setParam("Aggregate", 0)  # Don't know what this does, but it speeds up some more complex models
+    model.setParam("Presolve", 2)  # Use an aggressive presolver
 
     # Set the tuning limit if tuning is enables, otherwise set specific optimization parameters
     if config["tuning"]["enabled"]:
@@ -43,7 +44,6 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
     else:
         model.setParam("BarConvTol", 10 ** -3 if is_last_resolution else 10 ** -9)
         model.setParam("FeasibilityTol", 10 ** -6)  # Only used in the non-last resolut
-        model.setParam("Presolve", 2)  # Use an aggressive presolver
 
     """
     Step 2: Initialize each bidding zone
