@@ -34,6 +34,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
     # Disable crossover for the last resolution and set BarHomogeneous and Aggregate
     is_last_resolution = resolution == utils.get_sorted_resolution_stages(config, descending=True)[-1]
     model.setParam("Crossover", 0 if is_last_resolution else -1)
+    model.setParam("BarConvTol", 10 ** -3 if is_last_resolution else 10 ** -8)
     model.setParam("BarHomogeneous", 1)  # Don't know what this does, but it speeds up some more complex models
     model.setParam("Aggregate", 0)  # Don't know what this does, but it speeds up some more complex models
     model.setParam("Presolve", 2)  # Use an aggressive presolver
