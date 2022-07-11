@@ -374,10 +374,8 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
         return "The optimization was terminated by the user"
     if model.status == gp.GRB.NUMERIC:
         return "The optimization was terminated due to unrecoverable numerical difficulties"
-    if model.status == gp.GRB.SUBOPTIMAL:
-        return "Unable to satisfy optimality tolerances; a sub-optimal solution is available"
-    if model.status != gp.GRB.OPTIMAL:
-        return "The model could for an unknown reason not be solved"
+    if model.status != gp.GRB.OPTIMAL and model.status != gp.GRB.SUBOPTIMAL:
+        return "The model could not be solved for an unknown reason"
 
     """
     Step 9: Store the results
