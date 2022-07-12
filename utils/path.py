@@ -29,7 +29,12 @@ def path(*args):
 
     # Loop over all arguments, adding them to the path object
     for arg in args:
-        path /= str(arg)
+        # If its a number, convert the argument to a string
+        if validate.is_number(arg):
+            arg = str(arg)
+
+        # Add the argument to teh path
+        path /= arg
 
     # Return the path object
     return path
