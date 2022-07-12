@@ -328,6 +328,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
     # Store the LP model and optimization log
     os.makedirs(f"{output_folder}/{resolution}")
     model.write(f"{output_folder}/{resolution}/model.lp")
+    model.write(f"{output_folder}/{resolution}/parameters.prm")
     utils.write_text(utils.path(output_folder, resolution, "log.txt"), "".join(log_messages))
 
     """
