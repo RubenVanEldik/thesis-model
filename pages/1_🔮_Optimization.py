@@ -152,19 +152,6 @@ with st.sidebar.expander("Optimization parameters"):
     config["optimization"]["thread_count"] = st.slider("Thread count", value=cpu_count, min_value=1, max_value=cpu_count)
 
 
-# Set the tuning parameters
-with st.sidebar.expander("Tuning parameters"):
-    config["tuning"] = {}
-
-    if sensitivity_enabled:
-        st.warning("Tuning cannot be enabled for a sensitivity analysis")
-
-    tuning_enabled = st.checkbox("Enabled", disabled=sensitivity_enabled, key="tuning")
-    config["tuning"]["enabled"] = tuning_enabled
-
-    config["tuning"]["time_limit"] = st.number_input("Time limit per resolution (hours)", min_value=0.0, value=2.0, disabled=sensitivity_enabled or not tuning_enabled) * 3600
-
-
 # Run the model if the button has been pressed
 invalid_config = not validate.is_config(config)
 invalid_sensitivity_config = sensitivity_enabled and not validate.is_sensitivity_config(sensitivity_config)

@@ -23,9 +23,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
     Step 1: Create the model and set the parameters
     """
     model = gp.Model(config["name"])
-
-    # Only print the output if the model is tuning
-    model.setParam("OutputFlag", 1 if config["tuning"]["enabled"] else 0)
+    model.setParam("OutputFlag", 0)
 
     # Set the user defined parameters
     model.setParam("Threads", config["optimization"]["thread_count"])
@@ -39,10 +37,6 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
     model.setParam("BarHomogeneous", 1)  # Don't know what this does, but it speeds up some more complex models
     model.setParam("Aggregate", 0)  # Don't know what this does, but it speeds up some more complex models
     model.setParam("Presolve", 2)  # Use an aggressive presolver
-
-    # Set the tuning limit if tuning is enables, otherwise set specific optimization parameters
-    if config["tuning"]["enabled"]:
-        model.setParam("TuneTimeLimit", config["tuning"]["time_limit"])
 
     """
     Step 2: Initialize each bidding zone
@@ -290,25 +284,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
     model.setObjective(firm_lcoe * objective_scale_factor, gp.GRB.MINIMIZE)
 
     """
-    Step 6: Tune model
-    """
-    if config["tuning"]["enabled"]:
-        status.update("Tuning")
-
-        # Tune the model
-        model.tune()
-
-        # Create the directory to store the tuning results
-        tuning_folder = f"tuning/{config['name']}/{resolution}"
-        os.makedirs(tuning_folder)
-
-        # Store the tuning results from worst to best so the best result is used when solving the model
-        for i in reversed(range(model.tuneResultCount)):
-            model.getTuneResult(i)
-            model.write(f"{tuning_folder}/{i}.prm")
-
-    """
-    Step 7: Solve model
+    Step 6: Solve model
     """
     # Set the status message and create
     status.update("Optimizing")
@@ -355,7 +331,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
     utils.write_text(utils.path(output_folder, resolution, "log.txt"), "".join(log_messages))
 
     """
-    Step 8: Check if the model could be solved
+    Step 7: Check if the model could be solved
     """
     if model.status == gp.GRB.INFEASIBLE:
         return "The model was infeasible"
@@ -381,7 +357,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
         return "The model could not be solved for an unknown reason"
 
     """
-    Step 9: Store the results
+    Step 8: Store the results
     """
     # Make a directory for each type of output
     for directory in ["temporal_results", "temporal_export", "production_capacities", "storage_capacities"]:
