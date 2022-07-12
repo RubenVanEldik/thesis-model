@@ -32,9 +32,10 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
     model.setParam("Method", config["optimization"]["method"])
 
     # Disable crossover for the last resolution and set BarHomogeneous and Aggregate
+    objective_scale_factor = 10 ** 6
     is_last_resolution = resolution == utils.get_sorted_resolution_stages(config, descending=True)[-1]
     model.setParam("Crossover", 0 if is_last_resolution else -1)
-    model.setParam("BarConvTol", 10 ** -3 if is_last_resolution else 10 ** -8)
+    model.setParam("BarConvTol", 10 ** -8 * objective_scale_factor if is_last_resolution else 10 ** -8)
     model.setParam("BarHomogeneous", 1)  # Don't know what this does, but it speeds up some more complex models
     model.setParam("Aggregate", 0)  # Don't know what this does, but it speeds up some more complex models
     model.setParam("Presolve", 2)  # Use an aggressive presolver
@@ -286,7 +287,6 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
     status.update("Setting the objective function")
     temporal_demand = utils.merge_dataframes_on_column(temporal_results, "demand_MW")
     firm_lcoe = utils.calculate_lcoe(production_capacity, storage_capacity, temporal_demand, config=config)
-    objective_scale_factor = 10 ** 6
     model.setObjective(firm_lcoe * objective_scale_factor, gp.GRB.MINIMIZE)
 
     """
