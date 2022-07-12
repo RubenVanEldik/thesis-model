@@ -17,7 +17,7 @@ def sensitivity(run_name, resolution):
     st.sidebar.header("Options")
 
     # Get the sensitivity analysis
-    sensitivity_config = utils.read_yaml(f"./output/{run_name}/sensitivity.yaml")
+    sensitivity_config = utils.read_yaml(utils.path("output", run_name, "sensitivity.yaml"))
 
     # Select a output variable to run the sensitivity analysis on
     statistic_options = ["firm_lcoe", "unconstrained_lcoe", "premium", "relative_curtailment", "production_capacity", "storage_capacity"]

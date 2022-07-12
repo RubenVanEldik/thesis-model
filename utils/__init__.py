@@ -25,6 +25,7 @@ from .get_storage_capacity import get_storage_capacity
 from .get_technology_assumptions import get_technology_assumptions
 from .labelize_technology import labelize_technology
 from .merge_dataframes_on_column import merge_dataframes_on_column
+from .path import path
 from .preprocess_bidding_zone import preprocess_bidding_zone
 from .preprocess_interconnections import preprocess_interconnections
 from .read_csv import read_csv

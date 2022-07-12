@@ -14,7 +14,7 @@ def optimization_log(run_name, resolution):
     st.title("📜 Optimization log")
 
     # Read the log
-    log = utils.read_text(f"./output/{run_name}/{resolution}/log.txt")
+    log = utils.read_text(utils.path("output", run_name, resolution, "log.txt"))
 
     # Display the log as a code block
     st.code(log)

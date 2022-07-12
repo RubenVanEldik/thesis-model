@@ -2,6 +2,7 @@ import datetime
 import gurobipy
 import numpy as np
 import pandas as pd
+import pathlib
 import re
 import shapely
 
@@ -70,7 +71,7 @@ def is_config(value, *, required=True):
     if type(value) is not dict:
         return False
 
-    if not is_directory_path(value.get("name")):
+    if not is_string(value.get("name")):
         return False
     if not is_model_year(value.get("model_year")):
         return False
@@ -206,11 +207,18 @@ def is_dict_or_list(value, *, required=True):
     return is_list or is_dict
 
 
-def is_directory_path(value, *, required=True):
+def is_directory_path(value, *, required=True, existing=None):
     if value is None:
         return not required
 
-    return bool(re.search("^[^\n\r\t\0]+$", value))
+    if not isinstance(value, pathlib.Path):
+        return False
+    if existing == False:
+        return not value.exists()
+    if existing == True:
+        return value.is_dir()
+
+    return True
 
 
 def is_aggregation_level(value, *, required=True):
@@ -232,13 +240,20 @@ def is_date_range(value, *, required=True):
     return has_valid_start_date and has_valid_end_date
 
 
-def is_filepath(value, *, required=True, suffix=None):
+def is_filepath(value, *, required=True, suffix=None, existing=None):
     if value is None:
         return not required
 
-    is_valid_path = bool(re.search("^[^\n\r\t\0]+\.[a-z]+$", value))
-    has_valid_suffix = not suffix or bool(re.search(f"{suffix}$", value))
-    return is_valid_path and has_valid_suffix
+    if not isinstance(value, pathlib.Path):
+        return False
+    if suffix and value.suffix != suffix:
+        return False
+    if existing == False:
+        return not value.exists()
+    if existing == True:
+        return value.is_file()
+
+    return True
 
 
 def is_filepath_list(value, *, required=True, suffix=None):

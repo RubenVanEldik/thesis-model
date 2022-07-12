@@ -11,7 +11,7 @@ def get_country_property(country_code, key, *, type="nuts_2"):
     assert validate.is_string(key)
 
     # Read the countries
-    countries = utils.read_yaml("./input/countries.yaml")
+    countries = utils.read_yaml(utils.path("input", "countries.yaml"))
 
     # Get the specific country
     country = next(country for country in countries if country[type] == country_code)

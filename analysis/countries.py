@@ -28,7 +28,7 @@ def _select_data(run_name, resolution, *, name):
         statistic_method = getattr(stats, statistic_type)
 
         # Calculate the statistics for each country and convert them into a Series
-        countries = utils.read_yaml(f"./output/{run_name}/config.yaml")["countries"]
+        countries = utils.read_yaml(utils.path("output", run_name, "config.yaml"))["countries"]
         return pd.Series({country["nuts_2"]: statistic_method(run_name, resolution, countries=[country["nuts_2"]]) for country in countries})
 
     if data_source == "Temporal results":

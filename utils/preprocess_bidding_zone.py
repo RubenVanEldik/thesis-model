@@ -21,7 +21,7 @@ def _get_relevant_sheet_names(filepath, bidding_zone):
             return True
 
         # If the country has only 1 bidding zone, just check the first two letters
-        countries = utils.read_yaml("./input/countries.yaml")
+        countries = utils.read_yaml(utils.path("input", "countries.yaml"))
         if len([z for country in countries for z in country["bidding_zones"] if z.startswith(bidding_zone[:2])]) < 2:
             return sheet.startswith(bidding_zone[:2])
 
@@ -120,20 +120,20 @@ def preprocess_bidding_zone(bidding_zone, year):
     assert validate.is_model_year(year)
 
     # Import demand data
-    filepath_demand = f"./input/eraa/Demand Data/Demand_TimeSeries_{year}_NationalEstimates.xlsx"
+    filepath_demand = utils.path("input", "eraa", "Demand Data", f"Demand_TimeSeries_{year}_NationalEstimates.xlsx")
     data = _import_data(None, filepath_demand, bidding_zone=bidding_zone, column_name="demand_MW",)
 
     # Import PV data
-    filepath_pv = f"./input/eraa/Climate Data/PECD_LFSolarPV_{year}_edition 2021.3.xlsx"
+    filepath_pv = utils.path("input", "eraa", "Climate Data", f"PECD_LFSolarPV_{year}_edition 2021.3.xlsx")
     data = _import_data(data, filepath_pv, bidding_zone=bidding_zone, column_name="pv_{bidding_zone}_cf",)
 
     # Import onshore wind data
-    filepath_onshore = f"./input/eraa/Climate Data/PECD_Onshore_{year}_edition 2021.3.xlsx"
+    filepath_onshore = utils.path("input", "eraa", "Climate Data", f"PECD_Onshore_{year}_edition 2021.3.xlsx")
     data = _import_data(data, filepath_onshore, bidding_zone=bidding_zone, column_name="onshore_{bidding_zone}_cf",)
 
     # Import offshore wind data
-    filepath_offshore = f"./input/eraa/Climate Data/PECD_Offshore_{year}_edition 2021.3.xlsx"
+    filepath_offshore = utils.path("input", "eraa", "Climate Data", f"PECD_Offshore_{year}_edition 2021.3.xlsx")
     data = _import_data(data, filepath_offshore, bidding_zone=bidding_zone, column_name="offshore_{bidding_zone}_cf",)
 
     # Store the data in a CSV file
-    data.to_csv(f"./input/bidding_zones/{year}/{bidding_zone}.csv")
+    data.to_csv(utils.path("input", "bidding_zones", year, f"{bidding_zone}.csv"))

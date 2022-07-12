@@ -11,14 +11,14 @@ def get_geometries_of_countries(country_codes):
     # Get a list of all included geographic units and all excluded geographic sub-units
     included_geographic_units = []
     excluded_geographic_subunits = []
-    countries = utils.read_yaml("./input/countries.yaml")
+    countries = utils.read_yaml(utils.path("input", "countries.yaml"))
     relevant_countries = [country for country in countries if country["nuts_2"] in country_codes]
     for country in relevant_countries:
         included_geographic_units.extend(country.get("included_geographic_units") or [])
         excluded_geographic_subunits.extend(country.get("excluded_geographic_subunits") or [])
 
     # Get a Geopandas DataFrame with the relevant rows
-    map_df = utils.read_shapefile("./input/gis/ne_10m_admin_0_map_subunits.shp")
+    map_df = utils.read_shapefile(utils.path("input", "gis", "ne_10m_admin_0_map_subunits.shp"))
     map_df = map_df[map_df.GU_A3.isin(included_geographic_units)]
     map_df = map_df[~map_df.SU_A3.isin(excluded_geographic_subunits)]
 

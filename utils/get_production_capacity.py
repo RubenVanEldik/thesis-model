@@ -17,13 +17,13 @@ def get_production_capacity(run_name, resolution, *, group=None, countries=None)
 
     # If no countries are specified, set them to all countries modelled in this run
     if not countries:
-        config = utils.read_yaml(f"./output/{run_name}/config.yaml")
+        config = utils.read_yaml(utils.path("output", run_name, "config.yaml"))
         countries = [country["nuts_2"] for country in config["countries"]]
 
     # Get the production capacity for each bidding zone
     production_capacity = {}
     for bidding_zone in utils.get_bidding_zones_for_countries(countries):
-        filepath = f"./output/{run_name}/{resolution}/production_capacities/{bidding_zone}.csv"
+        filepath = utils.path("output", run_name, resolution, "production_capacities", f"{bidding_zone}.csv")
         production_capacity[bidding_zone] = utils.read_csv(filepath, index_col=0)
 
     # Return a dictionary with the production capacity per bidding zone DataFrame if not grouped

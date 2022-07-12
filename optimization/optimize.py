@@ -62,7 +62,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
         country_flag = utils.get_country_property(utils.get_country_of_bidding_zone(bidding_zone), "flag")
         status.update(f"{country_flag} Importing data")
 
-        filepath = f"./input/bidding_zones/{config['model_year']}/{bidding_zone}.csv"
+        filepath = utils.path("input", "bidding_zones", config["model_year"], f"{bidding_zone}.csv")
         start_date = config["date_range"]["start"]
         end_date = config["date_range"]["end"]
         # Get the temporal data and resample to the required resolution
@@ -77,7 +77,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
 
         if previous_resolution:
             # Get the temporal results from the previous run
-            previous_temporal_results = utils.read_csv(f"{output_folder}/{previous_resolution}/temporal_results/{bidding_zone}.csv", parse_dates=True, index_col=0)
+            previous_temporal_results = utils.read_csv(utils.path(output_folder, previous_resolution, "temporal_results", f"{bidding_zone}.csv"), parse_dates=True, index_col=0)
             # Resample the previous results so it has the same timestamps as the current step
             previous_temporal_results = previous_temporal_results.resample(resolution).mean()
             # Find and add the rows that are missing in the previous results (the resample method does not add rows after the last timestamp)
@@ -112,7 +112,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
             climate_zones = [re.match(f"{production_technology}_(.+)_cf", column).group(1) for column in temporal_data[bidding_zone].columns if column.startswith(f"{production_technology}_")]
             production_potential = utils.get_production_potential_in_climate_zone(bidding_zone, production_technology, config=config)
             if previous_resolution:
-                previous_production_capacity = utils.read_csv(f"{output_folder}/{previous_resolution}/production_capacities/{bidding_zone}.csv", index_col=0)
+                previous_production_capacity = utils.read_csv(utils.path(output_folder, previous_resolution, "production_capacities", f"{bidding_zone}.csv"), index_col=0)
                 capacities = model.addVars(climate_zones, lb=config["time_discretization"]["capacity_propagation"] * previous_production_capacity[production_technology].dropna(), ub=production_potential)
             else:
                 capacities = model.addVars(climate_zones, ub=production_potential)
@@ -146,7 +146,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
 
             # Create a variable for the energy and power storage capacity
             if previous_resolution:
-                previous_storage_capacity = utils.read_csv(f"{output_folder}/{previous_resolution}/storage_capacities/{bidding_zone}.csv", index_col=0)
+                previous_storage_capacity = utils.read_csv(utils.path(output_folder, previous_resolution, "storage_capacities", f"{bidding_zone}.csv"), index_col=0)
                 storage_capacity[bidding_zone].loc[storage_technology, "energy"] = model.addVar(lb=config["time_discretization"]["capacity_propagation"] * previous_storage_capacity.loc[storage_technology, "energy"])
                 storage_capacity[bidding_zone].loc[storage_technology, "power"] = model.addVar(lb=config["time_discretization"]["capacity_propagation"] * previous_storage_capacity.loc[storage_technology, "power"])
             else:
@@ -351,7 +351,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
 
     # Store the optimization log
     os.makedirs(f"{output_folder}/{resolution}")
-    utils.write_text(f"{output_folder}/{resolution}/log.txt", "".join(log_messages))
+    utils.write_text(utils.path(output_folder, resolution, "log.txt"), "".join(log_messages))
 
     """
     Step 8: Check if the model could be solved

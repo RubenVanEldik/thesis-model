@@ -17,7 +17,7 @@ def statistics(run_name, resolution):
     st.sidebar.header("Options")
 
     # Ask for which countries the statistics should be shown
-    config = utils.read_yaml(f"./output/{run_name}/config.yaml")
+    config = utils.read_yaml(utils.path('output', run_name, 'config.yaml'))
     selected_countries = st.sidebar.multiselect("Countries", config["countries"], format_func=lambda country: country["name"])
     selected_country_codes = [country["nuts_2"] for country in selected_countries]
 

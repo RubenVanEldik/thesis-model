@@ -23,7 +23,7 @@ def run(config, *, status=Status(), output_folder):
         previous_resolution = resolution
 
     # Store the config as a .YAML file
-    utils.write_yaml(f"{output_folder}/config.yaml", config)
+    utils.write_yaml(utils.path(output_folder, "config.yaml"), config)
 
     # Set the final status
     status.update(f"Optimization has finished and results are stored", type="success")
@@ -37,7 +37,7 @@ def run_sensitivity(config, sensitivity_config):
     assert validate.is_sensitivity_config(sensitivity_config)
 
     status = Status()
-    output_folder = f"./output/{config['name']}"
+    output_folder = utils.path("output", config["name"])
 
     # Loop over each sensitivity analysis step
     for step_key, step_value in sensitivity_config["steps"].items():
@@ -53,7 +53,7 @@ def run_sensitivity(config, sensitivity_config):
         run(step_config, status=status, output_folder=f"{output_folder}/{step_key}")
 
     # Store the sensitivity config file
-    utils.write_yaml(f"{output_folder}/sensitivity.yaml", sensitivity_config)
+    utils.write_yaml(utils.path(output_folder, "sensitivity.yaml"), sensitivity_config)
 
     # Set the final status
     status.update(f"Sensitivity analysis has finished and results are stored", type="success")

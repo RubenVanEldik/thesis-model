@@ -35,7 +35,7 @@ with st.sidebar.expander("Scope"):
     config["model_year"] = st.selectbox("Model year", [2025, 2030], index=1)
 
     # Select the countries
-    countries = utils.read_yaml("./input/countries.yaml")
+    countries = utils.read_yaml(utils.path("input", "countries.yaml"))
     country_codes = [country["nuts_2"] for country in countries]
     if st.checkbox("Include all countries", value=True):
         selected_countries = country_codes
@@ -62,7 +62,7 @@ with st.sidebar.expander("Technologies"):
     col1, col2 = st.columns(2)
     col1.subheader("Production")
     config["technologies"]["production"] = {}
-    production_technology_options = utils.read_yaml("./input/technologies/production.yaml").keys()
+    production_technology_options = utils.read_yaml(utils.path("input", "technologies", "production.yaml")).keys()
     for technology in production_technology_options:
         if col1.checkbox(utils.labelize_technology(technology), value=True):
             config["technologies"]["production"][technology] = utils.get_technology_assumptions("production", technology, scenario=scenario)
@@ -70,7 +70,7 @@ with st.sidebar.expander("Technologies"):
     # Select the storage technologies
     col2.subheader("Storage")
     config["technologies"]["storage"] = {}
-    storage_technologies_options = utils.read_yaml("./input/technologies/storage.yaml").keys()
+    storage_technologies_options = utils.read_yaml(utils.path("input", "technologies", "storage.yaml")).keys()
     for technology in storage_technologies_options:
         if col2.checkbox(utils.labelize_technology(technology), value=True):
             config["technologies"]["storage"][technology] = utils.get_technology_assumptions("storage", technology, scenario=scenario)
@@ -170,4 +170,4 @@ if st.sidebar.button("Run model", disabled=invalid_config or invalid_sensitivity
     elif sensitivity_enabled:
         optimization.run_sensitivity(config, sensitivity_config)
     else:
-        optimization.run(config, output_folder=f"./output/{config['name']}")
+        optimization.run(config, output_folder=utils.path("output", config["name"]))

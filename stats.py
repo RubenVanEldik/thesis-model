@@ -19,7 +19,7 @@ def firm_lcoe(run_name, resolution, *, countries=None):
     temporal_demand = utils.merge_dataframes_on_column(temporal_results, "demand_MW")
     temporal_export = utils.merge_dataframes_on_column(temporal_results, "net_export_MW")
     temporal_net_demand = temporal_demand + temporal_export
-    config = utils.read_yaml(f"./output/{run_name}/config.yaml")
+    config = utils.read_yaml(utils.path('output', run_name, 'config.yaml'))
 
     # Return the LCOE
     return utils.calculate_lcoe(production_capacity, storage_capacity, temporal_net_demand, config=config)
@@ -38,7 +38,7 @@ def unconstrained_lcoe(run_name, resolution, *, countries=None):
     storage_capacity = utils.get_storage_capacity(run_name, resolution, countries=countries)
     temporal_results = utils.get_temporal_results(run_name, resolution, countries=countries)
     temporal_demand = utils.merge_dataframes_on_column(temporal_results, "production_total_MW")
-    config = utils.read_yaml(f"./output/{run_name}/config.yaml")
+    config = utils.read_yaml(utils.path('output', run_name, 'config.yaml'))
 
     # Return the LCOE
     return utils.calculate_lcoe(production_capacity, storage_capacity, temporal_demand, config=config)

@@ -14,7 +14,7 @@ def _read_and_map_export_limits(*, model_year, type, timestamps):
     assert validate.is_series(timestamps)
 
     # Read the interconnection CSV file
-    filepath = f"./input/interconnections/{model_year}/{type}.csv"
+    filepath = utils.path("input", "interconnections", model_year, f"{type}.csv")
     export_limits = utils.read_csv(filepath, parse_dates=True, index_col=0, header=[0, 1])
 
     # Resample the export limits if required

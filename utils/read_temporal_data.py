@@ -6,7 +6,7 @@ def read_temporal_data(filepath, *, start=None, end=None):
     """
     Returns the temporal data, if specified only for a specific date range
     """
-    assert validate.is_filepath(filepath, suffix=".csv")
+    assert validate.is_filepath(filepath, suffix=".csv", existing=True)
     assert validate.is_date(start, required=False)
     assert validate.is_date(end, required=False)
 

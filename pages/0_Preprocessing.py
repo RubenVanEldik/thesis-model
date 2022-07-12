@@ -33,7 +33,7 @@ def _validate_and_import_bidding_zone_data():
     Validate and preprocess all bidding zone data
     """
     # Get a list with all bidding zones
-    countries = utils.read_yaml("./input/countries.yaml")
+    countries = utils.read_yaml(utils.path("input", "countries.yaml"))
     bidding_zones = [bidding_zone for country in countries for bidding_zone in country["bidding_zones"]]
 
     # Initialize a progress bar
@@ -43,7 +43,7 @@ def _validate_and_import_bidding_zone_data():
         for bidding_zone_index, bidding_zone in enumerate(bidding_zones):
             bidding_zone_progress.progress(year_index / len(years) + bidding_zone_index / len(years) / len(bidding_zones))
 
-            filename = f"./input/bidding_zones/{year}/{bidding_zone}.csv"
+            filename = utils.path("input", "bidding_zones", year, f"{bidding_zone}.csv")
             if os.path.isfile(filename):
                 is_valid_file = True
                 data = utils.read_csv(filename, parse_dates=True, index_col=0)
@@ -82,7 +82,7 @@ def _validate_and_import_interconnection_data():
         for interconnection_type_index, interconnection_type in enumerate(interconnection_types):
             interconnection_progress.progress(year_index / len(years) + interconnection_type_index / len(years) / len(interconnection_types))
 
-            filename = f"./input/interconnections/{year}/{interconnection_type}.csv"
+            filename = utils.path("input", "interconnections", year, f"{interconnection_type}.csv")
             if os.path.isfile(filename):
                 is_valid_file = True
                 data = utils.read_csv(filename, parse_dates=True, index_col=0, header=[0, 1])
@@ -111,13 +111,13 @@ def _validate_and_import_interconnection_data():
 
 
 # Global variables
-input_directory = "./input/eraa"
+input_directory = utils.path("input", "eraa")
 years = [2025, 2030]
 
 
 # Download the demand files
 st.header("Bidding zones")
-demand_filenames = [f"{input_directory}/Demand Data/Demand_TimeSeries_{year}_NationalEstimates.xlsx" for year in years]
+demand_filenames = [utils.path(input_directory, "Demand Data", f"Demand_TimeSeries_{year}_NationalEstimates.xlsx") for year in years]
 if not utils.validate_files(demand_filenames):
     st.warning("The demand files could not be found.")
 
@@ -127,7 +127,7 @@ if not utils.validate_files(demand_filenames):
         _download_data(demand_data_url, input_directory, demand_filenames)
 
 # Download the climate files
-climate_filenames = [f"./{input_directory}/Climate Data/PECD_{type}_{year}_edition 2021.3.xlsx" for year in years for type in ["LFSolarPV", "Onshore", "Offshore"]]
+climate_filenames = [utils.path(input_directory, "Climate Data", f"PECD_{type}_{year}_edition 2021.3.xlsx") for year in years for type in ["LFSolarPV", "Onshore", "Offshore"]]
 if not utils.validate_files(climate_filenames):
     st.warning("The climate files could not be found.")
 
@@ -145,7 +145,7 @@ if utils.validate_files(demand_filenames) and utils.validate_files(climate_filen
 
 # Check and download the interconnection files
 st.header("Interconnections")
-interconnection_filenames = [f"./{input_directory}/Transfer Capacities/Transfer Capacities_ERAA2021_TY{year}.xlsx" for year in years]
+interconnection_filenames = [utils.path(input_directory, "Transfer Capacities", f"Transfer Capacities_ERAA2021_TY{year}.xlsx") for year in years]
 if not utils.validate_files(interconnection_filenames):
     st.warning("The interconnection files could not be found.")
 

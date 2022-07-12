@@ -22,7 +22,7 @@ def get_production_potential_in_climate_zone(bidding_zone, production_technology
     # Calculate the number of climate zones in the country
     climate_zone_count = 0
     for bidding_zone_in_country in country["bidding_zones"]:
-        temporal_data = utils.read_temporal_data(f"./input/bidding_zones/{config['model_year']}/{bidding_zone_in_country}.csv")
+        temporal_data = utils.read_temporal_data(utils.path("input", "bidding_zones", config["model_year"], f"{bidding_zone_in_country}.csv"))
         climate_zone_count += len([column for column in temporal_data.columns if column.startswith(f"{production_technology}_")])
 
     # Return the production potential in the country divided by the number of climate zones in the country

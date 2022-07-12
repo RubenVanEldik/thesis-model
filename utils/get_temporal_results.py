@@ -16,13 +16,13 @@ def get_temporal_results(run_name, resolution, *, group=None, countries=None):
 
     # If no countries are specified, set them to all countries modelled in this run
     if not countries:
-        config = utils.read_yaml(f"./output/{run_name}/config.yaml")
+        config = utils.read_yaml(utils.path("output", run_name, "config.yaml"))
         countries = [country["nuts_2"] for country in config["countries"]]
 
     # Get the temporal data for each bidding zone
     temporal_results = {}
     for bidding_zone in utils.get_bidding_zones_for_countries(countries):
-        filepath = f"./output/{run_name}/{resolution}/temporal_results/{bidding_zone}.csv"
+        filepath = utils.path("output", run_name, resolution, "temporal_results", f"{bidding_zone}.csv")
         temporal_results[bidding_zone] = utils.read_temporal_data(filepath)
 
         if temporal_results[bidding_zone].isnull().values.any():

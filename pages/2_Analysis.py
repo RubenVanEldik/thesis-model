@@ -16,16 +16,16 @@ def run():
 
     # Select the run to analyze
     selected_run = st.sidebar.selectbox("Previous runs", previous_runs)
-    is_sensitivity_analysis = os.path.isfile(f"./output/{selected_run}/sensitivity.yaml")
+    is_sensitivity_analysis = os.path.isfile(utils.path("output", selected_run, "sensitivity.yaml"))
 
     # Get the config
     if is_sensitivity_analysis:
         # Get the config for the first step
-        sensitivity_config = utils.read_yaml(f"./output/{selected_run}/sensitivity.yaml")
+        sensitivity_config = utils.read_yaml(utils.path("output", selected_run, "sensitivity.yaml"))
         first_step = next(iter(sensitivity_config["steps"]))
-        config = utils.read_yaml(f"./output/{selected_run}/{first_step}/config.yaml")
+        config = utils.read_yaml(utils.path("output", selected_run, first_step, "config.yaml"))
     else:
-        config = utils.read_yaml(f"./output/{selected_run}/config.yaml")
+        config = utils.read_yaml(utils.path("output", selected_run, "config.yaml"))
 
     # Select the resolution to show the data of
     sorted_resolution_stages = utils.get_sorted_resolution_stages(config)
