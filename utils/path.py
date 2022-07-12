@@ -10,7 +10,7 @@ def _validate_path_arguments(args):
     for index, arg in enumerate(args):
         if index == 0 and validate.is_directory_path(arg):
             continue
-        if validate.is_string(arg):
+        if validate.is_string(arg) and "/" not in arg:
             continue
         if validate.is_number(arg):
             continue
