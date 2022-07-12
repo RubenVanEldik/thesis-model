@@ -366,7 +366,8 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
 
     # Store the actual values per bidding zone for the temporal results and capacities
     for bidding_zone in bidding_zones:
-        status.update(f"Converting and storing the results for {bidding_zone}")
+        country_flag = utils.get_country_property(utils.get_country_of_bidding_zone(bidding_zone), "flag")
+        status.update(f"{country_flag} Converting and storing the results")
         # Convert the temporal results variables
         temporal_results_bidding_zone = utils.convert_variables_recursively(temporal_results[bidding_zone])
 
@@ -383,5 +384,6 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
 
     # Store the actual values per connection type for the temporal export
     for connection_type in ["hvac", "hvdc"]:
+        status.update(f"Converting and storing the {connection_type.upper()} interconnection results")
         temporal_export_connection_type = utils.convert_variables_recursively(temporal_export[connection_type])
         temporal_export_connection_type.to_csv(f"{output_folder}/{resolution}/temporal_export/{connection_type}.csv")
