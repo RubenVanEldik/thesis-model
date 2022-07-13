@@ -8,7 +8,7 @@ cd $new_directory
 # Get the LP model
 run_name="Run XXXX"
 resolution="1H"
-lp_model="../../output/$run_name/$resolution/model.lp"
+lp_model="../../output/$run_name/$resolution/model.mps"
 lp_parameters="../../output/$run_name/$resolution/parameters.prm"
 
 # Tune
