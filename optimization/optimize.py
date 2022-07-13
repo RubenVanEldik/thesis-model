@@ -1,7 +1,6 @@
 import math
 from datetime import datetime, timedelta
 import gurobipy as gp
-import os
 import pandas as pd
 import re
 import streamlit as st
@@ -326,7 +325,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
     model.optimize(optimization_callback)
 
     # Store the LP model and optimization log
-    os.makedirs(f"{output_folder}/{resolution}")
+    (output_folder / resolution).mkdir(parents=True)
     model.write(f"{output_folder}/{resolution}/model.mps")
     model.write(f"{output_folder}/{resolution}/parameters.prm")
     utils.write_text(utils.path(output_folder, resolution, "log.txt"), "".join(log_messages))
@@ -361,8 +360,8 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
     Step 8: Store the results
     """
     # Make a directory for each type of output
-    for directory in ["temporal_results", "temporal_export", "production_capacities", "storage_capacities"]:
-        os.makedirs(f"{output_folder}/{resolution}/{directory}")
+    for sub_directory in ["temporal_results", "temporal_export", "production_capacities", "storage_capacities"]:
+        (output_folder / resolution / sub_directory).mkdir()
 
     # Store the actual values per bidding zone for the temporal results and capacities
     for bidding_zone in bidding_zones:

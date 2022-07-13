@@ -1,5 +1,3 @@
-import os
-
 import validate
 
 
@@ -9,4 +7,4 @@ def validate_files(filenames):
     """
     assert validate.is_filepath_list(filenames)
 
-    return all(os.path.isfile(filename) for filename in filenames)
+    return all(filename.is_file() for filename in filenames)

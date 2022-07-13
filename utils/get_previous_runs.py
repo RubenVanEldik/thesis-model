@@ -1,5 +1,3 @@
-import os
-
 import utils
 import validate
 
@@ -11,11 +9,11 @@ def _validate_run(run_name):
     assert validate.is_string(run_name)
 
     # Return True if it has a config.yaml file
-    if os.path.isfile(utils.path("output", run_name, "config.yaml")):
+    if utils.path("output", run_name, "config.yaml").is_file():
         return True
 
     # Return True if it has a sensitivity.yaml file
-    if os.path.isfile(utils.path("output", run_name, "sensitivity.yaml")):
+    if utils.path("output", run_name, "sensitivity.yaml").is_file():
         return True
 
     # Return False if has neither a config.yaml or sensitivity.yaml file
@@ -31,11 +29,11 @@ def get_previous_runs(*, include_uncompleted_runs=False):
     output_folder = utils.path("output")
 
     # Return an empty list if there is no output folder
-    if not os.path.isdir(output_folder):
+    if not output_folder.is_dir():
         return []
 
-    files_and_directories = os.listdir(output_folder)
-    directories = [item for item in files_and_directories if os.path.isdir(output_folder / item)]
+    files_and_directories = output_folder.iterdir()
+    directories = [directory.name for directory in files_and_directories if directory.is_dir()]
     directories = sorted(directories, reverse=True)
 
     # Return a list of all runs
@@ -43,4 +41,4 @@ def get_previous_runs(*, include_uncompleted_runs=False):
         return directories
 
     # Return a list of all completed runs
-    return [item for item in directories if _validate_run(item)]
+    return [directory for directory in directories if _validate_run(directory)]

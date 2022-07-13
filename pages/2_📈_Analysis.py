@@ -1,4 +1,3 @@
-import os
 import streamlit as st
 
 import analysis
@@ -16,7 +15,7 @@ def run():
 
     # Select the run to analyze
     selected_run = st.sidebar.selectbox("Previous runs", previous_runs)
-    is_sensitivity_analysis = os.path.isfile(utils.path("output", selected_run, "sensitivity.yaml"))
+    is_sensitivity_analysis = utils.path("output", selected_run, "sensitivity.yaml").is_file()
 
     # Get the config
     if is_sensitivity_analysis:

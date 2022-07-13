@@ -1,5 +1,4 @@
 from datetime import datetime
-import os
 import pandas as pd
 
 import utils
@@ -35,8 +34,8 @@ def preprocess_interconnections(interconnection_type, year):
     filepath = utils.path(input_directory, f"Transfer Capacities_ERAA2021_TY{year}.xlsx")
 
     # Create the output directory if does not exist yet
-    if not os.path.isdir(output_directory):
-        os.makedirs(output_directory)
+    if not output_directory.is_dir():
+        output_directory.mkdir(parents=True)
 
     if interconnection_type == "hvac":
         hvac = pd.read_excel(filepath, sheet_name="HVAC", index_col=[0, 1], skiprows=10, header=[0, 1])

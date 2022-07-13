@@ -1,5 +1,4 @@
 from datetime import datetime
-import os
 import py7zr
 import requests
 import streamlit as st
@@ -18,7 +17,7 @@ def download_file(url, filename, *, unzip=False, chunk_size=50 * 1024, show_prog
     assert validate.is_bool(show_progress)
 
     # Create a temporary filename for if it needs to be unzipped
-    filename_zip = f"temp_{datetime.now().timestamp()}.zip"
+    filename_zip = utils.path(f"temp_{datetime.now().timestamp()}.zip")
 
     # Create the request
     r = requests.get(url, stream=True)
@@ -57,4 +56,4 @@ def download_file(url, filename, *, unzip=False, chunk_size=50 * 1024, show_prog
         with st.spinner("Unzipping files..."):
             with py7zr.SevenZipFile(filename_zip, mode="r") as f:
                 f.extractall(filename)
-        os.remove(filename_zip)
+        filename_zip.unlink()

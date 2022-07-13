@@ -1,6 +1,5 @@
 from datetime import datetime
 import openpyxl
-import os
 import pandas as pd
 import streamlit as st
 
@@ -44,7 +43,7 @@ def _validate_and_import_bidding_zone_data():
             bidding_zone_progress.progress(year_index / len(years) + bidding_zone_index / len(years) / len(bidding_zones))
 
             filename = utils.path("input", "bidding_zones", year, f"{bidding_zone}.csv")
-            if os.path.isfile(filename):
+            if filename.is_file():
                 is_valid_file = True
                 data = utils.read_csv(filename, parse_dates=True, index_col=0)
 
@@ -83,7 +82,7 @@ def _validate_and_import_interconnection_data():
             interconnection_progress.progress(year_index / len(years) + interconnection_type_index / len(years) / len(interconnection_types))
 
             filename = utils.path("input", "interconnections", year, f"{interconnection_type}.csv")
-            if os.path.isfile(filename):
+            if filename.is_file():
                 is_valid_file = True
                 data = utils.read_csv(filename, parse_dates=True, index_col=0, header=[0, 1])
 
