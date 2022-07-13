@@ -30,9 +30,9 @@ def preprocess_interconnections(interconnection_type, year):
     assert validate.is_model_year(year)
 
     # Get the interconnections filepath
-    input_directory = "./input/eraa/Transfer Capacities"
-    output_directory = f"./input/interconnections/{year}"
-    filepath = f"./{input_directory}/Transfer Capacities_ERAA2021_TY{year}.xlsx"
+    input_directory = utils.path("input", "eraa", "Transfer Capacities")
+    output_directory = utils.path("input", "interconnections", year)
+    filepath = utils.path(input_directory, f"Transfer Capacities_ERAA2021_TY{year}.xlsx")
 
     # Create the output directory if does not exist yet
     if not os.path.isdir(output_directory):
