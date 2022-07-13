@@ -372,18 +372,18 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
         temporal_results_bidding_zone = utils.convert_variables_recursively(temporal_results[bidding_zone])
 
         # Store the temporal results to a CSV file
-        temporal_results_bidding_zone.to_csv(f"{output_folder}/{resolution}/temporal_results/{bidding_zone}.csv")
+        temporal_results_bidding_zone.to_csv(output_folder / resolution / "temporal_results" / f"{bidding_zone}.csv")
 
         # Convert and store the production capacity
         production_capacity_bidding_zone = utils.convert_variables_recursively(production_capacity[bidding_zone])
-        production_capacity_bidding_zone.to_csv(f"{output_folder}/{resolution}/production_capacities/{bidding_zone}.csv")
+        production_capacity_bidding_zone.to_csv(output_folder / resolution / "production_capacities" / f"{bidding_zone}.csv")
 
         # Convert and store the storage capacity
         storage_capacity_bidding_zone = utils.convert_variables_recursively(storage_capacity[bidding_zone])
-        storage_capacity_bidding_zone.to_csv(f"{output_folder}/{resolution}/storage_capacities/{bidding_zone}.csv")
+        storage_capacity_bidding_zone.to_csv(output_folder / resolution / "storage_capacities" / f"{bidding_zone}.csv")
 
     # Store the actual values per connection type for the temporal export
     for connection_type in ["hvac", "hvdc"]:
         status.update(f"Converting and storing the {connection_type.upper()} interconnection results")
         temporal_export_connection_type = utils.convert_variables_recursively(temporal_export[connection_type])
-        temporal_export_connection_type.to_csv(f"{output_folder}/{resolution}/temporal_export/{connection_type}.csv")
+        temporal_export_connection_type.to_csv(output_folder / resolution / "temporal_export" / f"{connection_type}.csv")
