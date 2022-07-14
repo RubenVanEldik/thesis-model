@@ -1,7 +1,6 @@
 from datetime import date, datetime, time, timedelta
 import numpy as np
 import os
-import re
 import streamlit as st
 
 import optimization
@@ -9,25 +8,11 @@ import utils
 import validate
 
 
-def get_default_name():
-    runs = utils.get_previous_runs(include_uncompleted_runs=True)
-    runs_with_proper_names = [run for run in runs if re.search(r"^Run \d\d\d\d", run)]
-
-    # Calculate what the next default name should be
-    if runs_with_proper_names:
-        last_run_with_proper_name = runs_with_proper_names[0]
-        last_run_number = re.search(r"^Run (\d\d\d\d)", last_run_with_proper_name).group(1)
-        default_name = f"Run {int(last_run_number) + 1:04}"
-    else:
-        default_name = "Run 0001"
-    return default_name
-
-
 # Settings dictionary for the new run
 config = {}
 
 # Ask for the name of the this run
-config["name"] = st.sidebar.text_input("Name", value=get_default_name(), max_chars=50)
+config["name"] = st.sidebar.text_input("Name", value=utils.get_next_run_name(), max_chars=50)
 
 # Set the scope options
 with st.sidebar.expander("Scope"):
