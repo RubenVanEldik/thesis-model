@@ -318,8 +318,14 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
             stat2.metric("Objective", f"{objective_value:,.2f}€/MWh")
             stat3.metric("Infeasibility", f"{infeasibility:.2E}")
         if where == gp.GRB.Callback.MESSAGE:
-            log_messages.append(model.cbGet(gp.GRB.Callback.MSG_STRING))
-            info.code("".join(log_messages))
+            log_message = model.cbGet(gp.GRB.Callback.MSG_STRING)
+            log_messages.append(log_message)
+
+            # Show the log message in the UI or console
+            if st._is_running_with_streamlit:
+                info.code("".join(log_messages))
+            else:
+                print(f"   {log_message}", end="")
 
     # Run the model
     model.optimize(optimization_callback)

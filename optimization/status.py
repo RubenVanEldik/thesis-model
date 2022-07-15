@@ -6,4 +6,7 @@ class Status:
         self.status = st.empty()
 
     def update(self, text, *, type="info"):
-        getattr(self.status, type)(text)
+        if st._is_running_with_streamlit:
+            getattr(self.status, type)(text)
+        else:
+            print(text)
