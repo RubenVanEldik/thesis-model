@@ -211,9 +211,9 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
         for connection_type in ["hvac", "hvdc"]:
             status.update(f"{country_flag} Adding {connection_type.upper()} interconnections")
             temporal_export_limits = utils.get_export_limits(bidding_zone, type=connection_type, index=temporal_results[bidding_zone].index, config=config)
-            for column in temporal_export_limits:
-                temporal_export_limit = temporal_export_limits[column] * config["interconnections"]["relative_capacity"]
-                temporal_export[connection_type][column] = pd.Series(model.addVars(temporal_export[connection_type].index, ub=temporal_export_limit))
+            for column_name in temporal_export_limits:
+                temporal_export_limit = temporal_export_limits[column_name] * config["interconnections"]["relative_capacity"]
+                temporal_export[connection_type][column_name] = model.addVars(temporal_export[connection_type].index, ub=temporal_export_limit).values()
 
     """
     Step 3: Define demand constraints
