@@ -16,6 +16,12 @@ def correlation(run_name, resolution):
 
     st.title("📉 Correlation")
 
+    # Show a warning message if the run only includes one country
+    config = utils.read_yaml(utils.path("output", run_name, "config.yaml"))
+    if len(config["countries"]) == 1:
+        st.warning("The correlation plot is only available for runs that include multiple countries.")
+        return
+
     st.sidebar.header("Options")
 
     # Get the temporal results and merge them on a single column
