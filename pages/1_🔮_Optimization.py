@@ -161,4 +161,4 @@ if st.sidebar.button("Run model", disabled=invalid_config or invalid_sensitivity
     elif sensitivity_config:
         optimization.run_sensitivity(config, sensitivity_config)
     else:
-        optimization.run(config, output_folder=utils.path("output", config["name"]))
+        optimization.run(config, output_directory=utils.path("output", config["name"]))

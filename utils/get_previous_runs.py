@@ -26,13 +26,13 @@ def get_previous_runs(*, include_uncompleted_runs=False):
     """
     assert validate.is_bool(include_uncompleted_runs)
 
-    output_folder = utils.path("output")
+    output_directory = utils.path("output")
 
-    # Return an empty list if there is no output folder
-    if not output_folder.is_dir():
+    # Return an empty list if there is no output directory
+    if not output_directory.is_dir():
         return []
 
-    files_and_directories = output_folder.iterdir()
+    files_and_directories = output_directory.iterdir()
     directories = [directory.name for directory in files_and_directories if directory.is_dir()]
     directories = sorted(directories, reverse=True)
 

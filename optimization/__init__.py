@@ -9,17 +9,17 @@ from .optimize import optimize
 from .status import Status
 
 
-def run(config, *, status=Status(), output_folder):
+def run(config, *, status=Status(), output_directory):
     """
     Run the model with the given configuration file
     """
     assert validate.is_config(config)
-    assert validate.is_directory_path(output_folder)
+    assert validate.is_directory_path(output_directory)
 
     previous_resolution = None
 
     for resolution in utils.get_sorted_resolution_stages(config, descending=True):
-        error_message = optimize(config, resolution=resolution, previous_resolution=previous_resolution, status=status, output_folder=output_folder)
+        error_message = optimize(config, resolution=resolution, previous_resolution=previous_resolution, status=status, output_directory=output_directory)
 
         # Stop the run if an error occured during the optimization of one of the resolutions
         if error_message:
@@ -29,7 +29,7 @@ def run(config, *, status=Status(), output_folder):
         previous_resolution = resolution
 
     # Store the config as a .YAML file
-    utils.write_yaml(utils.path(output_folder, "config.yaml"), config)
+    utils.write_yaml(output_directory / "config.yaml", config)
 
     # Set the final status
     status.update(f"Optimization has finished and results are stored", type="success")
@@ -43,7 +43,7 @@ def run_sensitivity(config, sensitivity_config):
     assert validate.is_sensitivity_config(sensitivity_config)
 
     status = Status()
-    output_folder = utils.path("output", config["name"])
+    output_directory = utils.path("output", config["name"])
 
     # Loop over each sensitivity analysis step
     for step_key, step_value in sensitivity_config["steps"].items():
@@ -59,10 +59,10 @@ def run_sensitivity(config, sensitivity_config):
                 utils.set_nested_key(step_config, variable_key, variable_value * step_value)
 
         # Run the optimization
-        run(step_config, status=status, output_folder=utils.path(output_folder, step_key))
+        run(step_config, status=status, output_directory=output_directory / step_key)
 
     # Store the sensitivity config file
-    utils.write_yaml(utils.path(output_folder, "sensitivity.yaml"), sensitivity_config)
+    utils.write_yaml(output_directory / "sensitivity.yaml", sensitivity_config)
 
     # Set the final status
     status.update(f"Sensitivity analysis has finished and results are stored", type="success")

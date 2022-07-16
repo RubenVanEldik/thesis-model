@@ -9,14 +9,14 @@ import utils
 import validate
 
 
-def optimize(config, *, resolution, previous_resolution, status, output_folder):
+def optimize(config, *, resolution, previous_resolution, status, output_directory):
     """
     Create and run the model
     """
     assert validate.is_config(config)
     assert validate.is_resolution(resolution)
     assert validate.is_resolution(previous_resolution, required=False)
-    assert validate.is_directory_path(output_folder)
+    assert validate.is_directory_path(output_directory)
 
     """
     Step 1: Create the model and set the parameters
@@ -70,7 +70,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
 
         if previous_resolution:
             # Get the temporal results from the previous run
-            previous_temporal_results = utils.read_csv(utils.path(output_folder, previous_resolution, "temporal_results", f"{bidding_zone}.csv"), parse_dates=True, index_col=0)
+            previous_temporal_results = utils.read_csv(output_directory / previous_resolution / "temporal_results" / f"{bidding_zone}.csv", parse_dates=True, index_col=0)
             # Resample the previous results so it has the same timestamps as the current step
             previous_temporal_results = previous_temporal_results.resample(resolution).mean()
             # Find and add the rows that are missing in the previous results (the resample method does not add rows after the last timestamp)
@@ -105,7 +105,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
             climate_zones = [re.match(f"{production_technology}_(.+)_cf", column).group(1) for column in temporal_data[bidding_zone].columns if column.startswith(f"{production_technology}_")]
             production_potential = utils.get_production_potential_in_climate_zone(bidding_zone, production_technology, config=config)
             if previous_resolution:
-                previous_production_capacity = utils.read_csv(utils.path(output_folder, previous_resolution, "production_capacities", f"{bidding_zone}.csv"), index_col=0)
+                previous_production_capacity = utils.read_csv(output_directory / previous_resolution / "production_capacities" / f"{bidding_zone}.csv", index_col=0)
                 capacities = model.addVars(climate_zones, lb=config["time_discretization"]["capacity_propagation"] * previous_production_capacity[production_technology].dropna(), ub=production_potential)
             else:
                 capacities = model.addVars(climate_zones, ub=production_potential)
@@ -139,7 +139,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
 
             # Create a variable for the energy and power storage capacity
             if previous_resolution:
-                previous_storage_capacity = utils.read_csv(utils.path(output_folder, previous_resolution, "storage_capacities", f"{bidding_zone}.csv"), index_col=0)
+                previous_storage_capacity = utils.read_csv(output_directory / previous_resolution / "storage_capacities" / f"{bidding_zone}.csv", index_col=0)
                 storage_capacity[bidding_zone].loc[storage_technology, "energy"] = model.addVar(lb=config["time_discretization"]["capacity_propagation"] * previous_storage_capacity.loc[storage_technology, "energy"])
                 storage_capacity[bidding_zone].loc[storage_technology, "power"] = model.addVar(lb=config["time_discretization"]["capacity_propagation"] * previous_storage_capacity.loc[storage_technology, "power"])
             else:
@@ -353,10 +353,10 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
     model.optimize(optimization_callback)
 
     # Store the LP model and optimization log
-    (output_folder / resolution).mkdir(parents=True)
-    model.write(f"{output_folder}/{resolution}/model.mps")
-    model.write(f"{output_folder}/{resolution}/parameters.prm")
-    utils.write_text(utils.path(output_folder, resolution, "log.txt"), "".join(log_messages))
+    (output_directory / resolution).mkdir(parents=True)
+    model.write(f"{output_directory}/{resolution}/model.mps")
+    model.write(f"{output_directory}/{resolution}/parameters.prm")
+    utils.write_text(output_directory / resolution / "log.txt", "".join(log_messages))
 
     """
     Step 8: Check if the model could be solved
@@ -389,7 +389,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
     """
     # Make a directory for each type of output
     for sub_directory in ["temporal_results", "temporal_export", "production_capacities", "storage_capacities"]:
-        (output_folder / resolution / sub_directory).mkdir()
+        (output_directory / resolution / sub_directory).mkdir()
 
     # Store the actual values per bidding zone for the temporal results and capacities
     for bidding_zone in bidding_zones:
@@ -399,18 +399,18 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
         temporal_results_bidding_zone = utils.convert_variables_recursively(temporal_results[bidding_zone])
 
         # Store the temporal results to a CSV file
-        temporal_results_bidding_zone.to_csv(output_folder / resolution / "temporal_results" / f"{bidding_zone}.csv")
+        temporal_results_bidding_zone.to_csv(output_directory / resolution / "temporal_results" / f"{bidding_zone}.csv")
 
         # Convert and store the production capacity
         production_capacity_bidding_zone = utils.convert_variables_recursively(production_capacity[bidding_zone])
-        production_capacity_bidding_zone.to_csv(output_folder / resolution / "production_capacities" / f"{bidding_zone}.csv")
+        production_capacity_bidding_zone.to_csv(output_directory / resolution / "production_capacities" / f"{bidding_zone}.csv")
 
         # Convert and store the storage capacity
         storage_capacity_bidding_zone = utils.convert_variables_recursively(storage_capacity[bidding_zone])
-        storage_capacity_bidding_zone.to_csv(output_folder / resolution / "storage_capacities" / f"{bidding_zone}.csv")
+        storage_capacity_bidding_zone.to_csv(output_directory / resolution / "storage_capacities" / f"{bidding_zone}.csv")
 
     # Store the actual values per connection type for the temporal export
     for connection_type in ["hvac", "hvdc"]:
         status.update(f"Converting and storing the {connection_type.upper()} interconnection results")
         temporal_export_connection_type = utils.convert_variables_recursively(temporal_export[connection_type])
-        temporal_export_connection_type.to_csv(output_folder / resolution / "temporal_export" / f"{connection_type}.csv")
+        temporal_export_connection_type.to_csv(output_directory / resolution / "temporal_export" / f"{connection_type}.csv")

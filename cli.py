@@ -39,4 +39,4 @@ if __name__ == "__main__":
     config["name"] = default_run_name + input(f"\n\nName of the run: {default_run_name}")
 
     # Run the optimization
-    optimization.run(config, output_folder=utils.path("output", config["name"]))
+    optimization.run(config, output_directory=utils.path("output", config["name"]))
