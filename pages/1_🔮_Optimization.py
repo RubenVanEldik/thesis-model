@@ -86,7 +86,7 @@ with st.sidebar.expander("Sensitivity analysis"):
 
     # Show the relevant input parameters for each sensitivity analysis type
     if sensitivity_analysis_type == "curtailment":
-        number_steps = st.slider("Number of steps", value=10, min_value=4, max_value=20)
+        number_steps = st.slider("Number of steps", value=10, min_value=5, max_value=50)
         sensitity_steps = np.linspace(start=0, stop=0.999, num=number_steps)
         sensitivity_config["steps"] = {f"{step:.3f}": float(step) for step in sensitity_steps}
     elif sensitivity_analysis_type == "climate_range":
@@ -120,7 +120,7 @@ with st.sidebar.expander("Sensitivity analysis"):
 
         # Select the sensitivity range and steps
         sensitivity_start, sensitivity_stop = st.slider("Relative range", value=(0.5, 1.5), min_value=0.0, max_value=2.0, step=0.05)
-        number_steps = st.slider("Number of steps", value=5, min_value=3, max_value=15, step=2)
+        number_steps = st.slider("Number of steps", value=10, min_value=5, max_value=50)
         sensitity_steps = np.linspace(start=sensitivity_start, stop=sensitivity_stop, num=number_steps)
         sensitivity_config["steps"] = {f"{step:.3f}": float(step) for step in sensitity_steps}
 
