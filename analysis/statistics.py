@@ -17,12 +17,13 @@ def statistics(run_name, resolution):
     st.sidebar.header("Options")
 
     # Ask for which countries the statistics should be shown
-    config = utils.read_yaml(utils.path('output', run_name, 'config.yaml'))
+    output_directory = utils.path("output", run_name)
+    config = utils.read_yaml(output_directory / "config.yaml")
     selected_countries = st.sidebar.multiselect("Countries", config["countries"], format_func=lambda country: country["name"])
     selected_country_codes = [country["nuts_2"] for country in selected_countries]
 
     # Calculate the mean demand over all selected countries
-    temporal_results = utils.get_temporal_results(run_name, resolution, countries=selected_country_codes)
+    temporal_results = utils.get_temporal_results(output_directory, resolution, countries=selected_country_codes)
     mean_demand = utils.merge_dataframes_on_column(temporal_results, "demand_MW").sum(axis=1).mean()
 
     # Show the KPI's
@@ -30,20 +31,20 @@ def statistics(run_name, resolution):
         col1, col2, col3 = st.columns(3)
 
         # LCOE
-        firm_lcoe_selected = stats.firm_lcoe(run_name, resolution, countries=selected_country_codes)
-        firm_lcoe_all = stats.firm_lcoe(run_name, resolution)
+        firm_lcoe_selected = stats.firm_lcoe(output_directory, resolution, countries=selected_country_codes)
+        firm_lcoe_all = stats.firm_lcoe(output_directory, resolution)
         lcoe_delta = f"{(firm_lcoe_selected / firm_lcoe_all) - 1:.0%}" if selected_country_codes else None
         col1.metric("LCOE", f"{int(firm_lcoe_selected)}€/MWh", lcoe_delta, delta_color="inverse")
 
         # Firm kWh premium
-        premium_selected = stats.premium(run_name, resolution, countries=selected_country_codes)
-        premium_all = stats.premium(run_name, resolution)
+        premium_selected = stats.premium(output_directory, resolution, countries=selected_country_codes)
+        premium_all = stats.premium(output_directory, resolution)
         premium_delta = f"{(premium_selected / premium_all) - 1:.0%}" if selected_country_codes else None
         col2.metric("Firm kWh premium", f"{premium_selected:.2f}", premium_delta, delta_color="inverse")
 
         # Curtailment
-        curtailment_selected = stats.relative_curtailment(run_name, resolution, countries=selected_country_codes)
-        curtailment_all = stats.relative_curtailment(run_name, resolution)
+        curtailment_selected = stats.relative_curtailment(output_directory, resolution, countries=selected_country_codes)
+        curtailment_all = stats.relative_curtailment(output_directory, resolution)
         curtailment_delta = f"{(curtailment_selected / curtailment_all) - 1:.0%}" if selected_country_codes else None
         col3.metric("Curtailment", f"{curtailment_selected:.1%}", curtailment_delta, delta_color="inverse")
 
@@ -54,7 +55,7 @@ def statistics(run_name, resolution):
         show_hourly_production = st.checkbox("Mean hourly production")
 
         # Get the production capacities
-        production_capacity = stats.production_capacity(run_name, resolution, countries=selected_country_codes)
+        production_capacity = stats.production_capacity(output_directory, resolution, countries=selected_country_codes)
 
         # Create the storage capacity columns
         cols = st.columns(max(len(production_capacity), 3))
@@ -85,7 +86,7 @@ def statistics(run_name, resolution):
         storage_type = "power" if show_power_capacity else "energy"
 
         # Get the storage capacities
-        storage_capacity = stats.storage_capacity(run_name, resolution, type=storage_type, countries=selected_country_codes)
+        storage_capacity = stats.storage_capacity(output_directory, resolution, type=storage_type, countries=selected_country_codes)
 
         # Create the storage capacity columns
         cols = st.columns(max(len(storage_capacity), 3))

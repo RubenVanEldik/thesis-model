@@ -17,7 +17,8 @@ def correlation(run_name, resolution):
     st.title("📉 Correlation")
 
     # Show a warning message if the run only includes one country
-    config = utils.read_yaml(utils.path("output", run_name, "config.yaml"))
+    output_directory = utils.path("output", run_name)
+    config = utils.read_yaml(output_directory / "config.yaml")
     if len(config["countries"]) == 1:
         st.warning("The correlation plot is only available for runs that include multiple countries.")
         return
@@ -25,7 +26,7 @@ def correlation(run_name, resolution):
     st.sidebar.header("Options")
 
     # Get the temporal results and merge them on a single column
-    all_temporal_results = utils.get_temporal_results(run_name, resolution, group="country")
+    all_temporal_results = utils.get_temporal_results(output_directory, resolution, group="country")
     relevant_columns = utils.find_common_columns(all_temporal_results)
     column_name = st.sidebar.selectbox("Column", relevant_columns, format_func=utils.format_column_name)
     temporal_results = utils.merge_dataframes_on_column(all_temporal_results, column_name)

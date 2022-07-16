@@ -16,7 +16,9 @@ def _select_data(run_name, resolution, *, name):
     assert validate.is_resolution(resolution)
     assert validate.is_string(name)
 
-    # Geth the source of the data
+    output_directory = utils.path("output", run_name)
+
+    # Get the source of the data
     col1, col2 = st.sidebar.columns(2)
     data_source_options = ["Statistics", "Temporal results", "Production capacity", "Storage capacity (energy)", "Storage capacity (power)"]
     data_source = col1.selectbox(name.capitalize(), data_source_options)
@@ -28,12 +30,12 @@ def _select_data(run_name, resolution, *, name):
         statistic_method = getattr(stats, statistic_type)
 
         # Calculate the statistics for each country and convert them into a Series
-        countries = utils.read_yaml(utils.path("output", run_name, "config.yaml"))["countries"]
-        return pd.Series({country["nuts_2"]: statistic_method(run_name, resolution, countries=[country["nuts_2"]]) for country in countries})
+        countries = utils.read_yaml(output_directory / "config.yaml")["countries"]
+        return pd.Series({country["nuts_2"]: statistic_method(output_directory, resolution, countries=[country["nuts_2"]]) for country in countries})
 
     if data_source == "Temporal results":
         # Get the temporal results
-        all_temporal_results = utils.get_temporal_results(run_name, resolution, group="country")
+        all_temporal_results = utils.get_temporal_results(output_directory, resolution, group="country")
 
         # Merge the DataFrames on a specific column
         relevant_columns = utils.find_common_columns(all_temporal_results)
@@ -45,7 +47,7 @@ def _select_data(run_name, resolution, *, name):
 
     if data_source == "Production capacity":
         # Get the production capacity
-        production_capacity = utils.get_production_capacity(run_name, resolution, group="country")
+        production_capacity = utils.get_production_capacity(output_directory, resolution, group="country")
 
         # Get the specific technologies
         selected_production_types = col2.multiselect("Type", production_capacity.columns, format_func=utils.labelize_technology, key=name)
@@ -59,7 +61,7 @@ def _select_data(run_name, resolution, *, name):
         energy_or_power = storage_capacity_match.group(1)
 
         # Get the storage capacity
-        storage_capacity = utils.get_storage_capacity(run_name, resolution, group="country")
+        storage_capacity = utils.get_storage_capacity(output_directory, resolution, group="country")
 
         # Create a DataFrame with all storage (energy or power) capacities
         storage_capacity_aggregated = None

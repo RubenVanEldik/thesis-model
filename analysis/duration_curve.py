@@ -19,7 +19,8 @@ def duration_curve(run_name, resolution):
     st.sidebar.header("Options")
 
     # Get the storage capacity and temporal results
-    all_temporal_results = utils.get_temporal_results(run_name, resolution, group="country")
+    output_directory = utils.path("output", run_name)
+    all_temporal_results = utils.get_temporal_results(output_directory, resolution, group="country")
 
     # Select a column as numerator and denominator
     st.sidebar.subheader("Columns")
