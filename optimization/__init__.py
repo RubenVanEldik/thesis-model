@@ -44,13 +44,16 @@ def run_sensitivity(config, sensitivity_config):
         st.subheader(f"Sensitivity run {list(sensitivity_config['steps'].keys()).index(step_key) + 1}/{len(sensitivity_config['steps'])}")
         step_config = deepcopy(config)
 
-        # Update each config variable that is part of the sensitivity analysis
-        for variable_key in sensitivity_config["variables"]:
-            variable_value = utils.get_nested_key(step_config, variable_key)
-            utils.set_nested_key(step_config, variable_key, variable_value * step_value)
+        # Change the config parameters relevant for the current analysis type for this step
+        if sensitivity_config["analysis_type"] == "curtailment":
+            utils.set_nested_key(step_config, "relative_curtailment", step_value)
+        elif sensitivity_config["analysis_type"] == "variables":
+            for variable_key in sensitivity_config["variables"]:
+                variable_value = utils.get_nested_key(step_config, variable_key)
+                utils.set_nested_key(step_config, variable_key, variable_value * step_value)
 
         # Run the optimization
-        run(step_config, status=status, output_folder=f"{output_folder}/{step_key}")
+        run(step_config, status=status, output_folder=utils.path(output_folder, step_key))
 
     # Store the sensitivity config file
     utils.write_yaml(utils.path(output_folder, "sensitivity.yaml"), sensitivity_config)

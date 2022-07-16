@@ -388,9 +388,14 @@ def is_sensitivity_config(value, *, required=True):
     if not type(value) is dict:
         return False
 
-    has_valid_steps = all(type(key) is str and type(value) is float for key, value in value["steps"].items())
-    has_valid_variables = len(value["variables"]) and all(type(variable) is str for variable in value["variables"])
-    return has_valid_steps and has_valid_variables
+    if value["analysis_type"] not in ["curtailment", "variables"]:
+        return False
+    if not all(type(key) is str and type(value) is float for key, value in value["steps"].items()):
+        return False
+    if value["analysis_type"] == "variables":
+        if not len(value["variables"]) or not all(type(variable) is str for variable in value["variables"]):
+            return False
+    return True
 
 
 def is_series(value, *, required=True):

@@ -277,7 +277,27 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
             model.addConstr((sum_production - sum_curtailed - sum_storage_flow) / sum_demand >= min_self_sufficiency)
 
     """
-    Step 5: Set objective function
+    Step 5: Define the relative curtailment constraint
+    """
+    if config.get("relative_curtailment") is not None:
+        status.update("Adding the curtailment constraint")
+
+        # Set the variables required to calculate the relative curtailment
+        sum_demand = 0
+        sum_production = 0
+        sum_curtailed = 0
+
+        # Loop over all bidding zones
+        for bidding_zone in bidding_zones:
+            sum_demand += temporal_results[bidding_zone]["demand_MW"].sum()
+            sum_production += temporal_results[bidding_zone]["production_total_MW"].sum()
+            sum_curtailed += temporal_results[bidding_zone]["curtailed_MW"].sum()
+
+        # Add the curtailment constraint
+        model.addConstr(sum_curtailed / sum_demand == config["relative_curtailment"] * sum_production / sum_demand)
+
+    """
+    Step 6: Set objective function
     """
     status.update("Setting the objective function")
     temporal_demand = utils.merge_dataframes_on_column(temporal_results, "demand_MW")
@@ -285,7 +305,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
     model.setObjective(firm_lcoe * objective_scale_factor, gp.GRB.MINIMIZE)
 
     """
-    Step 6: Solve model
+    Step 7: Solve model
     """
     # Set the status message and create
     status.update("Optimizing")
@@ -339,7 +359,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
     utils.write_text(utils.path(output_folder, resolution, "log.txt"), "".join(log_messages))
 
     """
-    Step 7: Check if the model could be solved
+    Step 8: Check if the model could be solved
     """
     if model.status == gp.GRB.INFEASIBLE:
         return "The model was infeasible"
@@ -365,7 +385,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_folder):
         return "The model could not be solved for an unknown reason"
 
     """
-    Step 8: Store the results
+    Step 9: Store the results
     """
     # Make a directory for each type of output
     for sub_directory in ["temporal_results", "temporal_export", "production_capacities", "storage_capacities"]:

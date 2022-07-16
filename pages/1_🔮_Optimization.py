@@ -74,40 +74,55 @@ with st.sidebar.expander("Interconnections"):
 
 # Set the sensitivity analysis options
 with st.sidebar.expander("Sensitivity analysis"):
-    sensitivity_config = {}
-
     # Enable/disable the sensitivity analysis
-    sensitivity_enabled = st.checkbox("Enabled", key="sensitivity")
+    sensitivity_analysis_types = {None: "-", "curtailment": "Curtailment", "climate_range": "Climate range", "technology_scenario": "Technology scenario", "variables": "Variables"}
+    sensitivity_analysis_type = st.selectbox("Sensitivity type", sensitivity_analysis_types.keys(), format_func=lambda key: sensitivity_analysis_types[key])
 
-    # Create a dictionary with the sensitivity options
-    sensitivity_options = {}
-    sensitivity_options["interconnections.relative_capacity"] = "Interconnection capacity"
-    sensitivity_options["interconnections.efficiency.hvac"] = "HVAC efficiency"
-    sensitivity_options["interconnections.efficiency.hvdc"] = "HVDC efficiency"
-    for production_technology in config["technologies"]["production"]:
-        production_technology_label = utils.labelize_technology(production_technology)
-        sensitivity_options[f"technologies.production.{production_technology}.economic_lifetime"] = f"{production_technology_label} - Economic lifetime"
-        sensitivity_options[f"technologies.production.{production_technology}.capex"] = f"{production_technology_label} - CAPEX"
-        sensitivity_options[f"technologies.production.{production_technology}.fixed_om"] = f"{production_technology_label} - Fixed O&M"
-        sensitivity_options[f"technologies.production.{production_technology}.variable_om"] = f"{production_technology_label} - Variable O&M"
-        sensitivity_options[f"technologies.production.{production_technology}.wacc"] = f"{production_technology_label} - WACC"
-    for storage_technology in config["technologies"]["storage"]:
-        storage_technology_label = utils.labelize_technology(storage_technology)
-        sensitivity_options[f"technologies.storage.{storage_technology}.economic_lifetime"] = f"{storage_technology_label} - Economic lifetime"
-        sensitivity_options[f"technologies.storage.{storage_technology}.energy_capex"] = f"{storage_technology_label} - Energy CAPEX"
-        sensitivity_options[f"technologies.storage.{storage_technology}.power_capex"] = f"{storage_technology_label} - Power CAPEX"
-        sensitivity_options[f"technologies.storage.{storage_technology}.fixed_om"] = f"{storage_technology_label} - Fixed O&M"
-        sensitivity_options[f"technologies.storage.{storage_technology}.roundtrip_efficiency"] = f"{storage_technology_label} - Roundtrip efficiency"
-        sensitivity_options[f"technologies.storage.{storage_technology}.wacc"] = f"{storage_technology_label} - WACC"
+    # Initialize the sensitivity_config if an analysis type has been specified
+    if sensitivity_analysis_type is None:
+        sensitivity_config = None
+    else:
+        sensitivity_config = {"analysis_type": sensitivity_analysis_type}
 
-    # Select the sensitivity variables
-    sensitivity_config["variables"] = st.multiselect("Variables", sensitivity_options.keys(), format_func=lambda key: sensitivity_options[key], disabled=not sensitivity_enabled)
+    # Show the relevant input parameters for each sensitivity analysis type
+    if sensitivity_analysis_type == "curtailment":
+        number_steps = st.slider("Number of steps", value=10, min_value=4, max_value=20)
+        sensitity_steps = np.linspace(start=0, stop=0.999, num=number_steps)
+        sensitivity_config["steps"] = {f"{step:.3f}": float(step) for step in sensitity_steps}
+    elif sensitivity_analysis_type == "climate_range":
+        st.warning("The climate range sensitivity analysis has not yet been implemented")
+    elif sensitivity_analysis_type == "technology_scenario":
+        st.warning("The technology scenario sensitivity analysis has not yet been implemented")
+    elif sensitivity_analysis_type == "variables":
+        # Create a dictionary with the sensitivity options
+        sensitivity_options = {}
+        sensitivity_options["interconnections.relative_capacity"] = "Interconnection capacity"
+        sensitivity_options["interconnections.efficiency.hvac"] = "HVAC efficiency"
+        sensitivity_options["interconnections.efficiency.hvdc"] = "HVDC efficiency"
+        for production_technology in config["technologies"]["production"]:
+            production_technology_label = utils.labelize_technology(production_technology)
+            sensitivity_options[f"technologies.production.{production_technology}.economic_lifetime"] = f"{production_technology_label} - Economic lifetime"
+            sensitivity_options[f"technologies.production.{production_technology}.capex"] = f"{production_technology_label} - CAPEX"
+            sensitivity_options[f"technologies.production.{production_technology}.fixed_om"] = f"{production_technology_label} - Fixed O&M"
+            sensitivity_options[f"technologies.production.{production_technology}.variable_om"] = f"{production_technology_label} - Variable O&M"
+            sensitivity_options[f"technologies.production.{production_technology}.wacc"] = f"{production_technology_label} - WACC"
+        for storage_technology in config["technologies"]["storage"]:
+            storage_technology_label = utils.labelize_technology(storage_technology)
+            sensitivity_options[f"technologies.storage.{storage_technology}.economic_lifetime"] = f"{storage_technology_label} - Economic lifetime"
+            sensitivity_options[f"technologies.storage.{storage_technology}.energy_capex"] = f"{storage_technology_label} - Energy CAPEX"
+            sensitivity_options[f"technologies.storage.{storage_technology}.power_capex"] = f"{storage_technology_label} - Power CAPEX"
+            sensitivity_options[f"technologies.storage.{storage_technology}.fixed_om"] = f"{storage_technology_label} - Fixed O&M"
+            sensitivity_options[f"technologies.storage.{storage_technology}.roundtrip_efficiency"] = f"{storage_technology_label} - Roundtrip efficiency"
+            sensitivity_options[f"technologies.storage.{storage_technology}.wacc"] = f"{storage_technology_label} - WACC"
 
-    # Select the sensitivity range and steps
-    sensitivity_start, sensitivity_stop = st.slider("Relative range", value=(0.5, 1.5), min_value=0.0, max_value=2.0, step=0.05, disabled=not sensitivity_enabled)
-    number_steps = st.slider("Number of steps", value=5, min_value=3, max_value=15, step=2, disabled=not sensitivity_enabled)
-    sensitity_steps = np.linspace(start=sensitivity_start, stop=sensitivity_stop, num=number_steps)
-    sensitivity_config["steps"] = {f"{step:.3f}": float(step) for step in sensitity_steps}
+        # Select the sensitivity variables
+        sensitivity_config["variables"] = st.multiselect("Variables", sensitivity_options.keys(), format_func=lambda key: sensitivity_options[key])
+
+        # Select the sensitivity range and steps
+        sensitivity_start, sensitivity_stop = st.slider("Relative range", value=(0.5, 1.5), min_value=0.0, max_value=2.0, step=0.05)
+        number_steps = st.slider("Number of steps", value=5, min_value=3, max_value=15, step=2)
+        sensitity_steps = np.linspace(start=sensitivity_start, stop=sensitivity_stop, num=number_steps)
+        sensitivity_config["steps"] = {f"{step:.3f}": float(step) for step in sensitity_steps}
 
 
 # Set the time discretization parameters
@@ -139,11 +154,11 @@ with st.sidebar.expander("Optimization parameters"):
 
 # Run the model if the button has been pressed
 invalid_config = not validate.is_config(config)
-invalid_sensitivity_config = sensitivity_enabled and not validate.is_sensitivity_config(sensitivity_config)
+invalid_sensitivity_config = bool(sensitivity_config) and not validate.is_sensitivity_config(sensitivity_config)
 if st.sidebar.button("Run model", disabled=invalid_config or invalid_sensitivity_config):
     if config["name"] in utils.get_previous_runs(include_uncompleted_runs=True):
         st.error(f"There is already a run called '{config['name']}'")
-    elif sensitivity_enabled:
+    elif sensitivity_config:
         optimization.run_sensitivity(config, sensitivity_config)
     else:
         optimization.run(config, output_folder=utils.path("output", config["name"]))
