@@ -28,7 +28,8 @@ def sensitivity(run_name, resolution):
         data = pd.Series(data=sensitivity_config["steps"], name="input").to_frame()
 
         # Calculate the output for each sensitivity step
-        data["output"] = data.apply(lambda row: getattr(stats, statistic_name)(utils.path(run_name, row.name), resolution), axis=1)
+        output_directory = utils.path("output", run_name)
+        data["output"] = data.apply(lambda row: getattr(stats, statistic_name)(output_directory / row.name, resolution), axis=1)
 
         # Show a line chart with the output
         st.line_chart(data.output)
