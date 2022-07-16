@@ -10,6 +10,12 @@ from .status import Status
 
 
 def run(config, *, status=Status(), output_folder):
+    """
+    Run the model with the given configuration file
+    """
+    assert validate.is_config(config)
+    assert validate.is_directory_path(output_folder)
+
     previous_resolution = None
 
     for resolution in utils.get_sorted_resolution_stages(config, descending=True):
