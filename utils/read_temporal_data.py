@@ -1,20 +1,22 @@
+import datetime
+
 import utils
 import validate
 
 
-def read_temporal_data(filepath, *, start=None, end=None):
+def read_temporal_data(filepath, *, start_year=None, end_year=None):
     """
     Returns the temporal data, if specified only for a specific date range
     """
     assert validate.is_filepath(filepath, suffix=".csv", existing=True)
-    assert validate.is_date(start, required=False)
-    assert validate.is_date(end, required=False)
+    assert validate.is_integer(start_year, min_value=1982, max_value=2016, required=False)
+    assert validate.is_integer(end_year, min_value=1982, max_value=2016, required=False)
 
     temporal_data = utils.read_csv(filepath, parse_dates=True, index_col=0)
 
     # Set the time to the beginning and end of the start and end date respectively
-    start = start.strftime("%Y-%m-%d 00:00:00") if start else None
-    end = end.strftime("%Y-%m-%d 23:59:59") if end else None
+    start = datetime.datetime(start_year, 1, 1, 0, 0, 0) if start_year else None
+    end = datetime.datetime(end_year, 12, 31, 0, 0, 0) if end_year else None
 
     # Return the temporal data
     return temporal_data[start:end]

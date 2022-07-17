@@ -77,7 +77,13 @@ def is_config(value, *, required=True):
         return False
     if not is_country_obj_list(value.get("countries")):
         return False
-    if not is_date_range(value.get("date_range")):
+    if not is_dict(value.get("climate_years")):
+        return False
+    if not is_integer(value["climate_years"].get("start"), min_value=1982, max_value=2016):
+        return False
+    if not is_integer(value["climate_years"].get("end"), min_value=1982, max_value=2016):
+        return False
+    if value["climate_years"]["start"] > value["climate_years"]["end"]:
         return False
     if not value.get("time_discretization"):
         return False
@@ -219,18 +225,6 @@ def is_aggregation_level(value, *, required=True):
         return not required
 
     return value in ["all", "country"]
-
-
-def is_date_range(value, *, required=True):
-    if value is None:
-        return not required
-
-    if not type(value) is dict:
-        return False
-
-    has_valid_start_date = value["start"] and type(value["start"]) is datetime.date
-    has_valid_end_date = value["end"] and type(value["end"]) is datetime.date
-    return has_valid_start_date and has_valid_end_date
 
 
 def is_filepath(value, *, required=True, suffix=None, existing=None):

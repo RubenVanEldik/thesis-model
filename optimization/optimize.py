@@ -56,10 +56,10 @@ def optimize(config, *, resolution, previous_resolution, status, output_director
         status.update(f"{country_flag} Importing data")
 
         filepath = utils.path("input", "bidding_zones", config["model_year"], f"{bidding_zone}.csv")
-        start_date = config["date_range"]["start"]
-        end_date = config["date_range"]["end"]
+        start_year = config["climate_years"]["start"]
+        end_year = config["climate_years"]["end"]
         # Get the temporal data and resample to the required resolution
-        temporal_data[bidding_zone] = utils.read_temporal_data(filepath, start=start_date, end=end_date).resample(resolution).mean()
+        temporal_data[bidding_zone] = utils.read_temporal_data(filepath, start_year=start_year, end_year=end_year).resample(resolution).mean()
         # Remove the leap days from the dataset that could have been introduced by the resample method
         temporal_data[bidding_zone] = temporal_data[bidding_zone][~((temporal_data[bidding_zone].index.month == 2) & (temporal_data[bidding_zone].index.day == 29))]
         # Create an temporal_results DataFrame with the demand_MW column
