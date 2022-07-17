@@ -6,18 +6,18 @@ import utils
 import validate
 
 
-def sensitivity(run_name, resolution):
+def sensitivity(output_directory, resolution):
     """
     Analyze the sensitivity
     """
-    assert validate.is_string(run_name)
+    assert validate.is_directory_path(output_directory)
 
     st.title("⚖️ Sensitivity analysis")
 
     st.sidebar.header("Options")
 
     # Get the sensitivity analysis
-    sensitivity_config = utils.read_yaml(utils.path("output", run_name, "sensitivity.yaml"))
+    sensitivity_config = utils.read_yaml(output_directory / "sensitivity.yaml")
 
     # Select a output variable to run the sensitivity analysis on
     statistic_options = ["firm_lcoe", "unconstrained_lcoe", "premium", "relative_curtailment", "production_capacity", "storage_capacity"]
@@ -28,7 +28,6 @@ def sensitivity(run_name, resolution):
         data = pd.Series(data=sensitivity_config["steps"], name="input").to_frame()
 
         # Calculate the output for each sensitivity step
-        output_directory = utils.path("output", run_name)
         data["output"] = data.apply(lambda row: getattr(stats, statistic_name)(output_directory / row.name, resolution), axis=1)
 
         # Show a line chart with the output

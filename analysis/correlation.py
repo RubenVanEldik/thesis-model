@@ -7,17 +7,16 @@ import utils
 import validate
 
 
-def correlation(run_name, resolution):
+def correlation(output_directory, resolution):
     """
     Plot the correlation between the distance between of two countries and the value of a specific column
     """
-    assert validate.is_string(run_name)
+    assert validate.is_directory_path(output_directory)
     assert validate.is_resolution(resolution)
 
     st.title("📉 Correlation")
 
     # Show a warning message if the run only includes one country
-    output_directory = utils.path("output", run_name)
     config = utils.read_yaml(output_directory / "config.yaml")
     if len(config["countries"]) == 1:
         st.warning("The correlation plot is only available for runs that include multiple countries.")

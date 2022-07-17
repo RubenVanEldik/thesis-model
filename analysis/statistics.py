@@ -5,11 +5,11 @@ import utils
 import validate
 
 
-def statistics(run_name, resolution):
+def statistics(output_directory, resolution):
     """
     Show the key indicators for a run
     """
-    assert validate.is_string(run_name)
+    assert validate.is_directory_path(output_directory)
     assert validate.is_resolution(resolution)
 
     st.title("📊 Statistics")
@@ -17,7 +17,6 @@ def statistics(run_name, resolution):
     st.sidebar.header("Options")
 
     # Ask for which countries the statistics should be shown
-    output_directory = utils.path("output", run_name)
     config = utils.read_yaml(output_directory / "config.yaml")
     selected_countries = st.sidebar.multiselect("Countries", config["countries"], format_func=lambda country: country["name"])
     selected_country_codes = [country["nuts_2"] for country in selected_countries]

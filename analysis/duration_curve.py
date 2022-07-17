@@ -7,11 +7,11 @@ import utils
 import validate
 
 
-def duration_curve(run_name, resolution):
+def duration_curve(output_directory, resolution):
     """
     Analyze the storage
     """
-    assert validate.is_string(run_name)
+    assert validate.is_directory_path(output_directory)
     assert validate.is_resolution(resolution)
 
     st.title("⌛ Duration curve")
@@ -19,7 +19,6 @@ def duration_curve(run_name, resolution):
     st.sidebar.header("Options")
 
     # Get the storage capacity and temporal results
-    output_directory = utils.path("output", run_name)
     all_temporal_results = utils.get_temporal_results(output_directory, resolution, group="country")
 
     # Select a column as numerator and denominator

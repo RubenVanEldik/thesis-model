@@ -8,15 +8,13 @@ import utils
 import validate
 
 
-def _select_data(run_name, resolution, *, name):
+def _select_data(output_directory, resolution, *, name):
     """
     Select the source of the data and the specific columns and aggregation type
     """
-    assert validate.is_string(run_name)
+    assert validate.is_directory_path(output_directory)
     assert validate.is_resolution(resolution)
     assert validate.is_string(name)
-
-    output_directory = utils.path("output", run_name)
 
     # Get the source of the data
     col1, col2 = st.sidebar.columns(2)
@@ -78,11 +76,11 @@ def _select_data(run_name, resolution, *, name):
             return storage_capacity_aggregated[selected_storage_types].sum(axis=1)
 
 
-def countries(run_name, resolution):
+def countries(output_directory, resolution):
     """
     Show a choropleth map for all countries modeled in a run
     """
-    assert validate.is_string(run_name)
+    assert validate.is_directory_path(output_directory)
     assert validate.is_resolution(resolution)
 
     st.title("🎌 Countries")
@@ -91,13 +89,13 @@ def countries(run_name, resolution):
 
     # Check if the data should be relative and get the numerator data
     relative = st.sidebar.checkbox("Relative")
-    numerator = _select_data(run_name, resolution, name="numerator")
+    numerator = _select_data(output_directory, resolution, name="numerator")
 
     # Set 'data' to the numerator, else get de denominator and divide the numerator with it
     if not relative:
         data = numerator
     else:
-        denominator = _select_data(run_name, resolution, name="denominator")
+        denominator = _select_data(output_directory, resolution, name="denominator")
 
         if numerator is not None and denominator is not None:
             data = numerator / denominator
