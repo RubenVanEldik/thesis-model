@@ -31,15 +31,29 @@ def run():
     sorted_resolution_stages = utils.get_sorted_resolution_stages(config)
     selected_resolution = st.sidebar.selectbox("Resolution", sorted_resolution_stages)
 
-    # Select the type of analysis
+    # Set the analysis type options
+    analysis_type_options = ["statistics", "temporal_results", "countries", "correlation", "duration_curve", "optimization_log"]
     if is_sensitivity_analysis:
-        analysis_type = "sensitivity"
+        # Add a Streamlit placeholder for if the sensitivity step should be specified
+        sensitivity_step_placeholder = st.sidebar.empty()
+
+        # Ask which analysis type should be used
+        analysis_type_options.append("sensitivity")
+        analysis_type = st.sidebar.radio("Type of analysis", analysis_type_options, index=len(analysis_type_options) - 1, format_func=utils.format_str)
+
+        # If its not a sensitivity analysis, ask for which sensitivity step the data should be shown
+        if analysis_type != "sensitivity":
+            sensitivity_step = sensitivity_step_placeholder.selectbox("Step", sensitivity_config["steps"])
+            output_directory /= sensitivity_step
+
+        # Run the analysis
+        getattr(analysis, analysis_type)(output_directory, selected_resolution)
     else:
-        analysis_type_options = ["statistics", "temporal_results", "countries", "correlation", "duration_curve", "optimization_log"]
+        # Ask which analysis type should be used
         analysis_type = st.sidebar.radio("Type of analysis", analysis_type_options, format_func=utils.format_str)
 
-    # Run the analysis
-    getattr(analysis, analysis_type)(output_directory, selected_resolution)
+        # Run the analysis
+        getattr(analysis, analysis_type)(output_directory, selected_resolution)
 
 
 run()
