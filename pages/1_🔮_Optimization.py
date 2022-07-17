@@ -73,7 +73,7 @@ with st.sidebar.expander("Interconnections"):
 # Set the sensitivity analysis options
 with st.sidebar.expander("Sensitivity analysis"):
     # Enable/disable the sensitivity analysis
-    sensitivity_analysis_types = {None: "-", "curtailment": "Curtailment", "climate_range": "Climate range", "technology_scenario": "Technology scenario", "variables": "Variables"}
+    sensitivity_analysis_types = {None: "-", "curtailment": "Curtailment", "climate_years": "Climate years", "technology_scenario": "Technology scenario", "variables": "Variables"}
     sensitivity_analysis_type = st.selectbox("Sensitivity type", sensitivity_analysis_types.keys(), format_func=lambda key: sensitivity_analysis_types[key])
 
     # Initialize the sensitivity_config if an analysis type has been specified
@@ -87,8 +87,17 @@ with st.sidebar.expander("Sensitivity analysis"):
         number_steps = st.slider("Number of steps", value=10, min_value=5, max_value=50)
         sensitity_steps = np.linspace(start=0, stop=0.999, num=number_steps)
         sensitivity_config["steps"] = {f"{step:.3f}": float(step) for step in sensitity_steps}
-    elif sensitivity_analysis_type == "climate_range":
-        st.warning("The climate range sensitivity analysis has not yet been implemented")
+    elif sensitivity_analysis_type == "climate_years":
+        number_of_climate_years = config["climate_years"]["end"] - config["climate_years"]["start"] + 1
+        if number_of_climate_years < 3:
+            st.warning("The technology scenario sensitivity analysis is only available if more than two climate years have been selected")
+        else:
+            # Get all possible step sizes that properly fit into the climate years range
+            step_size_options = [step for step in range(1, number_of_climate_years) if ((number_of_climate_years - 1) / step) % 1 == 0]
+            # Ask for the number of steps and return the preferred step size
+            step_size = st.select_slider("Number of steps", step_size_options[::-1], value=1, format_func=lambda step_size: int(((number_of_climate_years - 1) / step_size) + 1))
+            # Use the step size to calculate the sensitivity steps and add them to the config
+            sensitivity_config["steps"] = {str(step): step for step in range(1, number_of_climate_years + 1, step_size)}
     elif sensitivity_analysis_type == "technology_scenario":
         st.warning("The technology scenario sensitivity analysis has not yet been implemented")
     elif sensitivity_analysis_type == "variables":
