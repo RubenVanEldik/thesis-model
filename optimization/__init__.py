@@ -9,15 +9,21 @@ from .optimize import optimize
 from .status import Status
 
 
-def run(config, *, status=Status(), output_directory):
+def run(config, *, status, output_directory):
     """
     Run the model with the given configuration file
     """
     assert validate.is_config(config)
     assert validate.is_directory_path(output_directory)
 
-    previous_resolution = None
+    # Check if this run is not part of a sensitivity analysis
+    is_standalone_run = status is None
 
+    # Initialize a status object if not defined yet
+    if status is None:
+        status = Status()
+
+    previous_resolution = None
     for resolution in utils.get_sorted_resolution_stages(config, descending=True):
         error_message = optimize(config, resolution=resolution, previous_resolution=previous_resolution, status=status, output_directory=output_directory)
 
@@ -32,7 +38,8 @@ def run(config, *, status=Status(), output_directory):
     utils.write_yaml(output_directory / "config.yaml", config)
 
     # Set the final status
-    status.update(f"Optimization has finished and results are stored", type="success")
+    if is_standalone_run:
+        status.update(f"Optimization has finished and results are stored", type="success")
 
 
 def run_sensitivity(config, sensitivity_config):
