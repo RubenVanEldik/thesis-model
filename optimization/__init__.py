@@ -9,7 +9,7 @@ from .optimize import optimize
 from .status import Status
 
 
-def run(config, *, status, output_directory):
+def run(config, *, status=None, output_directory):
     """
     Run the model with the given configuration file
     """
@@ -37,9 +37,10 @@ def run(config, *, status, output_directory):
     # Store the config as a .YAML file
     utils.write_yaml(output_directory / "config.yaml", config)
 
-    # Set the final status
+    # Set the final status and send a message
     if is_standalone_run:
         status.update(f"Optimization has finished and results are stored", type="success")
+        utils.send_notification(f"Optimization '{config['name']}' has finished")
 
 
 def run_sensitivity(config, sensitivity_config):
@@ -54,7 +55,9 @@ def run_sensitivity(config, sensitivity_config):
 
     # Loop over each sensitivity analysis step
     for step_key, step_value in sensitivity_config["steps"].items():
-        st.subheader(f"Sensitivity run {list(sensitivity_config['steps'].keys()).index(step_key) + 1}/{len(sensitivity_config['steps'])}")
+        step_number = list(sensitivity_config["steps"].keys()).index(step_key) + 1
+        number_of_steps = len(sensitivity_config["steps"])
+        st.subheader(f"Sensitivity run {step_number}/{number_of_steps}")
         step_config = deepcopy(config)
 
         # Change the config parameters relevant for the current analysis type for this step
@@ -70,6 +73,7 @@ def run_sensitivity(config, sensitivity_config):
 
         # Run the optimization
         run(step_config, status=status, output_directory=output_directory / step_key)
+        utils.send_notification(f"Optimization {step_number}/{number_of_steps} of '{config['name']}' has finished")
 
     # Store the sensitivity config file
     utils.write_yaml(output_directory / "sensitivity.yaml", sensitivity_config)
