@@ -224,16 +224,30 @@ def optimize(config, *, resolution, previous_resolution, status, output_director
         country_flag = utils.get_country_property(utils.get_country_of_bidding_zone(bidding_zone), "flag")
         status.update(f"{country_flag} Adding demand constraints")
 
+        # Create a dictionary to keep track of the net export per interconnection type
+        net_export_per_interconnection_type = {interconnection_type: 0 for interconnection_type in temporal_export}
+
         # Add a column for the temporal export to each country
         for interconnection_type in temporal_export:
             relevant_temporal_export = [interconnection_bidding_zones for interconnection_bidding_zones in temporal_export[interconnection_type] if bidding_zone in interconnection_bidding_zones]
             for bidding_zone1, bidding_zone2 in relevant_temporal_export:
+                # Calculate the export flow
                 direction = 1 if bidding_zone1 == bidding_zone else -config["interconnections"]["efficiency"][interconnection_type]
+                export_flow = direction * temporal_export[interconnection_type][bidding_zone1, bidding_zone2]
+
+                # Add the export flow to the interconnection type dictionary
+                net_export_per_interconnection_type[interconnection_type] += export_flow
+
+                # Add the export flow to the relevant bidding zone column
                 other_bidding_zone = bidding_zone1 if bidding_zone2 == bidding_zone else bidding_zone2
                 column_name = f"net_export_{other_bidding_zone}_MW"
                 if column_name not in temporal_results:
                     temporal_results[bidding_zone][column_name] = 0
-                temporal_results[bidding_zone][column_name] += direction * temporal_export[interconnection_type][bidding_zone1, bidding_zone2]
+                temporal_results[bidding_zone][column_name] += export_flow
+
+        # Add a column for each of the interconnection types
+        for interconnection_type in net_export_per_interconnection_type:
+            temporal_results[bidding_zone][f"net_export_{interconnection_type}_MW"] = net_export_per_interconnection_type[interconnection_type]
 
         # Add a column for the total temporal export
         temporal_results[bidding_zone]["net_export_MW"] = 0
