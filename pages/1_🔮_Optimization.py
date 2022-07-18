@@ -35,7 +35,7 @@ with st.sidebar.expander("Scope"):
     config["climate_years"] = {}
     col1, col2 = st.columns(2)
     config["climate_years"]["start"] = col1.selectbox("Start year", climate_years, index=climate_years.index(2016))
-    config["climate_years"]["end"] = col2.selectbox("Start end year", climate_years, index=climate_years.index(2016))
+    config["climate_years"]["end"] = col2.selectbox("End year", climate_years, index=climate_years.index(2016))
 
 # Set the technology options
 with st.sidebar.expander("Technologies"):
