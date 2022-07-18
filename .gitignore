@@ -1,6 +1,7 @@
 .env
 .DS_Store
 __pycache__/
+env/
 input/eraa/
 input/bidding_zones/
 input/interconnections/
