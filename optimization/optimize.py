@@ -238,7 +238,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_director
         # Add a column for the total temporal export
         temporal_results[bidding_zone]["net_export_MW"] = 0
         for column_name in temporal_results[bidding_zone]:
-            if column_name.startswith("net_export_") and column_name != "net_export_MW":
+            if re.search("^net_export_[A-Z]{2}[0-9a-zA-Z]{2}_MW$", column_name):
                 temporal_results[bidding_zone]["net_export_MW"] += temporal_results[bidding_zone][column_name]
 
         # Add the demand constraint
