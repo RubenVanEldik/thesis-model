@@ -18,6 +18,24 @@ def get(color, value, *, alpha=1):
     return f"{colors.loc[value, color]}{alpha_hex}"
 
 
+def technology(technology_name):
+    """
+    Get the color for a specific technology
+    """
+    assert validate.is_technology(technology_name)
+
+    if technology_name == "pv":
+        return get("amber", 400)
+    if technology_name == "onshore":
+        return get("sky", 400)
+    if technology_name == "offshore":
+        return get("teal", 700)
+    if technology_name == "lion":
+        return get("rose", 500)
+    if technology_name == "hydrogen":
+        return get("indigo", 600)
+
+
 def list():
     """
     Return a list of all available colors
