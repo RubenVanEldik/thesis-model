@@ -26,7 +26,12 @@ def sensitivity(output_directory, resolution):
 
     if statistic_name:
         # Create a Series with the sensitivity steps as rows
-        steps = pd.Series(data=sensitivity_config["steps"].keys(), index=sensitivity_config["steps"].values())
+        if sensitivity_config["analysis_type"] == "curtailment":
+            # Use the actual curtailment as the index
+            step_index = [stats.relative_curtailment(output_directory / step, resolution) for step in sensitivity_config["steps"].keys()]
+        else:
+            step_index = sensitivity_config["steps"].values()
+        steps = pd.Series(data=sensitivity_config["steps"].keys(), index=step_index)
 
         # Calculate the output for each sensitivity step
         if statistic_name == "production_capacity":
