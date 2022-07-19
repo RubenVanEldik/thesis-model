@@ -1,3 +1,4 @@
+from .calculate_curtailed_energy_post_hoc import calculate_curtailed_energy_post_hoc
 from .calculate_distance import calculate_distance
 from .calculate_lcoe import calculate_lcoe
 from .calculate_regression_line import calculate_regression_line
