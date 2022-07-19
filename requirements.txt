@@ -21,6 +21,7 @@ cycler==0.11.0
 debugpy==1.6.2
 decorator==5.1.1
 defusedxml==0.7.1
+dropbox==11.33.0
 entrypoints==0.4
 et-xmlfile==1.1.0
 executing==0.8.3
@@ -67,6 +68,7 @@ parso==0.8.3
 pexpect==4.8.0
 pickleshare==0.7.5
 Pillow==9.2.0
+ply==3.11
 prometheus-client==0.14.1
 prompt-toolkit==3.0.30
 protobuf==3.20.1
@@ -105,6 +107,7 @@ sklearn==0.0
 smmap==5.0.0
 soupsieve==2.3.2.post1
 stack-data==0.3.0
+stone==3.3.1
 streamlit==1.11.0
 terminado==0.15.0
 texttable==1.6.4
