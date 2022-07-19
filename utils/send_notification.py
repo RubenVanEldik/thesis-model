@@ -1,16 +1,12 @@
-import dotenv
-import os
 import pushover
 
+import utils
 import validate
 
 
-# Load the variables from the .env file
-dotenv.load_dotenv(".env")
-
 # Initialize the Pushover client if the keys are available
-user_key = os.getenv("PUSHOVER_USER_KEY")
-api_token = os.getenv("PUSHOVER_API_TOKEN")
+user_key = utils.getenv("PUSHOVER_USER_KEY", required=False)
+api_token = utils.getenv("PUSHOVER_API_TOKEN", required=False)
 if user_key and api_token:
     client = pushover.Client(user_key, api_token=api_token)
 
