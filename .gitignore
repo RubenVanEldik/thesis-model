@@ -1,11 +1,13 @@
-.env
 .DS_Store
 __pycache__/
+
+.env
+gurobi.lic
+
 env/
 input/eraa/
 input/bidding_zones/
 input/interconnections/
 output/
-tuning/*
+tuning/
 cli/
-*.zip
