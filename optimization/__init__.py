@@ -30,7 +30,7 @@ def run(config, *, status=None, output_directory):
 
         # Store the duration of all resolutions after each optimization
         duration = {resolution: results[resolution]["duration"] for resolution in results}
-        utils.write_yaml(output_directory / "duration.yaml", duration, allow_overwrite=True)
+        utils.write_yaml(output_directory / "duration.yaml", duration, exist_ok=True)
 
         # Stop the run if an error occured during the optimization of one of the resolutions
         error_message = results[resolution].get("error_message")
