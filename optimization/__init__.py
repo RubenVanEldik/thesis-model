@@ -23,11 +23,17 @@ def run(config, *, status=None, output_directory):
     if status is None:
         status = Status()
 
+    results = {}
     previous_resolution = None
     for resolution in utils.get_sorted_resolution_stages(config, descending=True):
-        error_message = optimize(config, resolution=resolution, previous_resolution=previous_resolution, status=status, output_directory=output_directory)
+        results[resolution] = optimize(config, resolution=resolution, previous_resolution=previous_resolution, status=status, output_directory=output_directory)
+
+        # Store the duration of all resolutions after each optimization
+        duration = {resolution: results[resolution]["duration"] for resolution in results}
+        utils.write_yaml(output_directory / "duration.yaml", duration, allow_overwrite=True)
 
         # Stop the run if an error occured during the optimization of one of the resolutions
+        error_message = results[resolution].get("error_message")
         if error_message:
             status.update(error_message, type="error")
             return

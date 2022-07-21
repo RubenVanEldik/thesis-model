@@ -18,6 +18,10 @@ def optimize(config, *, resolution, previous_resolution, status, output_director
     assert validate.is_resolution(previous_resolution, required=False)
     assert validate.is_directory_path(output_directory)
 
+    # Create a dictionary to store the run duration of the different phases
+    duration = {}
+    initializing_start = datetime.now()
+
     """
     Step 1: Create the model and set the parameters
     """
@@ -317,11 +321,16 @@ def optimize(config, *, resolution, previous_resolution, status, output_director
     firm_lcoe = utils.calculate_lcoe(production_capacity, storage_capacity, temporal_demand, config=config)
     model.setObjective(firm_lcoe * objective_scale_factor, gp.GRB.MINIMIZE)
 
+    # Add the initializing duration to the dictionary
+    initializing_end = datetime.now()
+    duration["initializing"] = round((initializing_end - initializing_start).total_seconds())
+
     """
     Step 7: Solve model
     """
     # Set the status message and create
     status.update("Optimizing")
+    optimizing_start = datetime.now()
 
     # Create the optimization log expander
     with st.expander(f"{utils.format_resolution(resolution)} resolution"):
@@ -371,35 +380,49 @@ def optimize(config, *, resolution, previous_resolution, status, output_director
     model.write(f"{output_directory}/{resolution}/parameters.prm")
     utils.write_text(output_directory / resolution / "log.txt", "".join(log_messages))
 
+    # Add the optimizing duration to the dictionary
+    optimizing_end = datetime.now()
+    duration["optimizing"] = round((optimizing_end - optimizing_start).total_seconds())
+
     """
     Step 8: Check if the model could be solved
     """
-    if model.status == gp.GRB.INFEASIBLE:
-        return "The model was infeasible"
-    if model.status == gp.GRB.UNBOUNDED:
-        return "The model was unbounded"
-    if model.status == gp.GRB.INF_OR_UNBD:
-        return "The model was either infeasible or unbounded"
-    if model.status == gp.GRB.CUTOFF:
-        return "The optimal objective for the model was worse than the value specified in the Cutoff parameter"
-    if model.status == gp.GRB.ITERATION_LIMIT:
-        return "The optimization terminated because the total number of iterations performed exceeded the value specified in the IterationLimit or BarIterLimit parameter"
-    if model.status == gp.GRB.NODE_LIMIT:
-        return "The optimization terminated because the total number of branch-and-cut nodes explored exceeded the value specified in the NodeLimit parameter"
-    if model.status == gp.GRB.TIME_LIMIT:
-        return f"The optimization terminated due to the time limit in {timedelta(seconds=model.Runtime)}"
-    if model.status == gp.GRB.SOLUTION_LIMIT:
-        return "The optimization terminated because the number of solutions found reached the value specified in the SolutionLimit parameter"
-    if model.status == gp.GRB.INTERRUPTED:
-        return "The optimization was terminated by the user"
-    if model.status == gp.GRB.NUMERIC:
-        return "The optimization was terminated due to unrecoverable numerical difficulties"
-    if model.status != gp.GRB.OPTIMAL and model.status != gp.GRB.SUBOPTIMAL:
-        return "The model could not be solved for an unknown reason"
+    if model.status == gp.GRB.OPTIMAL:
+        error_message = None
+    elif model.status == gp.GRB.INFEASIBLE:
+        error_message = "The model was infeasible"
+    elif model.status == gp.GRB.UNBOUNDED:
+        error_message = "The model was unbounded"
+    elif model.status == gp.GRB.INF_OR_UNBD:
+        error_message = "The model was either infeasible or unbounded"
+    elif model.status == gp.GRB.CUTOFF:
+        error_message = "The optimal objective for the model was worse than the value specified in the Cutoff parameter"
+    elif model.status == gp.GRB.ITERATION_LIMIT:
+        error_message = "The optimization terminated because the total number of iterations performed exceeded the value specified in the IterationLimit or BarIterLimit parameter"
+    elif model.status == gp.GRB.NODE_LIMIT:
+        error_message = "The optimization terminated because the total number of branch-and-cut nodes explored exceeded the value specified in the NodeLimit parameter"
+    elif model.status == gp.GRB.TIME_LIMIT:
+        error_message = f"The optimization terminated due to the time limit in {timedelta(seconds=model.Runtime)}"
+    elif model.status == gp.GRB.SOLUTION_LIMIT:
+        error_message = "The optimization terminated because the number of solutions found reached the value specified in the SolutionLimit parameter"
+    elif model.status == gp.GRB.INTERRUPTED:
+        error_message = "The optimization was terminated by the user"
+    elif model.status == gp.GRB.NUMERIC:
+        error_message = "The optimization was terminated due to unrecoverable numerical difficulties"
+    elif model.status == gp.GRB.SUBOPTIMAL:
+        error_message = "Unable to satisfy optimality tolerances"
+    else:
+        error_message = "The model could not be solved for an unknown reason"
+
+    # Don't store the results if the optimization ended with an error
+    if error_message is not None:
+        error_message = {"duration": duration, "error_message": error_message}
 
     """
     Step 9: Store the results
     """
+    storing_start = datetime.now()
+
     # Make a directory for each type of output
     for sub_directory in ["temporal_results", "temporal_export", "production_capacities", "storage_capacities"]:
         (output_directory / resolution / sub_directory).mkdir()
@@ -433,3 +456,9 @@ def optimize(config, *, resolution, previous_resolution, status, output_director
     if config.get("upload_results", False):
         status.update(f"Uploading the results to Dropbox")
         utils.upload_to_dropbox(output_directory / resolution, output_directory)
+
+    # Add the storing duration to the dictionary
+    storing_end = datetime.now()
+    duration["storing"] = round((storing_end - storing_start).total_seconds())
+
+    return {"duration": duration}
