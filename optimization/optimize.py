@@ -406,7 +406,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_director
 
     # Don't store the results if the optimization ended with an error
     if error_message is not None:
-        error_message = {"duration": duration, "error_message": error_message}
+        return {"duration": duration, "error_message": error_message}
 
     """
     Step 9: Store the results
