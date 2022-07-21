@@ -33,7 +33,7 @@ def sensitivity(output_directory, resolution):
             step_index = [stats.relative_curtailment(output_directory / step, resolution) for step in sensitivity_config["steps"].keys()]
         else:
             step_index = sensitivity_config["steps"].values()
-        steps = pd.Series(data=sensitivity_config["steps"].keys(), index=step_index)
+        steps = pd.Series(data=sensitivity_config["steps"].keys(), index=step_index).sort_index()
 
         # Create the figure for the sensitivity plot
         sensitivity_plot = chart.Chart(xlabel=None, ylabel=None)

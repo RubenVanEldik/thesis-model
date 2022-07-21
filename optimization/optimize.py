@@ -295,23 +295,13 @@ def optimize(config, *, resolution, previous_resolution, status, output_director
             model.addConstr((sum_production - sum_curtailed - sum_storage_flow) / sum_demand >= min_self_sufficiency)
 
     """
-    Step 5: Define the relative curtailment constraint
+    Step 5: Define the storage capacity constraint
     """
-    if config.get("relative_curtailment") is not None:
-        status.update("Adding the curtailment constraint")
+    if config.get("fixed_storage_capacity") is not None:
+        status.update("Adding the storage capacity constraint")
 
-        # Set the variables required to calculate the relative curtailment
-        sum_demand = 0
-        sum_production = 0
-
-        # Loop over all bidding zones
-        for bidding_zone in bidding_zones:
-            sum_demand += temporal_results[bidding_zone]["demand_MW"].sum()
-            sum_production += temporal_results[bidding_zone]["production_total_MW"].sum()
-
-        # Add the curtailment constraint
-        sum_curtailed_estimate = sum_production - sum_demand
-        model.addConstr(sum_curtailed_estimate / sum_demand == config["relative_curtailment"] * sum_production / sum_demand)
+        cumulative_storage_capacity = sum([storage_capacity[bidding_zone].energy.sum() for bidding_zone in bidding_zones])
+        model.addConstr(cumulative_storage_capacity / config["fixed_storage_capacity"][resolution] == 1)
 
     """
     Step 6: Set objective function

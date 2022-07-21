@@ -382,14 +382,7 @@ def is_sensitivity_config(value, *, required=True):
     if not type(value) is dict:
         return False
 
-    if value["analysis_type"] not in ["curtailment", "climate_years", "variables"]:
-        return False
-    if not all(is_string(key) and is_number(value) for key, value in value["steps"].items()):
-        return False
-    if value["analysis_type"] == "variables":
-        if not len(value["variables"]) or not all(type(variable) is str for variable in value["variables"]):
-            return False
-    return True
+    return value["analysis_type"] in ["curtailment", "climate_years", "variables"]
 
 
 def is_series(value, *, required=True):

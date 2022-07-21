@@ -84,9 +84,8 @@ with st.sidebar.expander("Sensitivity analysis"):
 
     # Show the relevant input parameters for each sensitivity analysis type
     if sensitivity_analysis_type == "curtailment":
-        number_steps = st.slider("Number of steps", value=10, min_value=5, max_value=50)
-        sensitity_steps = np.linspace(start=0, stop=0.999, num=number_steps)
-        sensitivity_config["steps"] = {f"{step:.3f}": float(step) for step in sensitity_steps}
+        sensitivity_config["step_factor"] = st.number_input("Step factor", value=1.2, min_value=1.05, step=0.05)
+        sensitivity_config["curtailment_range"] = list(st.slider("Curtailment range", value=(0.05, 0.95), min_value=0.01, max_value=0.99))
     elif sensitivity_analysis_type == "climate_years":
         number_of_climate_years = config["climate_years"]["end"] - config["climate_years"]["start"] + 1
         if number_of_climate_years < 3:
