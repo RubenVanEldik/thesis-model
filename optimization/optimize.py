@@ -443,7 +443,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_director
         temporal_export_connection_type.to_csv(output_directory / resolution / "temporal_export" / f"{connection_type}.csv")
 
     # Upload the output to Dropbox
-    if config.get("upload_results", False):
+    if config["upload_results"]:
         status.update(f"Uploading the results to Dropbox")
         utils.upload_to_dropbox(output_directory / resolution, output_directory)
 

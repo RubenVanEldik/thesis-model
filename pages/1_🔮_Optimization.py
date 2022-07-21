@@ -158,6 +158,9 @@ with st.sidebar.expander("Optimization parameters"):
     config["optimization"]["thread_count"] = st.slider("Thread count", value=cpu_count, min_value=1, max_value=cpu_count)
 
 
+config["upload_results"] = st.sidebar.checkbox("Upload results to Dropbox", disabled=not utils.getenv("DROPBOX_ACCESS_TOKEN"))
+
+
 # Run the model if the button has been pressed
 invalid_config = not validate.is_config(config)
 invalid_sensitivity_config = bool(sensitivity_config) and not validate.is_sensitivity_config(sensitivity_config)
