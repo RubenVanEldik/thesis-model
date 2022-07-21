@@ -50,6 +50,13 @@ def is_bidding_zone_dict(value, *, required=True):
     return all(is_bidding_zone(x) for x in value.keys())
 
 
+def is_breakdown_level(value, *, required=True):
+    if value is None:
+        return not required
+
+    return is_integer(value, min_value=0, max_value=2)
+
+
 def is_color_name(value, *, required=True):
     if value is None:
         return not required

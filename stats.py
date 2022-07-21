@@ -4,13 +4,14 @@ import utils
 import validate
 
 
-def firm_lcoe(output_directory, resolution, *, countries=None):
+def firm_lcoe(output_directory, resolution, *, countries=None, breakdown_level=0):
     """
     Calculate the firm LCOE for a specific run
     """
     assert validate.is_directory_path(output_directory)
     assert validate.is_resolution(resolution)
     assert validate.is_country_code_list(countries, type="nuts_2", required=False)
+    assert validate.is_breakdown_level(breakdown_level)
 
     # Get the capacities and demand
     production_capacity = utils.get_production_capacity(output_directory, resolution, countries=countries)
@@ -22,16 +23,17 @@ def firm_lcoe(output_directory, resolution, *, countries=None):
     config = utils.read_yaml(output_directory / "config.yaml")
 
     # Return the LCOE
-    return utils.calculate_lcoe(production_capacity, storage_capacity, temporal_net_demand, config=config)
+    return utils.calculate_lcoe(production_capacity, storage_capacity, temporal_net_demand, config=config, breakdown_level=breakdown_level)
 
 
-def unconstrained_lcoe(output_directory, resolution, *, countries=None):
+def unconstrained_lcoe(output_directory, resolution, *, countries=None, breakdown_level=0):
     """
     Calculate the unconstrained_lcoe LCOE for a specific run
     """
     assert validate.is_directory_path(output_directory)
     assert validate.is_resolution(resolution)
     assert validate.is_country_code_list(countries, type="nuts_2", required=False)
+    assert validate.is_breakdown_level(breakdown_level)
 
     # Get the capacities and demand
     production_capacity = utils.get_production_capacity(output_directory, resolution, countries=countries)
@@ -41,20 +43,21 @@ def unconstrained_lcoe(output_directory, resolution, *, countries=None):
     config = utils.read_yaml(output_directory / "config.yaml")
 
     # Return the LCOE
-    return utils.calculate_lcoe(production_capacity, storage_capacity, temporal_demand, config=config)
+    return utils.calculate_lcoe(production_capacity, storage_capacity, temporal_demand, config=config, breakdown_level=breakdown_level)
 
 
-def premium(output_directory, resolution, *, countries=None):
+def premium(output_directory, resolution, *, countries=None, breakdown_level=0):
     """
     Calculate the firm kWh premium
     """
     assert validate.is_directory_path(output_directory)
     assert validate.is_resolution(resolution)
     assert validate.is_country_code_list(countries, type="nuts_2", required=False)
+    assert validate.is_breakdown_level(breakdown_level)
 
     # Get the capacities and demand
-    firm_lcoe_result = firm_lcoe(output_directory, resolution, countries=countries)
-    unconstrained_lcoe_result = unconstrained_lcoe(output_directory, resolution, countries=countries)
+    firm_lcoe_result = firm_lcoe(output_directory, resolution, countries=countries, breakdown_level=breakdown_level)
+    unconstrained_lcoe_result = unconstrained_lcoe(output_directory, resolution, countries=countries, breakdown_level=0)
     relative_curtailment_result = relative_curtailment(output_directory, resolution, countries=countries)
 
     # Return the firm kWh premium
