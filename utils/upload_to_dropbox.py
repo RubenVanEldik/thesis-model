@@ -1,4 +1,5 @@
 import dropbox
+import shutil
 
 import utils
 import validate
@@ -11,7 +12,7 @@ if dropbox_access_token:
 
 def upload_to_dropbox(path, dropbox_path):
     """
-    Upload a file or directory (recursively) to Dropbox
+    Upload a file or directory to Dropbox
     """
     assert validate.is_directory_path(path) or validate.is_filepath(path)
     assert validate.is_directory_path(dropbox_path)
@@ -20,14 +21,9 @@ def upload_to_dropbox(path, dropbox_path):
         print("Could not upload to Dropbox because DROPBOX_ACCESS_TOKEN was not set")
         return
 
-    # Add the file/directory name to the Dropbox path
-    dropbox_path /= path.name
-
-    # If the path is a file, upload it
-    if path.is_file() and path.suffix in [".csv", ".yaml", ".png"]:
-        client.files_upload(open(path, "rb").read(), "/" + str(dropbox_path), mute=True)
-
-    # If the path is a directory, call this function for each of its items
-    elif path.is_dir():
-        for path in path.iterdir():
-            upload_to_dropbox(path, dropbox_path)
+    # If the path is a directory upload the files as a ZIP file
+    if path.is_dir():
+        shutil.make_archive(str(path), "zip", str(path))
+        client.files_upload(open(f"{path}.zip", "rb").read(), f"/{dropbox_path / path.name}.zip", mute=True)
+    else:
+        client.files_upload(open(path, "rb").read(), f"/{dropbox_path / path.name}", mute=True)
