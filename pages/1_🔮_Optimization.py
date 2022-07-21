@@ -159,6 +159,7 @@ with st.sidebar.expander("Optimization parameters"):
 
 
 config["upload_results"] = st.sidebar.checkbox("Upload results to Dropbox", disabled=not utils.getenv("DROPBOX_ACCESS_TOKEN"))
+config["send_notification"] = st.sidebar.checkbox("Send a notification when finished", disabled=not utils.getenv("PUSHOVER_USER_KEY") or not utils.getenv("PUSHOVER_API_TOKEN"))
 
 
 # Run the model if the button has been pressed

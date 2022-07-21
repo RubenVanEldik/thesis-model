@@ -46,7 +46,8 @@ def run(config, *, status=None, output_directory):
     # Set the final status and send a message
     if is_standalone_run:
         status.update(f"Optimization has finished and results are stored", type="success")
-        utils.send_notification(f"Optimization '{config['name']}' has finished")
+        if config["send_notification"]:
+            utils.send_notification(f"Optimization '{config['name']}' has finished")
 
 
 def run_sensitivity(config, sensitivity_config):
@@ -96,7 +97,8 @@ def run_sensitivity(config, sensitivity_config):
                 current_curtailment = current_temporal_results.curtailed_MW.sum() / current_temporal_results.production_total_MW.sum()
 
                 # Send the notification
-                utils.send_notification(f"Optimization {formatted_relative_storage_capacity} of '{config['name']}' has finished ({current_curtailment:.2%} curtailment)")
+                if config["send_notification"]:
+                    utils.send_notification(f"Optimization {formatted_relative_storage_capacity} of '{config['name']}' has finished ({current_curtailment:.2%} curtailment)")
 
                 # Break the while loop if the curtailment is out of bounds
                 curtailment_range = sensitivity_config["curtailment_range"]
@@ -126,11 +128,13 @@ def run_sensitivity(config, sensitivity_config):
 
             # Run the optimization
             run(step_config, status=status, output_directory=output_directory / step_key)
-            utils.send_notification(f"Optimization {step_number}/{number_of_steps} of '{config['name']}' has finished")
+            if config["send_notification"]:
+                utils.send_notification(f"Optimization {step_number}/{number_of_steps} of '{config['name']}' has finished")
 
     # Store the sensitivity config file
     utils.write_yaml(output_directory / "sensitivity.yaml", sensitivity_config)
 
     # Set the final status
     status.update(f"Sensitivity analysis has finished and results are stored", type="success")
-    utils.send_notification(f"The '{config['name']}' sensitivity analysis has finished")
+    if config["send_notification"]:
+        utils.send_notification(f"The '{config['name']}' sensitivity analysis has finished")
