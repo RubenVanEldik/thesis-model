@@ -301,7 +301,11 @@ def optimize(config, *, resolution, previous_resolution, status, output_director
         status.update("Adding the storage capacity constraint")
 
         cumulative_storage_capacity = sum([storage_capacity[bidding_zone].energy.sum() for bidding_zone in bidding_zones])
-        model.addConstr(cumulative_storage_capacity / config["fixed_storage_capacity"][resolution] == 1)
+        fixed_storage_capacity = config["fixed_storage_capacity"][resolution]
+        if config["fixed_storage_capacity_direction"] == "gte":
+            model.addConstr(cumulative_storage_capacity / fixed_storage_capacity >= 1)
+        elif config["fixed_storage_capacity_direction"] == "lte":
+            model.addConstr(cumulative_storage_capacity / fixed_storage_capacity <= 1)
 
     """
     Step 6: Set objective function

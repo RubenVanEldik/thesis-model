@@ -87,6 +87,8 @@ def run_sensitivity(config, sensitivity_config):
                 step_config = deepcopy(config)
                 storage_capacity_step = {resolution: float(relative_storage_capacity * optimal_storage_capacity[resolution]) for resolution in optimal_storage_capacity}
                 utils.set_nested_key(step_config, "fixed_storage_capacity", storage_capacity_step)
+                fixed_storage_capacity_direction = "gte" if step_factor > 1 else "lte" if step_factor < 1 else None
+                utils.set_nested_key(step_config, "fixed_storage_capacity_direction", fixed_storage_capacity_direction)
 
                 # Run the optimization
                 output_directory_step = output_directory / formatted_relative_storage_capacity
