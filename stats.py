@@ -55,9 +55,10 @@ def premium(output_directory, resolution, *, countries=None):
     # Get the capacities and demand
     firm_lcoe_result = firm_lcoe(output_directory, resolution, countries=countries)
     unconstrained_lcoe_result = unconstrained_lcoe(output_directory, resolution, countries=countries)
+    relative_curtailment_result = relative_curtailment(output_directory, resolution, countries=countries)
 
     # Return the firm kWh premium
-    return firm_lcoe_result / unconstrained_lcoe_result
+    return firm_lcoe_result / unconstrained_lcoe_result / relative_curtailment_result
 
 
 def relative_curtailment(output_directory, resolution, *, countries=None):
