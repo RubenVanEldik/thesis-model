@@ -9,7 +9,7 @@ import utils
 import validate
 
 
-def optimize(config, *, resolution, previous_resolution, status, output_directory, numeric_focus=0):
+def optimize(config, *, resolution, previous_resolution, status, output_directory):
     """
     Create and run the model
     """
@@ -37,7 +37,6 @@ def optimize(config, *, resolution, previous_resolution, status, output_director
     is_last_resolution = resolution == utils.get_sorted_resolution_stages(config, descending=True)[-1]
     model.setParam("Crossover", 0 if is_last_resolution else -1)
     model.setParam("BarConvTol", 10 ** -8 * objective_scale_factor if is_last_resolution else 10 ** -8)
-    model.setParam("NumericFocus", numeric_focus)
     model.setParam("BarHomogeneous", 1)  # Don't know what this does, but it speeds up some more complex models
     model.setParam("Aggregate", 0)  # Don't know what this does, but it speeds up some more complex models
     model.setParam("Presolve", 2)  # Use an aggressive presolver
@@ -363,7 +362,13 @@ def optimize(config, *, resolution, previous_resolution, status, output_director
                 print(f"   {log_message}", end="")
 
     # Run the model
-    model.optimize(optimization_callback)
+    for numeric_focus in range(0, 4):
+        model.setParam("NumericFocus", numeric_focus)
+        model.optimize(optimization_callback)
+
+        # Break the loop when no numerical issues were found
+        if model.status != gp.GRB.NUMERIC:
+            break
 
     # Store the LP model and optimization log
     (output_directory / resolution).mkdir(parents=True)
@@ -399,9 +404,6 @@ def optimize(config, *, resolution, previous_resolution, status, output_director
     elif model.status == gp.GRB.INTERRUPTED:
         error_message = "The optimization was terminated by the user"
     elif model.status == gp.GRB.NUMERIC:
-        # Rerun the optimization with an increased numerical focus
-        if numeric_focus < 3:
-            return optimize(config, resolution=resolution, previous_resolution=previous_resolution, status=status, output_directory=output_directory, numeric_focus=numeric_focus + 1)
         error_message = "The optimization was terminated due to unrecoverable numerical difficulties"
     elif model.status == gp.GRB.SUBOPTIMAL:
         error_message = "Unable to satisfy optimality tolerances"
