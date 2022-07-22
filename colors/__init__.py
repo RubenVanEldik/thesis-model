@@ -18,6 +18,33 @@ def get(color, value, *, alpha=1):
     return f"{colors.loc[value, color]}{alpha_hex}"
 
 
+def primary(*, alpha=0.8):
+    """
+    Get the primary color
+    """
+    assert validate.is_number(alpha, min_value=0, max_value=1)
+
+    return get("blue", 700, alpha=alpha)
+
+
+def secondary(*, alpha=0.8):
+    """
+    Get the secondary color
+    """
+    assert validate.is_number(alpha, min_value=0, max_value=1)
+
+    return get("green", 700, alpha=alpha)
+
+
+def tertiary(*, alpha=0.8):
+    """
+    Get the tertiary color
+    """
+    assert validate.is_number(alpha, min_value=0, max_value=1)
+
+    return get("gray", 500, alpha=alpha)
+
+
 def technology_type(technology_type, *, alpha=0.8):
     """
     Get the color for a specific technology type
