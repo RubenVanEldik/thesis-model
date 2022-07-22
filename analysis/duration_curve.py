@@ -86,7 +86,7 @@ def duration_curve(output_directory, resolution):
 
     # Plot the unity line
     if unity_line:
-        waterfall_plot.ax.axhline(y=1, color=colors.get(red, 600), linewidth=1)
+        waterfall_plot.ax.axhline(y=1, color=colors.get("red", 600), linewidth=1)
 
     # Format the axes to be percentages
     waterfall_plot.format_xticklabels("{:,.0%}")
