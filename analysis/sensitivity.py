@@ -73,6 +73,13 @@ def sensitivity(output_directory, resolution):
             sensitivity_plot.ax.set_ylabel(f"Storage capacity ({unit})")
             sensitivity_plot.ax.legend()
 
+        # Set the range of the y-axis
+        col1, col2 = st.sidebar.columns(2)
+        default_y_limits = sensitivity_plot.ax.get_ylim()
+        y_min = col1.number_input("Min y-axis", value=default_y_limits[0])
+        y_max = col2.number_input("Max y-axis", value=default_y_limits[1])
+        sensitivity_plot.set_y_limits(y_min=y_min, y_max=y_max)
+
         # Format the axes
         if sensitivity_config["analysis_type"] == "curtailment":
             sensitivity_plot.ax.set_xlabel("Curtailment (%)")
