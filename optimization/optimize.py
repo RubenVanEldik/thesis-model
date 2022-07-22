@@ -376,9 +376,10 @@ def optimize(config, *, resolution, previous_resolution, status, output_director
 
     # Store the LP model and optimization log
     (output_directory / resolution).mkdir(parents=True)
-    model.write(f"{output_directory}/{resolution}/model.mps")
-    model.write(f"{output_directory}/{resolution}/parameters.prm")
     utils.write_text(output_directory / resolution / "log.txt", "".join(log_messages))
+    if config["optimization"]["store_model"]:
+        model.write(f"{output_directory}/{resolution}/model.mps")
+        model.write(f"{output_directory}/{resolution}/parameters.prm")
 
     # Add the optimizing duration to the dictionary
     optimizing_end = datetime.now()

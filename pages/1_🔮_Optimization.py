@@ -157,7 +157,11 @@ with st.sidebar.expander("Optimization parameters"):
     cpu_count = os.cpu_count()
     config["optimization"]["thread_count"] = st.slider("Thread count", value=cpu_count, min_value=1, max_value=cpu_count)
 
+    # Check if the optimization data should be stored
+    config["optimization"]["store_model"] = st.checkbox("Store optimization data")
 
+
+# Check if a notification should be send and results uploaded when the model finishes
 config["upload_results"] = st.sidebar.checkbox("Upload results to Dropbox", disabled=not utils.getenv("DROPBOX_ACCESS_TOKEN"))
 config["send_notification"] = st.sidebar.checkbox("Send a notification when finished", disabled=not utils.getenv("PUSHOVER_USER_KEY") or not utils.getenv("PUSHOVER_API_TOKEN"))
 
