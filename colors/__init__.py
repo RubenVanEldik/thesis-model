@@ -18,22 +18,23 @@ def get(color, value, *, alpha=1):
     return f"{colors.loc[value, color]}{alpha_hex}"
 
 
-def technology(technology_name):
+def technology(technology_name, *, alpha=0.8):
     """
     Get the color for a specific technology
     """
     assert validate.is_technology(technology_name)
+    assert validate.is_number(alpha, min_value=0, max_value=1)
 
     if technology_name == "pv":
-        return get("amber", 400)
+        return get("amber", 400, alpha=alpha)
     if technology_name == "onshore":
-        return get("sky", 400)
+        return get("sky", 400, alpha=alpha)
     if technology_name == "offshore":
-        return get("teal", 700)
+        return get("teal", 700, alpha=alpha)
     if technology_name == "lion":
-        return get("rose", 500)
+        return get("rose", 500, alpha=alpha)
     if technology_name == "hydrogen":
-        return get("indigo", 600)
+        return get("indigo", 600, alpha=alpha)
 
 
 def list():
