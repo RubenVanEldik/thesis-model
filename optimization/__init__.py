@@ -68,6 +68,10 @@ def run_sensitivity(config, sensitivity_config):
         run(config, status=status, output_directory=output_directory / "1.000")
         optimal_storage_capacity = {resolution: utils.get_storage_capacity(output_directory / "1.000", resolution, group="all").energy.sum() for resolution in config["time_discretization"]["resolution_stages"]}
 
+        # Send the notification
+        if config["send_notification"]:
+            utils.send_notification(f"Optimization 1.000 of '{config['name']}' has finished")
+
         # Add the steps dictionary to the sensitivity config
         sensitivity_config["steps"] = {"1.000": 1.0}
 
