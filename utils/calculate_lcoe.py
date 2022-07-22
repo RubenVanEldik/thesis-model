@@ -13,7 +13,7 @@ def _calculate_annualized_production_costs(production_technologies, production_c
     assert validate.is_dataframe(production_capacity_MW, column_validator=validate.is_technology)
 
     # Calculate the total annual production costs
-    annualized_costs_production = pd.Series([])
+    annualized_costs_production = pd.Series([], dtype="float64")
     for technology, assumptions in production_technologies.items():
         capacity_kW = production_capacity_MW[technology].sum() * 1000
         capex = capacity_kW * assumptions["capex"]
@@ -32,7 +32,7 @@ def _calculate_annualized_storage_costs(storage_technologies, storage_capacity_M
     assert validate.is_dataframe(storage_capacity_MWh)
 
     # Calculate the total annual storage costs
-    annualized_costs_storage = pd.Series([])
+    annualized_costs_storage = pd.Series([], dtype="float64")
     for technology, assumptions in storage_technologies.items():
         capacity_energy_kWh = storage_capacity_MWh.loc[technology, "energy"] * 1000
         capacity_power_kW = storage_capacity_MWh.loc[technology, "power"] * 1000
