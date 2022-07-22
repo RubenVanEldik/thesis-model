@@ -11,3 +11,4 @@ input/interconnections/
 output/
 tuning/
 cli/
+*.tar

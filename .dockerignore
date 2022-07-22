@@ -1,0 +1,12 @@
+.git
+
+env
+
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+
+input/eraa
+input/*/2025
+output
