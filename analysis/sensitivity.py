@@ -38,20 +38,41 @@ def sensitivity(output_directory, resolution):
         # Create the figure for the sensitivity plot
         sensitivity_plot = chart.Chart(xlabel=None, ylabel=None)
 
+        # Ask for the breakdown level and if the cumulative results should be shown
+        if statistic_name in ["firm_lcoe", "unconstrained_lcoe", "premium"]:
+            breakdown_level_options = {0: "Off", 1: "Production and storage", 2: "Technologies"}
+            breakdown_level = st.sidebar.selectbox("Breakdown level", breakdown_level_options, format_func=lambda key: breakdown_level_options[key])
+            if breakdown_level in [1, 2]:
+                show_cumulative_results = st.sidebar.checkbox("Show cumulative results")
+
         # Add the output for the sensitivity steps to the sensitivity plot
-        if statistic_name == "firm_lcoe":
-            data = steps.apply(lambda step: stats.firm_lcoe(output_directory / step, resolution))
-            sensitivity_plot.ax.set_ylabel("Firm LCOE (€/MWh)")
-            sensitivity_plot.ax.plot(data, color=colors.get("blue", 700))
-        if statistic_name == "unconstrained_lcoe":
-            data = steps.apply(lambda step: stats.unconstrained_lcoe(output_directory / step, resolution))
-            sensitivity_plot.ax.set_ylabel("Unconstrained LCOE (€/MWh)")
-            sensitivity_plot.ax.plot(data, color=colors.get("blue", 700))
-        if statistic_name == "premium":
-            data = steps.apply(lambda step: stats.premium(output_directory / step, resolution))
-            sensitivity_plot.ax.set_ylabel("Premium (%)")
-            sensitivity_plot.ax.plot(data, color=colors.get("blue", 700))
-            sensitivity_plot.format_yticklabels("{:,.0%}")
+        if statistic_name in ["firm_lcoe", "unconstrained_lcoe", "premium"]:
+            # Get the data and set the label
+            if statistic_name == "firm_lcoe":
+                sensitivity_plot.ax.set_ylabel("Firm LCOE (€/MWh)")
+                data = steps.apply(lambda step: stats.firm_lcoe(output_directory / step, resolution, breakdown_level=breakdown_level))
+            if statistic_name == "unconstrained_lcoe":
+                sensitivity_plot.ax.set_ylabel("Unconstrained LCOE (€/MWh)")
+                data = steps.apply(lambda step: stats.unconstrained_lcoe(output_directory / step, resolution, breakdown_level=breakdown_level))
+            if statistic_name == "premium":
+                sensitivity_plot.ax.set_ylabel("Premium (%)")
+                data = steps.apply(lambda step: stats.premium(output_directory / step, resolution, breakdown_level=breakdown_level))
+
+            # Plot the data depending on the breakdown level
+            if breakdown_level == 0:
+                sensitivity_plot.ax.plot(data, color=colors.primary())
+            elif breakdown_level == 1:
+                if show_cumulative_results:
+                    sensitivity_plot.ax.plot(data.sum(axis=1), color=colors.tertiary(), label="Total")
+                sensitivity_plot.ax.plot(data["production"], color=colors.technology_type("production"), label="Production")
+                sensitivity_plot.ax.plot(data["storage"], color=colors.technology_type("storage"), label="Storage")
+                sensitivity_plot.ax.legend()
+            else:
+                if show_cumulative_results:
+                    sensitivity_plot.ax.plot(data.sum(axis=1), color=colors.tertiary(), label="Total")
+                for technology in data:
+                    sensitivity_plot.ax.plot(data[technology], color=colors.technology(technology), label=utils.labelize_technology(technology))
+                sensitivity_plot.ax.legend()
         if statistic_name == "relative_curtailment":
             data = steps.apply(lambda step: stats.relative_curtailment(output_directory / step, resolution))
             sensitivity_plot.ax.set_ylabel("Relative curtailment (%)")
