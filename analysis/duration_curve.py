@@ -79,10 +79,10 @@ def duration_curve(output_directory, resolution):
 
     # Plot a line for each column (country)
     if individual_lines:
-        waterfall_plot.ax.plot(waterfall_df, color=colors.get("blue", 300), linewidth=1)
+        waterfall_plot.ax.plot(waterfall_df, color=colors.primary(alpha=0.5), linewidth=1)
 
     # Plot the mean values
-    waterfall_plot.ax.plot(waterfall_df.mean(axis=1), color=colors.get("blue", 700))
+    waterfall_plot.ax.plot(waterfall_df.mean(axis=1), color=colors.primary())
 
     # Plot the unity line
     if unity_line:

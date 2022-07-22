@@ -55,7 +55,7 @@ def sensitivity(output_directory, resolution):
         if statistic_name == "relative_curtailment":
             data = steps.apply(lambda step: stats.relative_curtailment(output_directory / step, resolution))
             sensitivity_plot.ax.set_ylabel("Relative curtailment (%)")
-            sensitivity_plot.ax.plot(data, color=colors.get("blue", 700))
+            sensitivity_plot.ax.plot(data, color=colors.primary())
             sensitivity_plot.format_yticklabels("{:,.0%}")
         if statistic_name == "production_capacity":
             data = steps.apply(lambda step: pd.Series(stats.production_capacity(output_directory / step, resolution))) / 1000
