@@ -18,6 +18,19 @@ def get(color, value, *, alpha=1):
     return f"{colors.loc[value, color]}{alpha_hex}"
 
 
+def technology_type(technology_type, *, alpha=0.8):
+    """
+    Get the color for a specific technology type
+    """
+    assert validate.is_technology_type(technology_type)
+    assert validate.is_number(alpha, min_value=0, max_value=1)
+
+    if technology_type == "production":
+        return get("blue", 600, alpha=alpha)
+    if technology_type == "storage":
+        return get("red", 600, alpha=alpha)
+
+
 def technology(technology_name, *, alpha=0.8):
     """
     Get the color for a specific technology
