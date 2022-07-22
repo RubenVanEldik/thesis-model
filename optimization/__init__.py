@@ -36,6 +36,8 @@ def run(config, *, status=None, output_directory):
         error_message = results[resolution].get("error_message")
         if error_message:
             status.update(error_message, type="error")
+            if config["send_notification"]:
+                utils.send_notification(error_message)
             return
 
         previous_resolution = resolution
