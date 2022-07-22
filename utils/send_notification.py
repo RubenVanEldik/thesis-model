@@ -19,4 +19,7 @@ def send_notification(message):
 
     # Send the message if the client has been intialized
     if "client" in globals():
-        client.send_message(message, title="Thesis model")
+        try:
+            client.send_message(message, title="Thesis model")
+        except ConnectionError:
+            print("Could not send the notification due to an connection error")
