@@ -12,6 +12,6 @@ def find_common_columns(dfs):
         if common_columns is None:
             common_columns = df.columns
         else:
-            common_columns = common_columns & df.columns
+            common_columns = common_columns.intersection(df.columns)
 
     return list(common_columns)
