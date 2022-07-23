@@ -10,5 +10,4 @@ input/bidding_zones/
 input/interconnections/
 output/
 tuning/
-cli/
 *.tar

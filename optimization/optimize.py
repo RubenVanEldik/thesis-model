@@ -360,10 +360,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_director
             log_messages.append(log_message)
 
             # Show the log message in the UI or console
-            if st._is_running_with_streamlit:
-                info.code("".join(log_messages))
-            else:
-                print(f"   {log_message}", end="")
+            info.code("".join(log_messages))
 
     # Run the model
     for numeric_focus in range(0, 4):
