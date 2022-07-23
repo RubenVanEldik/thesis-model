@@ -12,4 +12,4 @@ RUN pip install --no-cache-dir -r /app/requirements.txt
 COPY . /app
 
 # Command used to start the application
-CMD ["streamlit", "run", "🌤️_Introduction.py", "--server.address", "0.0.0.0", "--server.port", "8080"]
+CMD ["streamlit", "run", "🌤️_Introduction.py", "--server.address", "0.0.0.0", "--server.port", "8501"]
