@@ -15,7 +15,7 @@ def set_nested_key(dict, key_string, value):
     # For each key in key_string set here to its value
     for key in keys[:-1]:
         if here.get(key) is None:
-            raise ValueError(f"Can not find '{key}' in '{key_string}'")
+            here[key] = {}
         here = here[key]
 
     # Set the final key to the given value
