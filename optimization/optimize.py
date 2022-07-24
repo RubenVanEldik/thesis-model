@@ -295,17 +295,21 @@ def optimize(config, *, resolution, previous_resolution, status, output_director
             model.addConstr((sum_production - sum_curtailed - sum_storage_flow) / sum_demand >= min_self_sufficiency)
 
     """
-    Step 5: Define the storage capacity constraint
+    Step 5: Define the storage costs constraint
     """
-    if config.get("fixed_storage_capacity") is not None:
-        status.update("Adding the storage capacity constraint")
+    if config.get("fixed_storage") is not None:
+        status.update("Adding the storage costs constraint")
 
-        cumulative_storage_capacity = sum([storage_capacity[bidding_zone].energy.sum() for bidding_zone in bidding_zones])
-        fixed_storage_capacity = config["fixed_storage_capacity"][resolution]
-        if config["fixed_storage_capacity_direction"] == "gte":
-            model.addConstr(cumulative_storage_capacity / fixed_storage_capacity >= 1)
-        elif config["fixed_storage_capacity_direction"] == "lte":
-            model.addConstr(cumulative_storage_capacity / fixed_storage_capacity <= 1)
+        # Calculate the storage costs
+        temporal_demand = utils.merge_dataframes_on_column(temporal_results, "demand_MW")
+        storage_costs = utils.calculate_lcoe(production_capacity, storage_capacity, temporal_demand, config=config, breakdown_level=1)["storage"]
+
+        # Add a constraint so the storage costs are either smaller or larger than the fixed storage costs
+        fixed_storage_costs = config["fixed_storage"]["costs"][resolution]
+        if config["fixed_storage"]["direction"] == "gte":
+            model.addConstr(storage_costs >= fixed_storage_costs)
+        elif config["fixed_storage"]["direction"] == "lte":
+            model.addConstr(storage_costs <= fixed_storage_costs)
 
     """
     Step 6: Set objective function

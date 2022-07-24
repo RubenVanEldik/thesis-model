@@ -2,6 +2,7 @@ from copy import deepcopy
 import pandas as pd
 import streamlit as st
 
+import stats
 import utils
 import validate
 
@@ -64,11 +65,11 @@ def run_sensitivity(config, sensitivity_config):
 
     # Run a specific sensitivity analysis for the curtailment
     if sensitivity_config["analysis_type"] == "curtailment":
-        # Calculate the optimal storage capacity
+        # Calculate the optimal storage costs
         st.subheader(f"Sensitivity run 1.000")
         highest_resolution = utils.get_sorted_resolution_stages(config)[0]
         run(config, status=status, output_directory=output_directory / "1.000")
-        optimal_storage_capacity = {resolution: utils.get_storage_capacity(output_directory / "1.000", resolution, group="all").energy.sum() for resolution in config["time_discretization"]["resolution_stages"]}
+        optimal_storage_costs = {resolution: stats.firm_lcoe(output_directory / "1.000", resolution, breakdown_level=1)["storage"] for resolution in config["time_discretization"]["resolution_stages"]}
 
         # Send the notification
         if config["send_notification"]:
@@ -77,27 +78,27 @@ def run_sensitivity(config, sensitivity_config):
         # Add the steps dictionary to the sensitivity config
         sensitivity_config["steps"] = {"1.000": 1.0}
 
-        # Run the sensitivity analysis incrementally for storage capacity values both larger and smaller than the optimal
+        # Run the sensitivity analysis incrementally for storage cost values both larger and smaller than the optimal
         for step_factor in [sensitivity_config["step_factor"], 1 / sensitivity_config["step_factor"]]:
-            # Set the first relative_storage_capacity to the step factor
-            relative_storage_capacity = step_factor
+            # Set the first relative_storage_costs to the step factor
+            relative_storage_costs = step_factor
 
             while True:
-                formatted_relative_storage_capacity = f"{relative_storage_capacity:.3f}"
-                st.subheader(f"Sensitivity run {formatted_relative_storage_capacity}")
+                step_key = f"{relative_storage_costs:.3f}"
+                st.subheader(f"Sensitivity run {step_key}")
 
                 # Add the step to the sensitivity config
-                sensitivity_config["steps"][formatted_relative_storage_capacity] = relative_storage_capacity
+                sensitivity_config["steps"][step_key] = relative_storage_costs
 
-                # Set the total storage capacity for this step
+                # Set the total storage costs for this step
                 step_config = deepcopy(config)
-                storage_capacity_step = {resolution: float(relative_storage_capacity * optimal_storage_capacity[resolution]) for resolution in optimal_storage_capacity}
-                utils.set_nested_key(step_config, "fixed_storage_capacity", storage_capacity_step)
-                fixed_storage_capacity_direction = "gte" if step_factor > 1 else "lte" if step_factor < 1 else None
-                utils.set_nested_key(step_config, "fixed_storage_capacity_direction", fixed_storage_capacity_direction)
+                storage_costs_step = {resolution: float(relative_storage_costs * optimal_storage_costs[resolution]) for resolution in optimal_storage_costs}
+                utils.set_nested_key(step_config, "fixed_storage.costs", storage_costs_step)
+                fixed_storage_costs_direction = "gte" if step_factor > 1 else "lte" if step_factor < 1 else None
+                utils.set_nested_key(step_config, "fixed_storage.direction", fixed_storage_costs_direction)
 
                 # Run the optimization
-                output_directory_step = output_directory / formatted_relative_storage_capacity
+                output_directory_step = output_directory / step_key
                 run(step_config, status=status, output_directory=output_directory_step)
 
                 # Calculate the curtailment
@@ -106,7 +107,7 @@ def run_sensitivity(config, sensitivity_config):
 
                 # Send the notification
                 if config["send_notification"]:
-                    utils.send_notification(f"Optimization {formatted_relative_storage_capacity} of '{config['name']}' has finished ({current_curtailment:.2%} curtailment)")
+                    utils.send_notification(f"Optimization {step_key} of '{config['name']}' has finished ({current_curtailment:.2%} curtailment)")
 
                 # Break the while loop if the curtailment is out of bounds
                 curtailment_range = sensitivity_config["curtailment_range"]
@@ -114,7 +115,7 @@ def run_sensitivity(config, sensitivity_config):
                     break
 
                 # Update the relative storage capacity for the next pass
-                relative_storage_capacity *= step_factor
+                relative_storage_costs *= step_factor
 
     # Otherwise run the general sensitivity analysis
     else:
