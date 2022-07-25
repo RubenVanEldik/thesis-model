@@ -18,7 +18,7 @@ def correlation(output_directory, resolution):
 
     # Show a warning message if the run only includes one country
     config = utils.read_yaml(output_directory / "config.yaml")
-    if len(config["countries"]) == 1:
+    if len(config["country_codes"]) == 1:
         st.warning("The correlation plot is only available for runs that include multiple countries.")
         return
 

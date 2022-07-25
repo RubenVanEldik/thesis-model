@@ -82,7 +82,7 @@ def is_config(value, *, required=True):
         return False
     if not is_model_year(value.get("model_year")):
         return False
-    if not is_country_obj_list(value.get("countries")):
+    if not is_country_code_list(value.get("country_codes"), type="nuts_2"):
         return False
     if not is_dict(value.get("climate_years")):
         return False

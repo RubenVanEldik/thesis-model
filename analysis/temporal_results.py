@@ -18,8 +18,8 @@ def temporal_results(output_directory, resolution):
     # Get temporal results for a country
     all_temporal_results = utils.get_temporal_results(output_directory, resolution, group="country")
     config = utils.read_yaml(output_directory / "config.yaml")
-    country = st.sidebar.selectbox("Country", config["countries"], format_func=lambda country: country["name"])
-    temporal_results = all_temporal_results[country["nuts_2"]]
+    country_code = st.sidebar.selectbox("Country", config["country_codes"], format_func=lambda country_code: utils.get_country_property(country_code, "name"))
+    temporal_results = all_temporal_results[country_code]
 
     # Filter the data columns
     temporal_results.columns = [utils.format_column_name(column_name) for column_name in temporal_results.columns]

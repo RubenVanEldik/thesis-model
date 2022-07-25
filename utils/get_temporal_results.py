@@ -5,23 +5,23 @@ import validate
 
 
 @st.experimental_memo
-def get_temporal_results(output_directory, resolution, *, group=None, countries=None):
+def get_temporal_results(output_directory, resolution, *, group=None, country_codes=None):
     """
     Return the (grouped) production capacity
     """
     assert validate.is_directory_path(output_directory)
     assert validate.is_resolution(resolution)
     assert validate.is_aggregation_level(group, required=False)
-    assert validate.is_country_code_list(countries, type="nuts_2", required=False)
+    assert validate.is_country_code_list(country_codes, type="nuts_2", required=False)
 
     # If no countries are specified, set them to all countries modelled in this run
-    if not countries:
+    if not country_codes:
         config = utils.read_yaml(output_directory / "config.yaml")
-        countries = [country["nuts_2"] for country in config["countries"]]
+        country_codes = config["country_codes"]
 
     # Get the temporal data for each bidding zone
     temporal_results = {}
-    for bidding_zone in utils.get_bidding_zones_for_countries(countries):
+    for bidding_zone in utils.get_bidding_zones_for_countries(country_codes):
         filepath = output_directory / resolution / "temporal_results" / f"{bidding_zone}.csv"
         temporal_results[bidding_zone] = utils.read_temporal_data(filepath)
 

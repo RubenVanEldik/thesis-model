@@ -28,8 +28,8 @@ def _select_data(output_directory, resolution, *, name):
         statistic_method = getattr(stats, statistic_type)
 
         # Calculate the statistics for each country and convert them into a Series
-        countries = utils.read_yaml(output_directory / "config.yaml")["countries"]
-        return pd.Series({country["nuts_2"]: statistic_method(output_directory, resolution, countries=[country["nuts_2"]]) for country in countries})
+        country_codes = utils.read_yaml(output_directory / "config.yaml")["country_codes"]
+        return pd.Series({country_code: statistic_method(output_directory, resolution, country_codes=[country_code]) for country_code in country_codes})
 
     if data_source == "Temporal results":
         # Get the temporal results

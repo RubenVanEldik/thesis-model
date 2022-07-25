@@ -40,9 +40,8 @@ def get_export_limits(bidding_zone, *, config, type, index, direction="export"):
     export_limits = _read_and_map_export_limits(model_year=config["model_year"], type=type, timestamps=index.to_series())
 
     relevant_interconnections = []
-    for country in config["countries"]:
-        for zone in country["bidding_zones"]:
-            interconnection = (bidding_zone, zone) if direction == "export" else (zone, bidding_zone)
-            if interconnection in export_limits.columns:
-                relevant_interconnections.append(interconnection)
+    for zone in utils.get_bidding_zones_for_countries(config["country_codes"]):
+        interconnection = (bidding_zone, zone) if direction == "export" else (zone, bidding_zone)
+        if interconnection in export_limits.columns:
+            relevant_interconnections.append(interconnection)
     return export_limits[relevant_interconnections]

@@ -51,7 +51,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_director
     production_capacity = {}
     storage_capacity = {}
 
-    bidding_zones = [bidding_zone for country in config["countries"] for bidding_zone in country["bidding_zones"]]
+    bidding_zones = utils.get_bidding_zones_for_countries(config["country_codes"])
     for index, bidding_zone in enumerate(bidding_zones):
         """
         Step 2A: Import the temporal data
@@ -270,11 +270,9 @@ def optimize(config, *, resolution, previous_resolution, status, output_director
     Step 4: Define the self-sufficiency constraints per country
     """
     if config["interconnections"]["min_self_sufficiency"] > 0:
-        for country in config["countries"]:
-            status.update(f"{country['flag']} Adding self-sufficiency constraint")
-
-            # Get the bidding zones for the country
-            bidding_zones_in_country = utils.get_bidding_zones_for_countries([country["nuts_2"]])
+        for country_code in config["country_codes"]:
+            country_flag = utils.get_country_property(country_code, "flag")
+            status.update(f"{country_flag} Adding self-sufficiency constraint")
 
             # Set the variables required to calculate the cumulative results in the country
             sum_demand = 0
@@ -283,7 +281,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_director
             sum_storage_flow = 0
 
             # Loop over all bidding zones in the country
-            for bidding_zone in bidding_zones_in_country:
+            for bidding_zone in utils.get_bidding_zones_for_countries([country_code]):
                 # Calculate the total demand and non-curtailed production in this country
                 sum_demand += temporal_results[bidding_zone].demand_MW.sum()
                 sum_production += temporal_results[bidding_zone].production_total_MW.sum()
