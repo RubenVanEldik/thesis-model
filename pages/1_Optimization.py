@@ -73,7 +73,7 @@ with st.sidebar.expander("Interconnections"):
 # Set the sensitivity analysis options
 with st.sidebar.expander("Sensitivity analysis"):
     # Enable/disable the sensitivity analysis
-    sensitivity_analysis_types = {None: "-", "curtailment": "Curtailment", "climate_years": "Climate years", "technology_scenario": "Technology scenario", "variables": "Variables"}
+    sensitivity_analysis_types = {None: "-", "curtailment": "Curtailment", "climate_years": "Climate years", "technology_scenario": "Technology scenario", "interconnection_capacity": "Interconnection capacity", "self_sufficiency": "Self sufficiency"}
     sensitivity_analysis_type = st.selectbox("Sensitivity type", sensitivity_analysis_types.keys(), format_func=lambda key: sensitivity_analysis_types[key])
 
     # Initialize the sensitivity_config if an analysis type has been specified
@@ -99,33 +99,13 @@ with st.sidebar.expander("Sensitivity analysis"):
             sensitivity_config["steps"] = {str(step): step for step in range(1, number_of_climate_years + 1, step_size)}
     elif sensitivity_analysis_type == "technology_scenario":
         st.warning("The technology scenario sensitivity analysis has not yet been implemented")
-    elif sensitivity_analysis_type == "variables":
-        # Create a dictionary with the sensitivity options
-        sensitivity_options = {}
-        sensitivity_options["interconnections.relative_capacity"] = "Interconnection capacity"
-        sensitivity_options["interconnections.efficiency.hvac"] = "HVAC efficiency"
-        sensitivity_options["interconnections.efficiency.hvdc"] = "HVDC efficiency"
-        for production_technology in config["technologies"]["production"]:
-            production_technology_label = utils.labelize_technology(production_technology)
-            sensitivity_options[f"technologies.production.{production_technology}.economic_lifetime"] = f"{production_technology_label} - Economic lifetime"
-            sensitivity_options[f"technologies.production.{production_technology}.capex"] = f"{production_technology_label} - CAPEX"
-            sensitivity_options[f"technologies.production.{production_technology}.fixed_om"] = f"{production_technology_label} - Fixed O&M"
-            sensitivity_options[f"technologies.production.{production_technology}.variable_om"] = f"{production_technology_label} - Variable O&M"
-            sensitivity_options[f"technologies.production.{production_technology}.wacc"] = f"{production_technology_label} - WACC"
-        for storage_technology in config["technologies"]["storage"]:
-            storage_technology_label = utils.labelize_technology(storage_technology)
-            sensitivity_options[f"technologies.storage.{storage_technology}.economic_lifetime"] = f"{storage_technology_label} - Economic lifetime"
-            sensitivity_options[f"technologies.storage.{storage_technology}.energy_capex"] = f"{storage_technology_label} - Energy CAPEX"
-            sensitivity_options[f"technologies.storage.{storage_technology}.power_capex"] = f"{storage_technology_label} - Power CAPEX"
-            sensitivity_options[f"technologies.storage.{storage_technology}.fixed_om"] = f"{storage_technology_label} - Fixed O&M"
-            sensitivity_options[f"technologies.storage.{storage_technology}.roundtrip_efficiency"] = f"{storage_technology_label} - Roundtrip efficiency"
-            sensitivity_options[f"technologies.storage.{storage_technology}.wacc"] = f"{storage_technology_label} - WACC"
-
-        # Select the sensitivity variables
-        sensitivity_config["variables"] = st.multiselect("Variables", sensitivity_options.keys(), format_func=lambda key: sensitivity_options[key])
-
-        # Select the sensitivity range and steps
-        sensitivity_start, sensitivity_stop = st.slider("Relative range", value=(0.5, 1.5), min_value=0.0, max_value=2.0, step=0.05)
+    elif sensitivity_analysis_type == "interconnection_capacity":
+        sensitivity_start, sensitivity_stop = st.slider("Interconnection capacity range", value=(0.0, 2.0), min_value=0.0, max_value=2.0, step=0.05)
+        number_steps = st.slider("Number of steps", value=10, min_value=5, max_value=50)
+        sensitity_steps = np.linspace(start=sensitivity_start, stop=sensitivity_stop, num=number_steps)
+        sensitivity_config["steps"] = {f"{step:.3f}": float(step) for step in sensitity_steps}
+    elif sensitivity_analysis_type == "self_sufficiency":
+        sensitivity_start, sensitivity_stop = st.slider("Self sufficiency range", value=(0.0, 1.0), min_value=0.0, max_value=1.0, step=0.05)
         number_steps = st.slider("Number of steps", value=10, min_value=5, max_value=50)
         sensitity_steps = np.linspace(start=sensitivity_start, stop=sensitivity_stop, num=number_steps)
         sensitivity_config["steps"] = {f"{step:.3f}": float(step) for step in sensitity_steps}

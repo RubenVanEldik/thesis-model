@@ -130,10 +130,10 @@ def run_sensitivity(config, sensitivity_config):
             if sensitivity_config["analysis_type"] == "climate_years":
                 last_climate_year = utils.get_nested_key(step_config, "climate_years.end")
                 utils.set_nested_key(step_config, "climate_years.start", last_climate_year - (step_value - 1))
-            elif sensitivity_config["analysis_type"] == "variables":
-                for variable_key in sensitivity_config["variables"]:
-                    variable_value = utils.get_nested_key(step_config, variable_key)
-                    utils.set_nested_key(step_config, variable_key, variable_value * step_value)
+            elif sensitivity_config["analysis_type"] == "interconnection_capacity":
+                utils.set_nested_key(step_config, "interconnections.relative_capacity", step_value)
+            elif sensitivity_config["analysis_type"] == "self_sufficiency":
+                utils.set_nested_key(step_config, "interconnections.min_self_sufficiency", step_value)
 
             # Run the optimization
             run(step_config, status=status, output_directory=output_directory / step_key)
