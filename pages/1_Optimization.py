@@ -41,8 +41,8 @@ with st.sidebar.expander("Technologies"):
     config["technologies"] = {}
 
     # Select the scenario
-    scenario = st.select_slider("Scenario", options=["conservative", "moderate", "advanced"], value="moderate", format_func=utils.format_str)
-    config["technologies"]["scenario"] = scenario
+    scenario_levels = {-1: "Conservative", 0: "Moderate", 1: "Advanced"}
+    scenario_level = st.select_slider("Scenario", options=scenario_levels.keys(), value=0, format_func=lambda key: scenario_levels[key])
 
     # Select the production technologies
     col1, col2 = st.columns(2)
@@ -51,7 +51,7 @@ with st.sidebar.expander("Technologies"):
     production_technology_options = utils.read_yaml(utils.path("input", "technologies", "production.yaml")).keys()
     for technology in production_technology_options:
         if col1.checkbox(utils.labelize_technology(technology), value=True):
-            config["technologies"]["production"][technology] = utils.get_technology_assumptions("production", technology, scenario=scenario)
+            config["technologies"]["production"][technology] = scenario_level
 
     # Select the storage technologies
     col2.subheader("Storage")
@@ -59,7 +59,7 @@ with st.sidebar.expander("Technologies"):
     storage_technologies_options = utils.read_yaml(utils.path("input", "technologies", "storage.yaml")).keys()
     for technology in storage_technologies_options:
         if col2.checkbox(utils.labelize_technology(technology), value=True):
-            config["technologies"]["storage"][technology] = utils.get_technology_assumptions("storage", technology, scenario=scenario)
+            config["technologies"]["storage"][technology] = scenario_level
 
 # Set the interconnection options
 with st.sidebar.expander("Interconnections"):

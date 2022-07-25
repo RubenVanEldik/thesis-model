@@ -5,6 +5,37 @@ import utils
 import validate
 
 
+def _calculate_crf(assumptions):
+    """
+    Calculate the Capital Recovery Factor for a specic set of technology assumptions
+    """
+    assert validate.is_dict(assumptions)
+
+    wacc = assumptions["wacc"]
+    economic_lifetime = assumptions["economic_lifetime"]
+    return wacc / (1 - (1 + wacc) ** (-economic_lifetime))
+
+
+def _calculate_scenario_costs(assumptions, variable, scenario_level):
+    """
+    Calculate the costs for a given scenario level
+    """
+    assert validate.is_dict(assumptions)
+    assert validate.is_string(variable)
+    assert validate.is_number(scenario_level, min_value=-1, max_value=1)
+
+    if scenario_level == -1:
+        return assumptions["conservative"][variable]
+    elif scenario_level == 0:
+        return assumptions["moderate"][variable]
+    elif scenario_level == 1:
+        return assumptions["advanced"][variable]
+    elif scenario_level > 0:
+        return (1 - scenario_level) * assumptions["moderate"][variable] + scenario_level * assumptions["advanced"][variable]
+    elif scenario_level < 0:
+        return (1 + scenario_level) * assumptions["moderate"][variable] - scenario_level * assumptions["conservative"][variable]
+
+
 def _calculate_annualized_production_costs(production_technologies, production_capacity_MW):
     """
     Calculate the annualized production costs
@@ -12,13 +43,16 @@ def _calculate_annualized_production_costs(production_technologies, production_c
     assert validate.is_dict(production_technologies)
     assert validate.is_dataframe(production_capacity_MW, column_validator=validate.is_technology)
 
+    # Read the production assumptions
+    production_assumptions = utils.read_yaml(utils.path("input", "technologies", "production.yaml"))
+
     # Calculate the total annual production costs
     annualized_costs_production = pd.Series([], dtype="float64")
-    for technology, assumptions in production_technologies.items():
+    for technology, scenario_level in production_technologies.items():
         capacity_kW = production_capacity_MW[technology].sum() * 1000
-        capex = capacity_kW * assumptions["capex"]
-        fixed_om = capacity_kW * assumptions["fixed_om"]
-        crf = assumptions["crf"]
+        capex = capacity_kW * _calculate_scenario_costs(production_assumptions[technology], "capex", scenario_level)
+        fixed_om = capacity_kW * _calculate_scenario_costs(production_assumptions[technology], "fixed_om", scenario_level)
+        crf = _calculate_crf(production_assumptions[technology])
         annualized_costs_production[technology] = crf * capex + fixed_om
 
     return annualized_costs_production
@@ -31,17 +65,20 @@ def _calculate_annualized_storage_costs(storage_technologies, storage_capacity_M
     assert validate.is_dict(storage_technologies)
     assert validate.is_dataframe(storage_capacity_MWh)
 
+    # Read the storage assumptions
+    storage_assumptions = utils.read_yaml(utils.path("input", "technologies", "storage.yaml"))
+
     # Calculate the total annual storage costs
     annualized_costs_storage = pd.Series([], dtype="float64")
-    for technology, assumptions in storage_technologies.items():
+    for technology, scenario_level in storage_technologies.items():
         capacity_energy_kWh = storage_capacity_MWh.loc[technology, "energy"] * 1000
         capacity_power_kW = storage_capacity_MWh.loc[technology, "power"] * 1000
 
-        capex_energy = capacity_energy_kWh * assumptions["energy_capex"]
-        capex_power = capacity_power_kW * assumptions["power_capex"]
+        capex_energy = capacity_energy_kWh * _calculate_scenario_costs(storage_assumptions[technology], "energy_capex", scenario_level)
+        capex_power = capacity_power_kW * _calculate_scenario_costs(storage_assumptions[technology], "power_capex", scenario_level)
         capex = capex_energy + capex_power
-        fixed_om = capex * assumptions["fixed_om"]
-        crf = assumptions["crf"]
+        fixed_om = capex * storage_assumptions[technology]["fixed_om"]
+        crf = _calculate_crf(storage_assumptions[technology])
         annualized_costs_storage[technology] = crf * capex + fixed_om
 
     return annualized_costs_storage

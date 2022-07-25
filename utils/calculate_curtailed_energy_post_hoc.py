@@ -1,3 +1,4 @@
+import utils
 import validate
 
 
@@ -20,10 +21,13 @@ def calculate_curtailed_energy_post_hoc(row, *, config):
             if net_export < 0:
                 interconnection_losses += (1 / efficiency - 1) * abs(net_export)
 
+    # Read the storage assumptions
+    storage_assumptions = utils.read_yaml(utils.path("input", "technologies", "storage.yaml"))
+
     # Calculate the actual storage losses
     storage_losses = 0
     for storage_technology in config["technologies"]["storage"]:
-        efficiency = config["technologies"]["storage"][storage_technology]["roundtrip_efficiency"] ** 0.5
+        efficiency = storage_assumptions[storage_technology]["roundtrip_efficiency"] ** 0.5
         net_storage_flow = row[f"net_storage_flow_{storage_technology}_MW"]
         if net_storage_flow > 0:
             storage_losses += (1 - efficiency) * net_storage_flow

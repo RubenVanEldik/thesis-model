@@ -92,6 +92,10 @@ def is_config(value, *, required=True):
         return False
     if value["climate_years"]["start"] > value["climate_years"]["end"]:
         return False
+    if len(value.get("technologies").get("production")) == 0:
+        return False
+    if len(value.get("technologies").get("storage")) == 0:
+        return False
     if not is_dict(value.get("time_discretization")):
         return False
     if not is_resolution_stages(value["time_discretization"].get("resolution_stages")):

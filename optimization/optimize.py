@@ -70,7 +70,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_director
         temporal_results[bidding_zone] = temporal_data[bidding_zone].loc[:, ["demand_MW"]]
 
         # Create a DataFrame for the production capacities
-        production_capacity[bidding_zone] = pd.DataFrame(columns=config["technologies"]["production"].keys())
+        production_capacity[bidding_zone] = pd.DataFrame(columns=config["technologies"]["production"])
 
         if previous_resolution:
             # Get the temporal results from the previous run
@@ -138,7 +138,8 @@ def optimize(config, *, resolution, previous_resolution, status, output_director
             status.update(f"{country_flag} Adding {utils.labelize_technology(storage_technology, capitalize=False)} storage")
 
             # Get the specific storage assumptions
-            assumptions = config["technologies"]["storage"][storage_technology]
+            storage_assumptions = utils.read_yaml(utils.path("input", "technologies", "storage.yaml"))[storage_technology]
+            efficiency = storage_assumptions["roundtrip_efficiency"] ** 0.5
             timestep_hours = pd.Timedelta(resolution).total_seconds() / 3600
 
             # Create a variable for the energy and power storage capacity
@@ -182,12 +183,11 @@ def optimize(config, *, resolution, previous_resolution, status, output_director
 
                 # Add the SOC constraint with regard to the previous timestamp
                 if energy_stored_previous:
-                    efficiency = assumptions["roundtrip_efficiency"] ** 0.5
                     model.addConstr(energy_stored_current == energy_stored_previous + (inflow[timestamp] * efficiency - outflow[timestamp] / efficiency) * timestep_hours)
 
                 # Add the energy capacity constraints (can't be added when the flow variables are defined because it's a gurobipy.Var)
-                model.addConstr(energy_stored_current >= assumptions["soc_min"] * energy_capacity)
-                model.addConstr(energy_stored_current <= assumptions["soc_max"] * energy_capacity)
+                model.addConstr(energy_stored_current >= storage_assumptions["soc_min"] * energy_capacity)
+                model.addConstr(energy_stored_current <= storage_assumptions["soc_max"] * energy_capacity)
 
                 # Add the power capacity constraints (can't be added when the flow variables are defined because it's a gurobipy.Var)
                 model.addConstr(inflow[timestamp] <= power_capacity)
