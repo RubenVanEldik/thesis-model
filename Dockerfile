@@ -12,4 +12,4 @@ RUN pip install --no-cache-dir -r /app/requirements.txt
 COPY . /app
 
 # Command used to start the application
-CMD "cd app; streamlit run Introduction.py"
+CMD "streamlit run Introduction.py"
