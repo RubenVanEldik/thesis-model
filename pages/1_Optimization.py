@@ -141,7 +141,8 @@ with st.sidebar.expander("Optimization parameters"):
 
 
 # Check if a notification should be send and results uploaded when the model finishes
-config["upload_results"] = st.sidebar.checkbox("Upload results to Dropbox", disabled=not utils.getenv("DROPBOX_ACCESS_TOKEN"))
+dropbox_keys_available = utils.getenv("DROPBOX_APP_KEY") and utils.getenv("DROPBOX_APP_SECRET") and utils.getenv("DROPBOX_REFRESH_TOKEN")
+config["upload_results"] = st.sidebar.checkbox("Upload results to Dropbox", disabled=not dropbox_keys_available)
 config["send_notification"] = st.sidebar.checkbox("Send a notification when finished", disabled=not utils.getenv("PUSHOVER_USER_KEY") or not utils.getenv("PUSHOVER_API_TOKEN"))
 
 
