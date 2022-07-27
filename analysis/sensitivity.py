@@ -109,6 +109,10 @@ def sensitivity(output_directory, resolution):
         sensitivity_plot.ax.set_xlabel("Number of climate years")
     elif sensitivity_config["analysis_type"] == "technology_scenario":
         sensitivity_plot.ax.set_xlabel("Technology scenario")
+    elif sensitivity_config["analysis_type"] == "baseload":
+        sensitivity_plot.ax.set_xlabel("Relative baseload (%)")
+        sensitivity_plot.format_xticklabels("{:,.0%}")
+        sensitivity_plot.set_x_limits(x_min=0, x_max=1)
     elif sensitivity_config["analysis_type"] == "interconnection_capacity":
         sensitivity_plot.ax.set_xlabel("Relative interconnection capacity (%)")
         sensitivity_plot.format_xticklabels("{:,.0%}")

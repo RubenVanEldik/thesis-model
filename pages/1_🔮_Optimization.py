@@ -75,7 +75,7 @@ with st.sidebar.expander("Interconnections"):
 # Set the sensitivity analysis options
 with st.sidebar.expander("Sensitivity analysis"):
     # Enable/disable the sensitivity analysis
-    sensitivity_analysis_types = {None: "-", "curtailment": "Curtailment", "climate_years": "Climate years", "technology_scenario": "Technology scenario", "interconnection_capacity": "Interconnection capacity", "self_sufficiency": "Self sufficiency"}
+    sensitivity_analysis_types = {None: "-", "curtailment": "Curtailment", "climate_years": "Climate years", "technology_scenario": "Technology scenario", "baseload": "Baseload", "interconnection_capacity": "Interconnection capacity", "self_sufficiency": "Self sufficiency"}
     sensitivity_analysis_type = st.selectbox("Sensitivity type", sensitivity_analysis_types.keys(), format_func=lambda key: sensitivity_analysis_types[key])
 
     # Initialize the sensitivity_config if an analysis type has been specified
@@ -99,6 +99,11 @@ with st.sidebar.expander("Sensitivity analysis"):
             step_size = st.select_slider("Number of steps", step_size_options[::-1], value=1, format_func=lambda step_size: int(((number_of_climate_years - 1) / step_size) + 1))
             # Use the step size to calculate the sensitivity steps and add them to the config
             sensitivity_config["steps"] = {str(step): step for step in range(1, number_of_climate_years + 1, step_size)}
+    elif sensitivity_analysis_type == "baseload":
+        sensitivity_start, sensitivity_stop = st.slider("Relative baseload range", value=(0.0, 0.95), min_value=0.0, max_value=0.95, step=0.05)
+        number_steps = st.slider("Number of steps", value=10, min_value=5, max_value=50)
+        sensitity_steps = np.linspace(start=sensitivity_start, stop=sensitivity_stop, num=number_steps)
+        sensitivity_config["steps"] = {f"{step:.3f}": float(step) for step in sensitity_steps}
     elif sensitivity_analysis_type == "technology_scenario":
         st.warning("The technology scenario sensitivity analysis has not yet been implemented")
     elif sensitivity_analysis_type == "interconnection_capacity":
