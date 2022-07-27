@@ -215,7 +215,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_director
         for connection_type in ["hvac", "hvdc"]:
             status.update(f"{country_flag} Adding {connection_type.upper()} interconnections")
             # Get the export limits
-            temporal_export_limits = utils.get_export_limits(bidding_zone, type=connection_type, index=temporal_results[bidding_zone].index, config=config)
+            temporal_export_limits = utils.get_export_limits(bidding_zone, connection_type=connection_type, index=temporal_results[bidding_zone].index, config=config)
             # Multiply the export limits with the relative capacity factor
             temporal_export_limits *= config["interconnections"]["relative_capacity"]
             # Create the variables for the export variables
