@@ -126,7 +126,7 @@ if not utils.validate_files(demand_filenames):
         _download_data(demand_data_url, input_directory, demand_filenames)
 
 # Download the climate files
-climate_filenames = [utils.path(input_directory, "Climate Data", f"PECD_{type}_{year}_edition 2021.3.xlsx") for year in years for type in ["LFSolarPV", "Onshore", "Offshore"]]
+climate_filenames = [utils.path(input_directory, "Climate Data", f"PECD_{production_type}_{year}_edition 2021.3.xlsx") for year in years for production_type in ["LFSolarPV", "Onshore", "Offshore"]]
 if not utils.validate_files(climate_filenames):
     st.warning("The climate files could not be found.")
 
