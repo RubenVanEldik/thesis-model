@@ -20,14 +20,14 @@ def format_resolution(resolution):
 
     # Get the magnitude and type
     magnitude = groups.group(1)
-    type = groups.group(2)
+    resolution_type = groups.group(2)
 
     # Return the formatted resolution for hours, days, and weeks
-    if type == "H":
+    if resolution_type == "H":
         return f"{magnitude} hour{'' if int(magnitude) == 1 else 's'}"
-    if type == "D":
+    if resolution_type == "D":
         return f"{magnitude} day{'' if int(magnitude) == 1 else 's'}"
-    if type == "W":
+    if resolution_type == "W":
         return f"{magnitude} week{'' if int(magnitude) == 1 else 's'}"
 
     # Return the original resolution string if the type is not hour, day, or week
