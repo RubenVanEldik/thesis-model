@@ -50,7 +50,7 @@ with st.sidebar.expander("Technologies"):
     config["technologies"]["production"] = {}
     production_technology_options = utils.read_yaml(utils.path("input", "technologies", "production.yaml")).keys()
     for technology in production_technology_options:
-        if col1.checkbox(utils.labelize_technology(technology), value=True):
+        if col1.checkbox(utils.format_technology(technology), value=True):
             config["technologies"]["production"][technology] = scenario_level
 
     # Select the storage technologies
@@ -58,7 +58,7 @@ with st.sidebar.expander("Technologies"):
     config["technologies"]["storage"] = {}
     storage_technologies_options = utils.read_yaml(utils.path("input", "technologies", "storage.yaml")).keys()
     for technology in storage_technologies_options:
-        if col2.checkbox(utils.labelize_technology(technology), value=True):
+        if col2.checkbox(utils.format_technology(technology), value=True):
             config["technologies"]["storage"][technology] = scenario_level
 
 # Set the interconnection options

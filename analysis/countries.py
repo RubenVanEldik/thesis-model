@@ -48,7 +48,7 @@ def _select_data(output_directory, resolution, *, name):
         production_capacity = utils.get_production_capacity(output_directory, resolution, group="country")
 
         # Get the specific technologies
-        selected_production_types = col2.multiselect("Type", production_capacity.columns, format_func=utils.labelize_technology, key=name)
+        selected_production_types = col2.multiselect("Type", production_capacity.columns, format_func=utils.format_technology, key=name)
 
         # Return the sum the capacities of all selected technologies
         if selected_production_types:
@@ -69,7 +69,7 @@ def _select_data(output_directory, resolution, *, name):
             storage_capacity_aggregated.loc[country_code] = storage_capacity[country_code][energy_or_power]
 
         # Get the specific technologies
-        selected_storage_types = col2.multiselect("Type", storage_capacity_aggregated.columns, format_func=utils.labelize_technology, key=name)
+        selected_storage_types = col2.multiselect("Type", storage_capacity_aggregated.columns, format_func=utils.format_technology, key=name)
 
         # Return the sum the capacities of all selected technologies
         if selected_storage_types:

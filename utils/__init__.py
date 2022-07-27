@@ -11,6 +11,7 @@ from .find_common_columns import find_common_columns
 from .format_column_name import format_column_name
 from .format_resolution import format_resolution
 from .format_str import format_str
+from .format_technology import format_technology
 from .get_bidding_zones_for_countries import get_bidding_zones_for_countries
 from .get_country_of_bidding_zone import get_country_of_bidding_zone
 from .get_country_property import get_country_property
@@ -25,7 +26,6 @@ from .get_production_potential_in_climate_zone import get_production_potential_i
 from .get_sorted_resolution_stages import get_sorted_resolution_stages
 from .get_storage_capacity import get_storage_capacity
 from .getenv import getenv
-from .labelize_technology import labelize_technology
 from .merge_dataframes_on_column import merge_dataframes_on_column
 from .path import path
 from .preprocess_bidding_zone import preprocess_bidding_zone

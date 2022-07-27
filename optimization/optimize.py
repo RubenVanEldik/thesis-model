@@ -103,7 +103,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_director
         """
         temporal_results[bidding_zone]["production_total_MW"] = 0
         for production_technology in config["technologies"]["production"]:
-            status.update(f"{country_flag} Adding {utils.labelize_technology(production_technology, capitalize=False)} production")
+            status.update(f"{country_flag} Adding {utils.format_technology(production_technology, capitalize=False)} production")
 
             # Create a capacity variable for each climate zone
             climate_zones = [re.match(f"{production_technology}_(.+)_cf", column).group(1) for column in temporal_data[bidding_zone].columns if column.startswith(f"{production_technology}_")]
@@ -135,7 +135,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_director
 
         # Add the variables and constraints for all storage technologies
         for storage_technology in config["technologies"]["storage"]:
-            status.update(f"{country_flag} Adding {utils.labelize_technology(storage_technology, capitalize=False)} storage")
+            status.update(f"{country_flag} Adding {utils.format_technology(storage_technology, capitalize=False)} storage")
 
             # Get the specific storage assumptions
             storage_assumptions = utils.read_yaml(utils.path("input", "technologies", "storage.yaml"))[storage_technology]

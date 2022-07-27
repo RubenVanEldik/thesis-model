@@ -70,7 +70,7 @@ def sensitivity(output_directory, resolution):
             if show_cumulative_results:
                 sensitivity_plot.ax.plot(data.sum(axis=1), color=colors.tertiary(), label="Total")
             for technology in data:
-                sensitivity_plot.ax.plot(data[technology], color=colors.technology(technology), label=utils.labelize_technology(technology))
+                sensitivity_plot.ax.plot(data[technology], color=colors.technology(technology), label=utils.format_technology(technology))
             sensitivity_plot.ax.legend()
     if statistic_name == "relative_curtailment":
         data = steps.apply(lambda step: stats.relative_curtailment(output_directory / step, resolution))
@@ -80,7 +80,7 @@ def sensitivity(output_directory, resolution):
     if statistic_name == "production_capacity":
         data = steps.apply(lambda step: pd.Series(stats.production_capacity(output_directory / step, resolution))) / 1000
         for production_technology in data:
-            sensitivity_plot.ax.plot(data[production_technology], color=colors.technology(production_technology), label=utils.labelize_technology(production_technology))
+            sensitivity_plot.ax.plot(data[production_technology], color=colors.technology(production_technology), label=utils.format_technology(production_technology))
         sensitivity_plot.ax.set_ylabel("Production capacity (GW)")
         sensitivity_plot.ax.legend()
     if statistic_name == "storage_capacity":
@@ -88,7 +88,7 @@ def sensitivity(output_directory, resolution):
         data = steps.apply(lambda step: pd.Series(stats.storage_capacity(output_directory / step, resolution, storage_type=storage_capacity_type)))
         data = data / 10 ** 6 if storage_capacity_type == "energy" else data / 10 ** 3
         for storage_technology in data:
-            sensitivity_plot.ax.plot(data[storage_technology], color=colors.technology(storage_technology), label=utils.labelize_technology(storage_technology))
+            sensitivity_plot.ax.plot(data[storage_technology], color=colors.technology(storage_technology), label=utils.format_technology(storage_technology))
         unit = "TWh" if storage_capacity_type == "energy" else "GW"
         sensitivity_plot.ax.set_ylabel(f"Storage capacity ({unit})")
         sensitivity_plot.ax.legend()

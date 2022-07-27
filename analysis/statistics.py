@@ -74,7 +74,7 @@ def statistics(output_directory, resolution):
                     metric_value = f"{production_capacity[technology] / 1000:,.0f}GW"
 
             # Set the metric
-            cols[index].metric(utils.labelize_technology(technology), metric_value)
+            cols[index].metric(utils.format_technology(technology), metric_value)
 
     # Show the storage capacities
     with st.expander("Storage capacity", expanded=True):
@@ -104,4 +104,4 @@ def statistics(output_directory, resolution):
                     metric_value = f"{storage_capacity[technology] / 1000:,.0f}MWh"
 
             # Set the metric
-            cols[index].metric(f"{utils.labelize_technology(technology)} {storage_type}", metric_value)
+            cols[index].metric(f"{utils.format_technology(technology)} {storage_type}", metric_value)

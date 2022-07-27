@@ -1,9 +1,9 @@
 import validate
 
 
-def labelize_technology(key, *, capitalize=True):
+def format_technology(key, *, capitalize=True):
     """
-    Return the label for a specific technology key
+    Format the name of a specific technology
     """
     assert validate.is_technology(key)
     assert validate.is_bool(capitalize)
