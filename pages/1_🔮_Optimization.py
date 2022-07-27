@@ -44,6 +44,9 @@ with st.sidebar.expander("Technologies"):
     scenario_levels = {-1: "Conservative", 0: "Moderate", 1: "Advanced"}
     scenario_level = st.select_slider("Scenario", options=scenario_levels.keys(), value=0, format_func=lambda key: scenario_levels[key])
 
+    # Select the relative share of baseload
+    config["technologies"]["relative_baseload"] = st.slider("Relative baseload", min_value=0.0, max_value=0.95, step=0.05)
+
     # Select the production technologies
     col1, col2 = st.columns(2)
     col1.subheader("Production")

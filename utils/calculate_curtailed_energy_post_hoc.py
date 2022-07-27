@@ -10,7 +10,7 @@ def calculate_curtailed_energy_post_hoc(row, *, config):
     assert validate.is_config(config)
 
     # Calculate the total energy losses
-    total_losses = row.production_total_MW - row.demand_MW
+    total_losses = row.baseload_MW + row.production_total_MW - row.demand_MW
 
     # Calculate the actual interconnection losses
     interconnection_losses = 0

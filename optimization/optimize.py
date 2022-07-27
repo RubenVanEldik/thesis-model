@@ -68,6 +68,8 @@ def optimize(config, *, resolution, previous_resolution, status, output_director
         temporal_data[bidding_zone] = temporal_data[bidding_zone][~((temporal_data[bidding_zone].index.month == 2) & (temporal_data[bidding_zone].index.day == 29))]
         # Create an temporal_results DataFrame with the demand_MW column
         temporal_results[bidding_zone] = temporal_data[bidding_zone].loc[:, ["demand_MW"]]
+        # Calculate the energy covered by the baseload
+        temporal_results[bidding_zone]["baseload_MW"] = temporal_results[bidding_zone].demand_MW * config["technologies"]["relative_baseload"]
 
         # Create a DataFrame for the production capacities
         production_capacity[bidding_zone] = pd.DataFrame(columns=config["technologies"]["production"])
@@ -260,10 +262,10 @@ def optimize(config, *, resolution, previous_resolution, status, output_director
                 temporal_results[bidding_zone]["net_export_MW"] += temporal_results[bidding_zone][column_name]
 
         # Add the demand constraint
-        temporal_results[bidding_zone].apply(lambda row: model.addConstr(row.production_total_MW - row.net_storage_flow_total_MW - row.net_export_MW >= row.demand_MW), axis=1)
+        temporal_results[bidding_zone].apply(lambda row: model.addConstr(row.baseload_MW + row.production_total_MW - row.net_storage_flow_total_MW - row.net_export_MW >= row.demand_MW), axis=1)
 
         # Calculate the curtailed energy per hour
-        curtailed_MW = temporal_results[bidding_zone].production_total_MW - temporal_results[bidding_zone].demand_MW - temporal_results[bidding_zone].net_storage_flow_total_MW - temporal_results[bidding_zone].net_export_MW
+        curtailed_MW = temporal_results[bidding_zone].baseload_MW + temporal_results[bidding_zone].production_total_MW - temporal_results[bidding_zone].demand_MW - temporal_results[bidding_zone].net_storage_flow_total_MW - temporal_results[bidding_zone].net_export_MW
         temporal_results[bidding_zone].insert(temporal_results[bidding_zone].columns.get_loc("production_total_MW"), "curtailed_MW", curtailed_MW)
 
     """
@@ -276,6 +278,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_director
 
             # Set the variables required to calculate the cumulative results in the country
             sum_demand = 0
+            sum_baseload = 0
             sum_production = 0
             sum_curtailed = 0
             sum_storage_flow = 0
@@ -284,13 +287,14 @@ def optimize(config, *, resolution, previous_resolution, status, output_director
             for bidding_zone in utils.get_bidding_zones_for_countries([country_code]):
                 # Calculate the total demand and non-curtailed production in this country
                 sum_demand += temporal_results[bidding_zone].demand_MW.sum()
+                sum_baseload += temporal_results[bidding_zone].baseload_MW.sum()
                 sum_production += temporal_results[bidding_zone].production_total_MW.sum()
                 sum_curtailed += temporal_results[bidding_zone].curtailed_MW.sum()
                 sum_storage_flow += temporal_results[bidding_zone].net_storage_flow_total_MW.sum()
 
             # Add the self-sufficiency constraint
             min_self_sufficiency = config["interconnections"]["min_self_sufficiency"]
-            model.addConstr((sum_production - sum_curtailed - sum_storage_flow) / sum_demand >= min_self_sufficiency)
+            model.addConstr((sum_baseload + sum_production - sum_curtailed - sum_storage_flow) / sum_demand >= min_self_sufficiency)
 
     """
     Step 5: Define the storage costs constraint
@@ -299,8 +303,8 @@ def optimize(config, *, resolution, previous_resolution, status, output_director
         status.update("Adding the storage costs constraint")
 
         # Calculate the storage costs
-        temporal_demand = utils.merge_dataframes_on_column(temporal_results, "demand_MW")
-        storage_costs = utils.calculate_lcoe(production_capacity, storage_capacity, temporal_demand, config=config, breakdown_level=1)["storage"]
+        temporal_net_demand = utils.merge_dataframes_on_column(temporal_results, "demand_MW") - utils.merge_dataframes_on_column(temporal_results, "baseload_MW")
+        storage_costs = utils.calculate_lcoe(production_capacity, storage_capacity, temporal_net_demand, config=config, breakdown_level=1)["storage"]
 
         # Add a constraint so the storage costs are either smaller or larger than the fixed storage costs
         fixed_storage_costs = config["fixed_storage"]["costs"][resolution]
@@ -313,8 +317,8 @@ def optimize(config, *, resolution, previous_resolution, status, output_director
     Step 6: Set objective function
     """
     status.update("Setting the objective function")
-    temporal_demand = utils.merge_dataframes_on_column(temporal_results, "demand_MW")
-    firm_lcoe = utils.calculate_lcoe(production_capacity, storage_capacity, temporal_demand, config=config)
+    temporal_net_demand = utils.merge_dataframes_on_column(temporal_results, "demand_MW") - utils.merge_dataframes_on_column(temporal_results, "baseload_MW")
+    firm_lcoe = utils.calculate_lcoe(production_capacity, storage_capacity, temporal_net_demand, config=config)
     model.setObjective(firm_lcoe * objective_scale_factor, gp.GRB.MINIMIZE)
 
     # Add the initializing duration to the dictionary
