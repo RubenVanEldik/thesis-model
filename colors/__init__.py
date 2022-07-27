@@ -33,7 +33,7 @@ def secondary(*, alpha=0.8):
     """
     assert validate.is_number(alpha, min_value=0, max_value=1)
 
-    return get("green", 700, alpha=alpha)
+    return get("green", 600, alpha=alpha)
 
 
 def tertiary(*, alpha=0.8):
