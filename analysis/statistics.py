@@ -84,7 +84,7 @@ def statistics(output_directory, resolution):
         storage_type = "power" if show_power_capacity else "energy"
 
         # Get the storage capacities
-        storage_capacity = stats.storage_capacity(output_directory, resolution, type=storage_type, country_codes=selected_country_codes)
+        storage_capacity = stats.storage_capacity(output_directory, resolution, storage_type=storage_type, country_codes=selected_country_codes)
 
         # Create the storage capacity columns
         cols = st.columns(max(len(storage_capacity), 3))

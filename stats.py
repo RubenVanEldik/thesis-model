@@ -88,13 +88,13 @@ def production_capacity(output_directory, resolution, *, country_codes=None):
     return production_capacity.to_dict()
 
 
-def storage_capacity(output_directory, resolution, *, type, country_codes=None):
+def storage_capacity(output_directory, resolution, *, storage_type, country_codes=None):
     """
     Return a dictionary with the storage capacity per storage type for either 'energy' or 'power'
     """
     assert validate.is_directory_path(output_directory)
     assert validate.is_resolution(resolution)
-    assert validate.is_string(type)
+    assert validate.is_string(storage_type)
     assert validate.is_country_code_list(country_codes, code_type="nuts_2", required=False)
 
     storage_capacity = utils.get_storage_capacity(output_directory, resolution, group="all", country_codes=country_codes)
@@ -103,7 +103,7 @@ def storage_capacity(output_directory, resolution, *, type, country_codes=None):
     if storage_capacity is None:
         return {}
 
-    return storage_capacity[type].to_dict()
+    return storage_capacity[storage_type].to_dict()
 
 
 def self_sufficiency(output_directory, resolution, *, country_codes=None):
