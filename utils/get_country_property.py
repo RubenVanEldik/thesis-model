@@ -7,7 +7,7 @@ def get_country_property(country_code, key, *, code_type="nuts_2"):
     Get a specific property of a country via its code
     """
     assert validate.is_country_code_type(code_type)
-    assert validate.is_country_code(country_code, type=code_type)
+    assert validate.is_country_code(country_code, code_type=code_type)
     assert validate.is_string(key)
 
     # Read the countries

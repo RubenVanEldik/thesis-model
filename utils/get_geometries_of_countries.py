@@ -6,7 +6,7 @@ def get_geometries_of_countries(country_codes):
     """
     Return a geopandas DataFrame with the geometries for the specified countries
     """
-    assert validate.is_country_code_list(country_codes, type="nuts_2")
+    assert validate.is_country_code_list(country_codes, code_type="nuts_2")
 
     # Get a list of all included geographic units and all excluded geographic sub-units
     included_geographic_units = []

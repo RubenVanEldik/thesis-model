@@ -82,7 +82,7 @@ def is_config(value, *, required=True):
         return False
     if not is_model_year(value.get("model_year")):
         return False
-    if not is_country_code_list(value.get("country_codes"), type="nuts_2"):
+    if not is_country_code_list(value.get("country_codes"), code_type="nuts_2"):
         return False
     if not is_dict(value.get("climate_years")):
         return False
@@ -109,25 +109,25 @@ def is_config(value, *, required=True):
     return True
 
 
-def is_country_code(value, *, required=True, type):
+def is_country_code(value, *, required=True, code_type):
     if value is None:
         return not required
 
-    if type == "nuts_2":
+    if code_type == "nuts_2":
         return bool(re.search("^[A-Z]{2}$", value))
-    if type == "alpha_3":
+    if code_type == "alpha_3":
         return bool(re.search("^[A-Z]{3}$", value))
     return False
 
 
-def is_country_code_list(value, *, required=True, type):
+def is_country_code_list(value, *, required=True, code_type):
     if value is None:
         return not required
 
     if not is_list_like(value):
         return False
 
-    return all(is_country_code(code, type=type) for code in value)
+    return all(is_country_code(code, code_type=code_type) for code in value)
 
 
 def is_country_code_type(value, *, required=True):
