@@ -36,7 +36,7 @@ def run(config, *, status=None, output_directory):
         # Stop the run if an error occured during the optimization of one of the resolutions
         error_message = results[resolution].get("error_message")
         if error_message:
-            status.update(error_message, type="error")
+            status.update(error_message, status_type="error")
             if config["send_notification"]:
                 utils.send_notification(error_message)
             return
@@ -48,7 +48,7 @@ def run(config, *, status=None, output_directory):
 
     # Set the final status and send a message
     if is_standalone_run:
-        status.update(f"Optimization has finished and results are stored", type="success")
+        status.update(f"Optimization has finished and results are stored", status_type="success")
         if config["send_notification"]:
             utils.send_notification(f"Optimization '{config['name']}' has finished")
 
@@ -144,6 +144,6 @@ def run_sensitivity(config, sensitivity_config):
     utils.write_yaml(output_directory / "sensitivity.yaml", sensitivity_config)
 
     # Set the final status
-    status.update(f"Sensitivity analysis has finished and results are stored", type="success")
+    status.update(f"Sensitivity analysis has finished and results are stored", status_type="success")
     if config["send_notification"]:
         utils.send_notification(f"The '{config['name']}' sensitivity analysis has finished")
