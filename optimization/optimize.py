@@ -69,7 +69,7 @@ def optimize(config, *, resolution, previous_resolution, status, output_director
         # Create an temporal_results DataFrame with the demand_MW column
         temporal_results[bidding_zone] = temporal_data[bidding_zone].loc[:, ["demand_MW"]]
         # Calculate the energy covered by the baseload
-        temporal_results[bidding_zone]["baseload_MW"] = temporal_results[bidding_zone].demand_MW * config["technologies"]["relative_baseload"]
+        temporal_results[bidding_zone]["baseload_MW"] = temporal_results[bidding_zone].demand_MW.mean() * config["technologies"]["relative_baseload"]
 
         # Create a DataFrame for the production capacities
         production_capacity[bidding_zone] = pd.DataFrame(columns=config["technologies"]["production"])
